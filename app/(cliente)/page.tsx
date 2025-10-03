@@ -77,7 +77,7 @@ export default function HomePage() {
           precosData?.map((p: any) => [p.produto_id, p.preco_especial]) || []
         );
 
-        const produtosComPreco = produtosData.map((produto) => ({
+        const produtosComPreco = produtosData.map((produto: any) => ({
           ...produto,
           preco_empresa: precosMap.get(produto.id),
         }));
