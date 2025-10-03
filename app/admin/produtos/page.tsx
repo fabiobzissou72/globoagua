@@ -197,13 +197,14 @@ export default function ProdutosPage() {
               <tr key={produto.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {produto.foto_url ? (
-                    <Image
-                      src={produto.foto_url}
-                      alt={produto.nome}
-                      width={50}
-                      height={50}
-                      className="rounded object-cover"
-                    />
+                    <div className="w-12 h-12 relative">
+                      <Image
+                        src={produto.foto_url}
+                        alt={produto.nome}
+                        fill
+                        className="rounded object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">
                       Sem foto
