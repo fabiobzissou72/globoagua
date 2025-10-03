@@ -106,18 +106,26 @@ export default function ProdutosPage() {
       };
 
       if (editando) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('produtos')
           .update(dadosProduto)
-          .eq('id', editando.id);
+          .eq('id', editando.id)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao atualizar produto:', error);
+          throw new Error(error.message || 'Erro ao atualizar produto');
+        }
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('produtos')
-          .insert(dadosProduto);
+          .insert(dadosProduto)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao inserir produto:', error);
+          throw new Error(error.message || 'Erro ao inserir produto');
+        }
       }
 
       await carregarProdutos();

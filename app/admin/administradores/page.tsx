@@ -90,12 +90,16 @@ export default function AdministradoresPage() {
           delete dadosAdmin.senha_hash;
         }
 
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('administradores')
           .update(dadosAdmin)
-          .eq('id', editando.id);
+          .eq('id', editando.id)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao atualizar administrador:', error);
+          throw new Error(error.message || 'Erro ao atualizar administrador');
+        }
       } else {
         if (!formData.senha) {
           alert('Senha é obrigatória para novo administrador');
@@ -103,11 +107,15 @@ export default function AdministradoresPage() {
           return;
         }
 
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('administradores')
-          .insert(dadosAdmin);
+          .insert(dadosAdmin)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao inserir administrador:', error);
+          throw new Error(error.message || 'Erro ao inserir administrador');
+        }
       }
 
       await carregarAdmins();
