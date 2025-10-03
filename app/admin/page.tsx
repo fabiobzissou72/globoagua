@@ -35,7 +35,7 @@ export default function AdminDashboard() {
 
       setStats({
         totalProdutos: produtos.data?.length || 0,
-        produtosAtivos: produtos.data?.filter((p) => p.ativo).length || 0,
+        produtosAtivos: produtos.data?.filter((p: any) => p.ativo).length || 0,
         totalEmpresas: empresas.data?.length || 0,
         totalPedidos: pedidos.data?.length || 0,
       });
