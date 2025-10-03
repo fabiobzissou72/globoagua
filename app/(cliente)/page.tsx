@@ -202,12 +202,12 @@ export default function HomePage() {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               {produto.foto_url ? (
-                <div className="relative h-48 w-full">
+                <div className="relative h-48 w-full bg-white">
                   <Image
                     src={produto.foto_url}
                     alt={produto.nome}
                     fill
-                    className="object-cover"
+                    className="object-contain p-4"
                   />
                 </div>
               ) : (
