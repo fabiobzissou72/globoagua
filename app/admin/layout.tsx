@@ -27,6 +27,7 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -138,8 +139,20 @@ export default function AdminLayout({
       <nav className="bg-primary text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold">Globo Água - Admin</h1>
+            <div className="flex items-center space-x-4">
+              {/* Botão hamburguer mobile */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-md hover:bg-primary-dark"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              <h1 className="text-lg md:text-xl font-bold">Globo Água - Admin</h1>
+
+              {/* Menu desktop */}
               <div className="hidden md:flex space-x-4">
                 {menuItems.map((item) => (
                   <Link
@@ -156,9 +169,10 @@ export default function AdminLayout({
                 ))}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm">Olá, {adminData?.nome}</span>
-              <Link href="/" className="text-sm hover:underline">
+
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <span className="text-xs md:text-sm hidden sm:inline">Olá, {adminData?.nome}</span>
+              <Link href="/" className="text-xs md:text-sm hover:underline hidden sm:inline">
                 Ver Site
               </Link>
               <Button variant="secondary" size="sm" onClick={handleLogout}>
@@ -167,6 +181,28 @@ export default function AdminLayout({
             </div>
           </div>
         </div>
+
+        {/* Menu mobile */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-primary-dark">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    pathname === item.href
+                      ? 'bg-primary'
+                      : 'hover:bg-primary'
+                  }`}
+                >
+                  {item.icon} {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
