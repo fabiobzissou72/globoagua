@@ -41,17 +41,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-[80vh] flex items-center justify-center py-6 px-4">
+      <div className="max-w-md w-full space-y-6">
         <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
+          <h2 className="text-center text-2xl sm:text-3xl font-bold text-gray-900">
             Login para Empresas
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-xs sm:text-sm text-gray-600">
             Acesse sua conta para ver preços especiais
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <Input
               label="Login"
@@ -79,8 +79,7 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            className="w-full"
-            size="lg"
+            className="w-full text-sm sm:text-base"
             disabled={loading}
           >
             {loading ? 'Entrando...' : 'Entrar'}
