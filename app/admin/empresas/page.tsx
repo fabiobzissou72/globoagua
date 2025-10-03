@@ -111,16 +111,12 @@ export default function EmpresasPage() {
           delete dadosEmpresa.senha_hash;
         }
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('empresas')
           .update(dadosEmpresa)
-          .eq('id', editando.id)
-          .select();
+          .eq('id', editando.id);
 
-        if (error) {
-          console.error('Erro ao atualizar empresa:', error);
-          throw new Error(error.message || 'Erro ao atualizar empresa');
-        }
+        if (error) throw error;
       } else {
         if (!formData.senha) {
           alert('Senha é obrigatória para nova empresa');
@@ -128,15 +124,11 @@ export default function EmpresasPage() {
           return;
         }
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('empresas')
-          .insert(dadosEmpresa)
-          .select();
+          .insert(dadosEmpresa);
 
-        if (error) {
-          console.error('Erro ao inserir empresa:', error);
-          throw new Error(error.message || 'Erro ao inserir empresa');
-        }
+        if (error) throw error;
       }
 
       await carregarDados();
