@@ -9,6 +9,11 @@ export interface EmpresaAuth {
 
 export async function loginEmpresa(login: string, senha: string): Promise<EmpresaAuth | null> {
   try {
+    if (!supabase) {
+      console.error('Supabase client não configurado');
+      return null;
+    }
+
     const { data: empresa, error } = await supabase
       .from('empresas')
       .select('id, nome, login, senha_hash')

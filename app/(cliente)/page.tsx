@@ -74,7 +74,7 @@ export default function HomePage() {
           .eq('empresa_id', empresa.id);
 
         const precosMap = new Map(
-          precosData?.map((p) => [p.produto_id, p.preco_especial]) || []
+          precosData?.map((p: any) => [p.produto_id, p.preco_especial]) || []
         );
 
         const produtosComPreco = produtosData.map((produto) => ({
