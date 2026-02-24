@@ -253,6 +253,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <div class="profile-card">
+      <div class="profile-item" id="btnClearCache">
+        <span class="profile-item-icon">🧹</span>
+        <div class="profile-item-text"><strong>Limpar Cache</strong><span>Forçar atualização do app</span></div>
+        <span class="profile-item-arrow">›</span>
+      </div>
       <div class="profile-item" id="btnLogout" style="color:#e53935">
         <span class="profile-item-icon">🚪</span>
         <div class="profile-item-text"><strong style="color:#e53935">Sair</strong><span>Encerrar sessão</span></div>
@@ -983,6 +988,20 @@ document.getElementById('btnLogout').onclick = async () => {
   showToast('Sessão encerrada');
 };
 
+document.getElementById('btnClearCache').onclick = async () => {
+  // Notifica o service worker para limpar o cache
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage('CLEAR_CACHE');
+  }
+  // Limpa diretamente também
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  showToast('Cache limpo! Recarregando...');
+  setTimeout(() => location.reload(), 1500);
+};
+
 document.getElementById('btnPasskeys').onclick = () => registerPasskey();
 document.getElementById('btnAddresses').onclick = () => showToast('Em breve: gerenciar endereços');
 
@@ -1009,8 +1028,10 @@ function showToast(msg) {
 // ============================================================
 loadProducts();
 updateCartUI();
+// A sessão é restaurada automaticamente pelo onAuthStateChange (evento INITIAL_SESSION)
+// Fallback explícito para garantir restauração mesmo em PWA instalado
 sb.auth.getSession().then(({ data }) => {
-  if (data.session) {
+  if (data.session && !S.user) {
     S.user = data.session.user;
     loadProfile().then(renderProfile);
   }

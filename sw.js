@@ -1,7 +1,7 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v1.0';
+const CACHE_NAME = 'globo-agua-v2.0';
 
 const STATIC_ASSETS = [
   '/',
@@ -35,29 +35,52 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Mensagens vindas do app
+self.addEventListener('message', (event) => {
+  if (event.data === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys()
+        .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        .then(() => caches.open(CACHE_NAME).then(cache => {
+          return Promise.allSettled(
+            STATIC_ASSETS.map(url =>
+              cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+            )
+          );
+        }))
+    );
+  }
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Estratégia: NETWORK-FIRST (tenta rede, usa cache só se offline)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   if (request.url.includes('supabase.co')) return;
   if (request.url.includes('cdn.jsdelivr.net')) return;
   if (request.url.includes('googleapis.com')) return;
+  if (request.url.includes('viacep.com.br')) return;
 
   event.respondWith(
-    caches.match(request).then(cached => {
-      const networkFetch = fetch(request)
-        .then(response => {
-          if (response && response.ok && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => null);
-      return cached || networkFetch || new Response(
-        '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Água<br><small style="color:#666">Sem conexão. Verifique sua internet.</small></body></html>',
-        { headers: { 'Content-Type': 'text/html' } }
-      );
-    })
+    fetch(request)
+      .then(response => {
+        if (response && response.ok && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(request).then(cached =>
+          cached || new Response(
+            '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Água<br><small style="color:#666">Sem conexão. Verifique sua internet.</small></body></html>',
+            { headers: { 'Content-Type': 'text/html' } }
+          )
+        )
+      )
   );
 });
 

@@ -682,7 +682,8 @@ async function saveProduct() {
     categoria: document.getElementById('productCat').value,
     preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
     estoque: parseInt(document.getElementById('productEstoque').value) || 999,
-    destaque: document.getElementById('productDestaque').checked
+    destaque: document.getElementById('productDestaque').checked,
+    ativo: true
   };
 
   if (id) await sb.from('products').update(data).eq('id', id);
@@ -870,6 +871,24 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ============================================================
+// AUTO-RESTAURAR SESSÃO AO RECARREGAR
+// ============================================================
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (!data?.session) return;
+  const { data: profile } = await sb.from('profiles')
+    .select('is_admin,nome_completo')
+    .eq('id', data.session.user.id)
+    .single();
+  if (!profile?.is_admin) return;
+  adminUser = data.session.user;
+  document.getElementById('adminNameDisplay').textContent = profile.nome_completo || data.session.user.email;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  initApp();
+})();
 </script>
 </body>
 </html>
