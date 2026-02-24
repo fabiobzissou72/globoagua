@@ -456,7 +456,9 @@ canvas{max-height:180px}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { storageKey: 'ga-admin-session' }
+});
 
 let adminUser = null;
 let allProducts = [], allCompanies = [];
