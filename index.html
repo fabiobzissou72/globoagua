@@ -646,11 +646,22 @@ function base64ToBuffer(b64) { return Uint8Array.from(atob(b64), c => c.charCode
 // PRODUCTS
 // ============================================================
 async function loadProducts() {
-  const { data } = await sb.from('products').select('*').eq('ativo', true).order('destaque', { ascending: false }).order('nome');
-  S.products = data || [];
-  const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
-  renderCats(cats);
-  renderProducts();
+  try {
+    const { data, error } = await sb.from('products').select('*').eq('ativo', true).order('destaque', { ascending: false }).order('nome');
+    if (error) throw error;
+    S.products = data || [];
+    const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
+    renderCats(cats);
+    renderProducts();
+  } catch(e) {
+    document.getElementById('productsGrid').innerHTML =
+      `<div class="loading-center" style="grid-column:1/-1;flex-direction:column;gap:8px">
+        <span style="font-size:32px">⚠️</span>
+        <strong>Erro ao carregar produtos</strong>
+        <small style="color:#aaa;text-align:center">${e.message || 'Verifique a conexão e as configurações do banco'}</small>
+        <button onclick="loadProducts()" style="margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:14px">Tentar novamente</button>
+      </div>`;
+  }
 }
 
 function getPrice(p) {
