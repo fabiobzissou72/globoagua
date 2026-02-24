@@ -175,9 +175,11 @@ canvas{max-height:180px}
       <img src="/images/logo.jpeg" alt="Globo Água">
       <h2>Painel Admin</h2>
       <p>Globo Água — Acesso restrito</p>
-      <input class="login-input" type="email" id="adminEmail" placeholder="E-mail administrador" autocomplete="email">
-      <input class="login-input" type="password" id="adminPwd" placeholder="Senha" autocomplete="current-password">
-      <button class="login-btn" onclick="adminLogin()">Entrar</button>
+      <form onsubmit="adminLogin(); return false;" autocomplete="on">
+        <input class="login-input" type="email" id="adminEmail" placeholder="E-mail administrador" autocomplete="email" inputmode="email">
+        <input class="login-input" type="password" id="adminPwd" placeholder="Senha" autocomplete="current-password" enterkeyhint="go">
+        <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
+      </form>
     </div>
   </div>
 </div>
@@ -482,18 +484,28 @@ async function adminLogin() {
   const email = document.getElementById('adminEmail').value.trim();
   const pwd = document.getElementById('adminPwd').value;
   if (!email || !pwd) { showToast('Preencha e-mail e senha'); return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-  if (error) { showToast('Credenciais inválidas'); return; }
-  const { data: profile } = await sb.from('profiles').select('is_admin,nome_completo').eq('id', data.user.id).single();
-  if (!profile?.is_admin) {
-    await sb.auth.signOut();
-    showToast('Acesso negado. Não é administrador.'); return;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Entrando...';
+  btn.disabled = true;
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+    if (error) { showToast('E-mail ou senha incorretos'); return; }
+    const { data: profile } = await sb.from('profiles').select('is_admin,nome_completo').eq('id', data.user.id).single();
+    if (!profile?.is_admin) {
+      await sb.auth.signOut();
+      showToast('Acesso negado: não é administrador'); return;
+    }
+    adminUser = data.user;
+    document.getElementById('adminNameDisplay').textContent = profile.nome_completo || email;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    initApp();
+  } catch(e) {
+    showToast('Erro de conexão. Tente novamente.');
+  } finally {
+    btn.textContent = 'Entrar';
+    btn.disabled = false;
   }
-  adminUser = data.user;
-  document.getElementById('adminNameDisplay').textContent = profile.nome_completo || email;
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('appScreen').classList.remove('hidden');
-  initApp();
 }
 
 async function adminLogout() {
