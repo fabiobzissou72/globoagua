@@ -183,6 +183,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-center{display:flex;justify-content:center;align-items:center;padding:60px;flex-direction:column;gap:12px;color:#aaa}
+
+.pdetail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
+.pdetail-overlay.open{opacity:1;pointer-events:all}
+.pdetail-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.pdetail-overlay.open .pdetail-sheet{transform:translateY(0)}
+.pdetail-img{width:100%;height:220px;object-fit:cover;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:64px;overflow:hidden}
+.pdetail-img img{width:100%;height:100%;object-fit:cover}
+.pdetail-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 4px}
+.pdetail-body{padding:14px 20px 100px}
+.pdetail-cat{font-size:12px;color:var(--gray);margin-bottom:4px}
+.pdetail-name{font-size:21px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.pdetail-desc{font-size:14px;color:#555;line-height:1.6;margin-bottom:16px;white-space:pre-wrap}
+.pdetail-footer{position:sticky;bottom:0;background:#fff;padding:12px 20px;border-top:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pdetail-price{font-size:22px;font-weight:700;color:var(--blue)}
+.btn-add-modal{flex:1;background:var(--blue);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body>
@@ -243,12 +258,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="profile-card">
       <div class="profile-item" id="btnPasskeys">
         <span class="profile-item-icon">🔑</span>
-        <div class="profile-item-text"><strong>Biometria / Passkey</strong><span>Login com digital ou Face ID</span></div>
+        <div class="profile-item-text"><strong>Chave de Acesso</strong><span>Configure sua chave NFC ou USB de segurança</span></div>
         <span class="profile-item-arrow">›</span>
       </div>
       <div class="profile-item" id="btnAddresses">
         <span class="profile-item-icon">📍</span>
         <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span></div>
+        <span class="profile-item-arrow">›</span>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-item" id="btnWhatsapp">
+        <span class="profile-item-icon">💬</span>
+        <div class="profile-item-text"><strong>Fale Conosco</strong><span>Atendimento via WhatsApp</span></div>
+        <span class="profile-item-arrow">›</span>
+      </div>
+      <div class="profile-item" id="btnInstallGuide">
+        <span class="profile-item-icon">📲</span>
+        <div class="profile-item-text"><strong>Instalar no iPhone</strong><span>Como adicionar à tela inicial</span></div>
         <span class="profile-item-arrow">›</span>
       </div>
     </div>
@@ -318,7 +345,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="auth-body">
     <button class="auth-btn btn-biometric" id="btnBiometric" onclick="loginBiometric()">
-      <span style="font-size:22px">🔐</span> Entrar com Biometria
+      <span style="font-size:22px">🔑</span> Entrar com Chave de Acesso
     </button>
     <div class="auth-divider">— ou —</div>
     <div class="auth-tabs">
@@ -385,6 +412,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-input" id="recWhats" placeholder="11999999999"></div>
       <div class="form-group"><label class="form-label">Referência (opcional)</label><input class="form-input" id="recRef" placeholder="Perto do mercado..."></div>
     </div>
+    <div class="checkout-card">
+      <h3>📝 Observações</h3>
+      <div class="form-group">
+        <textarea class="form-input" id="orderObs" placeholder="Ex: Deixar com o porteiro, ligar antes de entregar..." rows="3" style="resize:none"></textarea>
+      </div>
+    </div>
   </div>
 
   <!-- STEP 1: REVISÃO -->
@@ -437,6 +470,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="btn-next" id="btnNext" onclick="nextStep()">Continuar →</button>
 </div>
 
+<!-- PRODUCT DETAIL MODAL -->
+<div class="pdetail-overlay" id="pdetailOverlay" onclick="closePDetail()">
+  <div class="pdetail-sheet" onclick="event.stopPropagation()">
+    <div class="pdetail-handle"></div>
+    <div class="pdetail-img" id="pdetailImg">💧</div>
+    <div class="pdetail-body">
+      <div class="pdetail-cat" id="pdetailCat"></div>
+      <div class="pdetail-name" id="pdetailName"></div>
+      <div class="pdetail-desc" id="pdetailDesc"></div>
+    </div>
+    <div class="pdetail-footer">
+      <div>
+        <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
+        <div class="pdetail-price" id="pdetailPrice"></div>
+      </div>
+      <button class="btn-add-modal" id="pdetailAddBtn">Adicionar ao carrinho +</button>
+    </div>
+  </div>
+</div>
+
 <!-- IOS INSTALL MODAL -->
 <div class="ios-modal hidden" id="iosModal">
   <div class="ios-modal-box">
@@ -465,7 +518,8 @@ const S = {
   currentCategory: 'Todos',
   checkoutStep: 0,
   selectedPayment: 'PIX',
-  deferredPrompt: null
+  deferredPrompt: null,
+  settings: {}
 };
 
 // ============================================================
@@ -623,7 +677,7 @@ async function loginBiometric() {
 
 async function registerPasskey() {
   if (!S.user) { showToast('Faça login primeiro'); return; }
-  if (!('PublicKeyCredential' in window)) { showToast('Biometria não suportada'); return; }
+  if (!('PublicKeyCredential' in window)) { showToast('Chave de acesso não suportada neste dispositivo'); return; }
   try {
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     const credential = await navigator.credentials.create({
@@ -632,7 +686,8 @@ async function registerPasskey() {
         rp: { name: 'Globo Água', id: location.hostname },
         user: { id: new TextEncoder().encode(S.user.id), name: S.user.email, displayName: S.profile?.nome_completo || S.user.email },
         pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        timeout: 60000, userVerification: 'required'
+        timeout: 60000,
+        authenticatorSelection: { authenticatorAttachment: 'cross-platform', userVerification: 'preferred' }
       }
     });
     const credId = bufferToBase64(credential.rawId);
@@ -640,8 +695,8 @@ async function registerPasskey() {
     const { data } = await sb.auth.getSession();
     if (data.session) localStorage.setItem('ga_pk_rt', data.session.refresh_token);
     await sb.from('user_passkeys').insert({ user_id: S.user.id, credential_id: credId, device_name: navigator.userAgent.includes('Mobile') ? 'Celular' : 'Computador' });
-    showToast('✅ Biometria cadastrada!');
-  } catch (e) { showToast('Erro ao cadastrar biometria.'); }
+    showToast('✅ Chave de acesso cadastrada!');
+  } catch (e) { showToast('Erro ao cadastrar chave. Tente com NFC ou USB.'); }
 }
 
 function bufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
@@ -704,7 +759,7 @@ function renderProducts() {
   grid.innerHTML = list.map(p => {
     const price = getPrice(p);
     const isB2B = S.companyPrices[p.id] !== undefined;
-    return `<div class="product-card">
+    return `<div class="product-card" onclick="openPDetail('${p.id}')">
       <div class="product-img">
         ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
       </div>
@@ -714,7 +769,7 @@ function renderProducts() {
         <div class="product-cat">${p.categoria}</div>
         <div class="product-price-row">
           <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? '🏷️ ' : ''}R$ ${price.toFixed(2).replace('.', ',')}</span>
-          <button class="btn-add" onclick="addToCart('${p.id}')">+</button>
+          <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>
         </div>
       </div>
     </div>`;
@@ -874,6 +929,7 @@ async function placeOrder() {
   const num = 'GA' + Date.now().toString().slice(-6);
   const sub = cartTotal();
   const addr = [document.getElementById('addrRua').value, document.getElementById('addrNum').value, document.getElementById('addrComp').value, document.getElementById('addrBairro').value].filter(Boolean).join(', ');
+  const obs = document.getElementById('orderObs').value.trim();
 
   const { data: order, error } = await sb.from('orders').insert({
     numero_pedido: num, user_id: S.user.id,
@@ -888,6 +944,7 @@ async function placeOrder() {
     recebedor_nome: document.getElementById('recNome').value,
     recebedor_whatsapp: document.getElementById('recWhats').value,
     recebedor_referencia: document.getElementById('recRef').value,
+    observacoes: obs,
     subtotal: sub, taxa_entrega: 0, total: sub,
     metodo_pagamento: S.selectedPayment,
     status: 'NOVO', status_pagamento: 'PENDENTE'
@@ -967,6 +1024,12 @@ function renderProfile() {
   document.getElementById('btnPasskeys').classList.toggle('hidden', !isLogged);
   document.getElementById('btnAddresses').classList.toggle('hidden', !isLogged);
   document.getElementById('profileLoginPrompt').classList.toggle('hidden', isLogged);
+  // Atualiza link do WhatsApp a partir das configurações
+  const waNum = S.settings?.geral?.whatsapp_suporte || '';
+  document.getElementById('btnWhatsapp').onclick = () => {
+    if (waNum) { window.open('https://wa.me/' + waNum.replace(/\D/g,''), '_blank'); }
+    else showToast('WhatsApp não configurado');
+  };
 
   if (isLogged && S.profile) {
     const initials = (S.profile.nome_completo || S.user.email).charAt(0).toUpperCase();
@@ -1004,6 +1067,9 @@ document.getElementById('btnClearCache').onclick = async () => {
 
 document.getElementById('btnPasskeys').onclick = () => registerPasskey();
 document.getElementById('btnAddresses').onclick = () => showToast('Em breve: gerenciar endereços');
+document.getElementById('btnInstallGuide').onclick = () => {
+  document.getElementById('iosModal').classList.remove('hidden');
+};
 
 // ============================================================
 // UTILS
@@ -1024,12 +1090,50 @@ function showToast(msg) {
 }
 
 // ============================================================
+// PRODUCT DETAIL MODAL
+// ============================================================
+function openPDetail(productId) {
+  const p = S.products.find(x => x.id === productId);
+  if (!p) return;
+  const price = getPrice(p);
+  const isB2B = S.companyPrices[p.id] !== undefined;
+  // Imagem
+  const imgEl = document.getElementById('pdetailImg');
+  if (p.foto_url) {
+    imgEl.innerHTML = `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.innerHTML='💧'">`;
+  } else {
+    imgEl.innerHTML = '💧';
+  }
+  document.getElementById('pdetailCat').textContent = p.categoria;
+  document.getElementById('pdetailName').textContent = p.nome;
+  document.getElementById('pdetailDesc').textContent = p.descricao || 'Sem descrição disponível.';
+  document.getElementById('pdetailPrice').textContent = (isB2B ? '🏷️ ' : '') + 'R$ ' + price.toFixed(2).replace('.', ',');
+  const addBtn = document.getElementById('pdetailAddBtn');
+  addBtn.onclick = () => { addToCart(p.id); closePDetail(); };
+  document.getElementById('pdetailOverlay').classList.add('open');
+}
+
+function closePDetail() {
+  document.getElementById('pdetailOverlay').classList.remove('open');
+}
+
+// ============================================================
+// SETTINGS LOAD
+// ============================================================
+async function loadSettings() {
+  const { data } = await sb.from('settings').select('*');
+  (data || []).forEach(s => { S.settings[s.key] = s.value; });
+}
+
+// ============================================================
 // INIT
 // ============================================================
 loadProducts();
 updateCartUI();
 // A sessão é restaurada automaticamente pelo onAuthStateChange (evento INITIAL_SESSION)
 // Fallback explícito para garantir restauração mesmo em PWA instalado
+loadSettings();
+
 sb.auth.getSession().then(({ data }) => {
   if (data.session && !S.user) {
     S.user = data.session.user;
