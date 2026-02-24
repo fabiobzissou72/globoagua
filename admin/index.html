@@ -698,13 +698,24 @@ async function saveProduct() {
     ativo: true
   };
 
-  if (id) await sb.from('products').update(data).eq('id', id);
-  else await sb.from('products').insert(data);
+  let error;
+  if (id) {
+    ({ error } = await sb.from('products').update(data).eq('id', id));
+  } else {
+    ({ error } = await sb.from('products').insert(data));
+  }
+
+  btn.innerHTML = '💾 Salvar'; btn.disabled = false;
+
+  if (error) {
+    showToast('Erro: ' + error.message);
+    console.error('saveProduct error:', error);
+    return;
+  }
 
   closeModal('productModal');
   await loadAllProducts();
   showToast('✅ Produto salvo!');
-  btn.innerHTML = '💾 Salvar'; btn.disabled = false;
 }
 
 async function deleteProduct(id) {
