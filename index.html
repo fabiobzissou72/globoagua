@@ -1335,6 +1335,40 @@
       font-weight: 700;
       cursor: pointer
     }
+
+    .pwd-wrap {
+      position: relative;
+      margin-bottom: 10px
+    }
+
+    .pwd-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: .5;
+      padding: 4px;
+      transition: opacity .2s
+    }
+
+    .pwd-eye:hover {
+      opacity: 1
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px
+    }
   </style>
 </head>
 
@@ -1497,7 +1531,14 @@
       </div>
       <div id="loginForm">
         <input class="auth-input" type="email" id="loginEmail" placeholder="E-mail">
-        <input class="auth-input" type="password" id="loginPwd" placeholder="Senha">
+        <div class="pwd-wrap">
+          <input class="auth-input" type="password" id="loginPwd" placeholder="Senha"
+            style="margin-bottom:0;padding-right:44px">
+          <button type="button" class="pwd-eye" onclick="togglePwd('loginPwd',this)" tabindex="-1">👁</button>
+        </div>
+        <div style="text-align:right;margin-bottom:10px">
+          <button type="button" class="link-btn" onclick="forgotPassword()">Esqueci minha senha</button>
+        </div>
         <button class="auth-btn btn-email-login" onclick="loginEmail()">Entrar com e-mail</button>
       </div>
       <div id="registerForm" class="hidden">
@@ -1510,7 +1551,11 @@
         <input class="auth-input" type="text" id="regDoc" placeholder="CPF">
         <input class="auth-input" id="regRazao" placeholder="Razão Social" style="display:none">
         <input class="auth-input" type="email" id="regEmail" placeholder="E-mail">
-        <input class="auth-input" type="password" id="regPwd" placeholder="Senha (mín. 6 caracteres)">
+        <div class="pwd-wrap">
+          <input class="auth-input" type="password" id="regPwd" placeholder="Senha (mín. 6 caracteres)"
+            style="margin-bottom:0;padding-right:44px">
+          <button type="button" class="pwd-eye" onclick="togglePwd('regPwd',this)" tabindex="-1">👁</button>
+        </div>
         <button class="auth-btn btn-email-login" onclick="registerUser()">Criar conta</button>
       </div>
     </div>
@@ -1781,6 +1826,24 @@
       el.classList.add('active');
       document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
       document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+    }
+
+    function togglePwd(inputId, btn) {
+      const inp = document.getElementById(inputId);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
+      btn.style.opacity = show ? '1' : '.5';
+    }
+
+    async function forgotPassword() {
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) { showToast('Digite seu e-mail primeiro'); return; }
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: location.origin + '/?resetPwd=1'
+      });
+      if (error) { showToast('Erro: ' + error.message); return; }
+      showToast('✅ E-mail de redefinição enviado!');
     }
 
     let currentTipo = 'PF';
