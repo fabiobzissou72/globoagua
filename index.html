@@ -1989,6 +1989,26 @@
     </div>
   </div>
 
+  <div class="checkout-sheet" id="confSheet">
+    <div class="checkout-topbar">
+      <button onclick="closeConf()">×</button>
+      <h2>Conta Ativada</h2>
+    </div>
+    <div class="success-screen" style="padding:40px 20px">
+      <div class="success-icon">🎉</div>
+      <h2 style="margin-top:20px">Tudo pronto!</h2>
+      <p style="color:#555;margin-bottom:30px">Sua conta foi ativada com sucesso. Você já pode fazer seus pedidos!</p>
+
+      <div style="background:#e3f2fd;padding:20px;border-radius:16px;margin-bottom:30px">
+        <p style="font-size:14px;color:var(--blue-dark);font-weight:600">📱 Dica para comodidade:</p>
+        <p style="font-size:13px;color:#555">Se você já tem o aplicativo Globo Água instalado, pode fechar esta aba e
+          usá-lo agora mesmo!</p>
+      </div>
+
+      <button class="auth-btn btn-biometric" onclick="closeConf();location.href='/'">Ir para o início</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Configurações embutidas para maior estabilidade no PWA/Android
@@ -2167,6 +2187,19 @@
       const overlay = document.getElementById('authOverlay');
       if (sheet) sheet.classList.remove('open');
       if (overlay) overlay.classList.remove('open');
+    }
+
+    function openConf() {
+      const sheet = document.getElementById('confSheet');
+      if (sheet) {
+        sheet.style.display = 'block';
+        requestAnimationFrame(() => sheet.classList.add('open'));
+      }
+    }
+
+    function closeConf() {
+      const sheet = document.getElementById('confSheet');
+      if (sheet) sheet.classList.remove('open');
     }
 
     function setAuthTab(tab, el) {
@@ -3262,6 +3295,9 @@
           console.log('🔑 Auth Change:', event, session?.user?.email);
           // Ignora o INITIAL_SESSION pois já tratamos acima
           if (event === 'INITIAL_SESSION') return;
+          if (event === 'SIGNED_IN' && location.hash.includes('access_token')) {
+            openConf();
+          }
           S.user = session?.user || null;
           if (S.user) {
             await loadProfile();

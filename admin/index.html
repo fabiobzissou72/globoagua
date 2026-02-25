@@ -867,6 +867,9 @@
         <div class="nav-item" onclick="showSection('orders',this)">
           <span class="nav-item-icon">🛒</span><span>Pedidos</span>
         </div>
+        <div class="nav-item" onclick="showSection('clients',this)">
+          <span class="nav-item-icon">👤</span><span>Clientes</span>
+        </div>
         <div class="nav-item" onclick="showSection('companies',this)">
           <span class="nav-item-icon">🏢</span><span>Empresas B2B</span>
         </div>
@@ -1016,6 +1019,34 @@
                   </tr>
                 </thead>
                 <tbody id="ordersTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div id="sectionClients" class="hidden">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Clientes cadastrados</h3>
+              <div style="display:flex;gap:8px">
+                <input class="form-input" id="clientSearchInput" placeholder="Buscar por nome ou e-mail..."
+                  style="width:250px;padding:7px 12px" oninput="renderClientsTable()">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>WhatsApp</th>
+                    <th>E-mail</th>
+                    <th>Tipo</th>
+                    <th>Doc.</th>
+                    <th>Cadastro</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTable"></tbody>
               </table>
             </div>
           </div>
@@ -1289,7 +1320,7 @@
     });
 
     let adminUser = null;
-    let allProducts = [], allCompanies = [];
+    let allProducts = [], allCompanies = [], allProfiles = [];
     let charts = {};
     let currentSettings = {};
     let uploadedFileObj = null;
@@ -1355,7 +1386,7 @@
     // INIT
     // ============================================================
     async function initApp() {
-      await Promise.all([loadDashboard(), loadAllProducts(), loadAllCompanies(), loadSettings()]);
+      await Promise.all([loadDashboard(), loadAllProducts(), loadAllCompanies(), loadAdminClients(), loadSettings()]);
     }
 
     // ============================================================
@@ -1370,6 +1401,7 @@
       document.getElementById('pageTitle').textContent = titles[name] || name;
       closeSidebar();
       if (name === 'orders') loadAdminOrders();
+      if (name === 'clients') renderClientsTable();
       if (name === 'companies') renderCompanies();
       if (name === 'prices') populatePriceCompanySelect();
     }
@@ -1902,6 +1934,35 @@
     async function updateOrderStatus(id, status) {
       await sbAdmin.from('orders').update({ status }).eq('id', id);
       showToast('Status atualizado!');
+    }
+
+    // ============================================================
+    // CLIENTS
+    // ============================================================
+    async function loadAdminClients() {
+      const { data, error } = await sbAdmin.from('profiles').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('Erro ao carregar clientes:', error); return; }
+      allProfiles = data || [];
+      renderClientsTable();
+    }
+
+    function renderClientsTable() {
+      const search = (document.getElementById('clientSearchInput').value || '').toLowerCase();
+      const list = allProfiles.filter(p =>
+        (p.nome_completo || '').toLowerCase().includes(search) ||
+        (p.email || '').toLowerCase().includes(search) ||
+        (p.documento || '').includes(search)
+      );
+
+      document.getElementById('clientsTable').innerHTML = list.map(p => `
+    <tr>
+      <td><strong>${p.nome_completo || '—'}</strong><br><small style="color:#aaa">${p.email || '—'}</small></td>
+      <td>${p.whatsapp || '—'}</td>
+      <td>${p.email || '—'}</td>
+      <td><span class="badge badge-confirmado" style="background:${p.tipo_pessoa === 'PJ' ? '#1b5e20' : '#455a64'}">${p.tipo_pessoa || 'PF'}</span></td>
+      <td>${p.documento || '—'}</td>
+      <td style="font-size:12px;color:#888">${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+    </tr>`).join('');
     }
 
     // ============================================================
