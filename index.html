@@ -2442,24 +2442,28 @@
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
 
-      // Preenche nome/whats do perfil básico
+      // Abre o modal IMEDIATAMENTE antes de qualquer busca no banco
+      updateCheckoutStep();
+      document.getElementById('checkoutSheet').classList.add('open');
+
+      // Preenche nome/whats do perfil básico (que já temos em memória)
       if (S.profile) {
         document.getElementById('recNome').value = S.profile.nome_completo || '';
         document.getElementById('recWhats').value = S.profile.whatsapp || '';
       }
 
-      // Busca endereço salvo na tabela de endereços
+      // Busca endereço salvo em background
       if (S.user) {
         try {
           const _sb = getSupabase();
-          if (!_sb) throw new Error('Sem conexão');
+          if (!_sb) return; // Não trava se não houver conexão
           const { data: addr } = await _sb.from('user_addresses')
             .select('*')
             .eq('user_id', S.user.id)
             .eq('is_default', true)
             .maybeSingle();
 
-          if (addr) {
+          if (addr && S.checkoutStep === 0) { // Só preenche se ainda estiver no passo 0
             document.getElementById('addrCep').value = addr.cep || '';
             document.getElementById('addrRua').value = addr.rua || '';
             document.getElementById('addrNum').value = addr.numero || '';
@@ -2468,11 +2472,10 @@
             document.getElementById('addrCidade').value = addr.cidade || '';
             document.getElementById('addrEstado').value = addr.estado || '';
           }
-        } catch (e) { console.warn('Erro ao carregar endereço padrão:', e); }
+        } catch (e) {
+          console.warn('Erro ao carregar endereço padrão (background):', e);
+        }
       }
-
-      updateCheckoutStep();
-      document.getElementById('checkoutSheet').classList.add('open');
     }
 
     function closeCheckout() {
