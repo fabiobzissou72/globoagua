@@ -377,23 +377,24 @@
       pointer-events: all
     }
 
-    .cart-drawer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 20px 20px 0 0;
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column
-    }
-
     .cart-drawer.open {
       transform: translateY(0)
+    }
+
+    @media (min-width: 600px) {
+      .cart-drawer {
+        left: 50%;
+        bottom: 50%;
+        transform: translate(-50%, 100%);
+        width: 450px;
+        max-height: 80vh;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .cart-drawer.open {
+        transform: translate(-50%, 50%);
+      }
     }
 
     .drawer-handle {
@@ -573,21 +574,24 @@
       pointer-events: all
     }
 
-    .auth-sheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 20px 20px 0 0;
-      z-index: 300;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      padding-bottom: env(safe-area-inset-bottom)
-    }
-
     .auth-sheet.open {
       transform: translateY(0)
+    }
+
+    @media (min-width: 600px) {
+      .auth-sheet {
+        left: 50%;
+        bottom: 50%;
+        transform: translate(-50%, 100%);
+        width: 400px;
+        border-radius: 24px;
+        padding-bottom: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .auth-sheet.open {
+        transform: translate(-50%, 50%);
+      }
     }
 
     .auth-header {
@@ -719,19 +723,28 @@
       color: var(--blue)
     }
 
-    .checkout-sheet {
-      position: fixed;
-      inset: 0;
-      background: #f0f4f8;
-      z-index: 400;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      overflow-y: auto;
-      padding-bottom: 100px
-    }
-
     .checkout-sheet.open {
       transform: translateY(0)
+    }
+
+    @media (min-width: 600px) {
+      .checkout-sheet {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -40%) scale(0.9);
+        width: 500px;
+        height: 80vh;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .checkout-sheet.open {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        pointer-events: all;
+      }
     }
 
     .checkout-topbar {
@@ -1428,14 +1441,7 @@
     </div>
     <div style="margin-top:-24px">
       <div class="profile-card">
-        <div class="profile-item" id="btnPasskeys">
-          <span class="profile-item-icon">🪪</span>
-          <div class="profile-item-text">
-            <strong>Face ID / Digital (Biometria)</strong>
-            <span>Login rápido e seguro no seu dispositivo</span>
-          </div>
-          <span class="profile-item-arrow">›</span>
-        </div>
+        <!-- Biometria Removida -->
         <div class="profile-item" id="btnAddresses" onclick="showView('viewAddresses',null);loadAddresses()">
           <span class="profile-item-icon">📍</span>
           <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span>
@@ -1567,10 +1573,7 @@
       <p>Entre para finalizar seu pedido</p>
     </div>
     <div class="auth-body">
-      <button class="auth-btn btn-biometric" id="btnBiometric" onclick="loginBiometric()">
-        <span style="font-size:22px">🪪</span> Entrar com Biometria
-      </button>
-      <div class="auth-divider">— ou —</div>
+      <!-- Botão Biometria Removido -->
       <div class="auth-tabs">
         <div class="auth-tab active" onclick="setAuthTab('login',this)">Entrar</div>
         <div class="auth-tab" onclick="setAuthTab('register',this)">Cadastrar</div>
@@ -1786,7 +1789,8 @@
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: true,
-              storageKey: 'ga_auth_session'
+              storageKey: 'ga_auth_session',
+              storage: window.localStorage // Garantindo persistência no localStorage
             }
           });
           return sb;
@@ -1804,9 +1808,9 @@
     // STATE
     // ============================================================
     const S = {
-      user: null, profile: null,
-      products: [], companyPrices: {},
       cart: JSON.parse(localStorage.getItem('ga_cart') || '[]'),
+      products: JSON.parse(localStorage.getItem('ga_products_cache') || '[]'),
+      companyPrices: {},
       currentCategory: 'Todos',
       checkoutStep: 0,
       selectedPayment: 'PIX',
@@ -1852,10 +1856,13 @@
     // AUTH
     // ============================================================
     sb.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth change:', event, session?.user?.email);
       S.user = session?.user || null;
       if (S.user) {
         await loadProfile();
-        updateBiometricBtn();
+      } else {
+        S.profile = null;
+        S.companyPrices = {};
       }
       renderProfile();
       updateCartUI();
@@ -1956,63 +1963,7 @@
       closeAuth(); showToast('Conta criada! Confirme seu e-mail.');
     }
 
-    // ============================================================
-    // BIOMETRIA / PASSKEY
-    // ============================================================
-    async function loginBiometric() {
-      const credId = localStorage.getItem('ga_pk_id');
-      if (!credId) { showToast('Nenhuma biometria cadastrada'); return; }
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const credential = await navigator.credentials.get({
-          publicKey: {
-            challenge, timeout: 60000,
-            allowCredentials: [{ type: 'public-key', id: base64ToBuffer(credId) }],
-            userVerification: 'required'
-          }
-        });
-        if (credential) {
-          const rt = localStorage.getItem('ga_pk_rt');
-          if (rt) {
-            const { data, error } = await sb.auth.refreshSession({ refresh_token: rt });
-            if (!error && data.session) {
-              localStorage.setItem('ga_pk_rt', data.session.refresh_token);
-              closeAuth(); showToast('✅ Bem-vindo!'); return;
-            }
-          }
-          showToast('Sessão expirada. Faça login com e-mail.');
-        }
-      } catch (e) { showToast('Biometria falhou. Use e-mail.'); }
-    }
-
-    async function registerPasskey() {
-      if (!S.user) { showToast('Faça login primeiro'); return; }
-      if (!('PublicKeyCredential' in window)) { showToast('Biometria não disponível neste dispositivo'); return; }
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const credential = await navigator.credentials.create({
-          publicKey: {
-            challenge,
-            rp: { name: 'Globo Água', id: location.hostname },
-            user: { id: new TextEncoder().encode(S.user.id), name: S.user.email, displayName: S.profile?.nome_completo || S.user.email },
-            pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-            timeout: 60000,
-            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' }
-          }
-        });
-        const credId = bufferToBase64(credential.rawId);
-        localStorage.setItem('ga_pk_id', credId);
-        const { data } = await sb.auth.getSession();
-        if (data.session) localStorage.setItem('ga_pk_rt', data.session.refresh_token);
-        await sb.from('user_passkeys').insert({ user_id: S.user.id, credential_id: credId, device_name: navigator.userAgent.includes('iPhone') ? 'iPhone' : navigator.userAgent.includes('Mobile') ? 'Celular' : 'Computador' });
-        showToast('✅ Face ID / Digital configurada!');
-      } catch (e) {
-        showToast('Seu dispositivo ou navegador não suporta biometria (WebAuthn) ou houve um erro no cadastro.');
-      }
-    }
-
-    function bufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-    function base64ToBuffer(b64) { return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer; }
+    // Funções de Biometria Removidas
 
     // ============================================================
     // PRODUCTS
@@ -2032,6 +1983,7 @@
 
         if (error) throw error;
         S.products = data || [];
+        localStorage.setItem('ga_products_cache', JSON.stringify(S.products));
         const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
         renderCats(cats);
         renderProducts();
@@ -2098,7 +2050,7 @@
       <div class="product-info">
         ${p.destaque ? '<span class="badge-destaque">⭐ Destaque</span>' : ''}
         <div class="product-nome">${p.nome}</div>
-        <div class="product-cat">${p.categoria}</div>
+        <div class="product-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
         <div class="product-price-row">
           <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? '🏷️ ' : ''}R$ ${price.toFixed(2).replace('.', ',')}</span>
           <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>
@@ -2293,6 +2245,16 @@
         preco_unitario: i.price, quantidade: i.qty, subtotal: i.subtotal
       })));
 
+      // DISPARO DE WEBHOOK (SE CONFIGURADO)
+      const webhookUrl = S.settings?.webhook_speedit?.url;
+      if (webhookUrl) {
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: 'order.created', order: order, items: S.cart })
+        }).catch(err => console.error('Erro ao disparar webhook:', err));
+      }
+
       S.cart = []; saveCart(); updateCartUI();
       document.getElementById('successOrderNum').textContent = '#' + num;
       S.checkoutStep = 3; updateCheckoutStep();
@@ -2481,8 +2443,12 @@
       if (!addr.cep || !addr.rua || !addr.numero) { showToast('Preencha os campos obrigatórios'); return; }
       const client = getSupabase();
       const { error } = await client.from('user_addresses').insert(addr);
-      if (error) { showToast('Erro ao salvar endereço'); return; }
-      showToast('Endereço salvo!');
+      if (error) {
+        showToast('Erro ao salvar endereço');
+        console.error('Erro saveAddress:', error);
+        return;
+      }
+      showToast('✅ Endereço salvo!');
       closeAddressForm();
       loadAddresses();
     }

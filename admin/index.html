@@ -1099,8 +1099,6 @@
               <div class="modal-body">
                 <div class="form-group"><label class="form-label">URL Webhook Speedit</label><input class="form-input"
                     id="setWebhookUrl" placeholder="https://..."></div>
-                <div class="form-group"><label class="form-label">Token</label><input class="form-input"
-                    id="setWebhookToken" placeholder="Token"></div>
                 <button class="btn btn-primary" onclick="saveSettings('webhook_speedit')">💾 Salvar</button>
               </div>
             </div>
@@ -1116,8 +1114,6 @@
                 </div>
                 <div class="form-group"><label class="form-label">Public Key</label><input class="form-input"
                     id="setGwPubKey" placeholder="APP_USR-..."></div>
-                <div class="form-group"><label class="form-label">Access Token</label><input class="form-input"
-                    id="setGwToken" placeholder="APP_USR-..."></div>
                 <div class="form-group"><label class="form-label">Modo</label>
                   <select class="form-input" id="setGwModo">
                     <option value="sandbox">Sandbox</option>
@@ -1157,16 +1153,22 @@
               <option>Bebidas</option>
             </select>
           </div>
-          <div class="form-group"><label class="form-label">Preço (R$) *</label><input class="form-input" type="number"
-              id="productPreco" step="0.01" placeholder="0,00"></div>
+          <div class="form-group"><label class="form-label">Subcategoria (Ex: 20L, 10L)</label>
+            <input class="form-input" id="productSubcat" list="subcatList" placeholder="Ex: 20L">
+            <datalist id="subcatList">
+              <option value="20 Litros">
+              <option value="10 Litros">
+              <option value="1.5 Litros">
+              <option value="500 ml">
+              <option value="Lata 350ml">
+            </datalist>
+          </div>
         </div>
         <div class="form-row">
+          <div class="form-group"><label class="form-label">Preço (R$) *</label><input class="form-input" type="number"
+              id="productPreco" step="0.01" placeholder="0,00"></div>
           <div class="form-group"><label class="form-label">Estoque</label><input class="form-input" type="number"
               id="productEstoque" value="999"></div>
-          <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
-            <label style="font-size:13px;font-weight:600;color:#555">Destaque</label>
-            <label class="toggle"><input type="checkbox" id="productDestaque"><span class="slider"></span></label>
-          </div>
         </div>
 
         <!-- FOTO: URL ou UPLOAD -->
@@ -1367,7 +1369,7 @@
         ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='💧'">` : '💧'}
       </div></td>
       <td><strong>${p.nome}</strong><br><small style="color:#aaa">${p.descricao || ''}</small></td>
-      <td>${p.categoria}</td>
+      <td><span style="display:block;font-weight:600">${p.categoria}</span><small style="color:#999">${p.subcategoria || '-'}</small></td>
       <td><strong>R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</strong></td>
       <td><label class="toggle"><input type="checkbox" ${p.ativo ? 'checked' : ''} onchange="toggleProduct('${p.id}','ativo',this.checked)"><span class="slider"></span></label></td>
       <td><label class="toggle"><input type="checkbox" ${p.destaque ? 'checked' : ''} onchange="toggleProduct('${p.id}','destaque',this.checked)"><span class="slider"></span></label></td>
@@ -1432,6 +1434,7 @@
       document.getElementById('productNome').value = p?.nome || '';
       document.getElementById('productDesc').value = p?.descricao || '';
       document.getElementById('productCat').value = p?.categoria || 'Água';
+      document.getElementById('productSubcat').value = p?.subcategoria || '';
       document.getElementById('productPreco').value = p?.preco_padrao || '';
       document.getElementById('productEstoque').value = p?.estoque ?? 999;
       document.getElementById('productDestaque').checked = p?.destaque || false;
@@ -1466,6 +1469,7 @@
         nome, foto_url,
         descricao: document.getElementById('productDesc').value.trim(),
         categoria: document.getElementById('productCat').value,
+        subcategoria: document.getElementById('productSubcat').value.trim(),
         preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
         estoque: parseInt(document.getElementById('productEstoque').value) || 999,
         destaque: document.getElementById('productDestaque').checked,
@@ -1631,11 +1635,9 @@
       if (e.valor_fixo !== undefined) document.getElementById('setEntregaValor').value = e.valor_fixo;
       const w = currentSettings.webhook_speedit || {};
       if (w.url) document.getElementById('setWebhookUrl').value = w.url;
-      if (w.token) document.getElementById('setWebhookToken').value = w.token;
       const gw = currentSettings.gateway_pagamento || {};
       if (gw.provedor) document.getElementById('setGwProvedor').value = gw.provedor;
       if (gw.public_key) document.getElementById('setGwPubKey').value = gw.public_key;
-      if (gw.access_token) document.getElementById('setGwToken').value = gw.access_token;
       if (gw.modo) document.getElementById('setGwModo').value = gw.modo;
       updateWaPreview();
     }
@@ -1644,8 +1646,8 @@
       let value = {};
       if (key === 'geral') value = { nome_loja: document.getElementById('setNomeLoja').value, whatsapp_suporte: document.getElementById('setWhatsapp').value, cor_primaria: document.getElementById('setCorPrimaria').value };
       else if (key === 'entrega') value = { tipo: document.getElementById('setEntregaTipo').value, valor_fixo: parseFloat(document.getElementById('setEntregaValor').value) || 0 };
-      else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value, token: document.getElementById('setWebhookToken').value };
-      else if (key === 'gateway_pagamento') value = { provedor: document.getElementById('setGwProvedor').value, public_key: document.getElementById('setGwPubKey').value, access_token: document.getElementById('setGwToken').value, modo: document.getElementById('setGwModo').value };
+      else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value };
+      else if (key === 'gateway_pagamento') value = { provedor: document.getElementById('setGwProvedor').value, public_key: document.getElementById('setGwPubKey').value, modo: document.getElementById('setGwModo').value };
       await sb.from('settings').upsert({ key, value }, { onConflict: 'key' });
       currentSettings[key] = value;
       showToast('✅ Salvo!');
