@@ -1,14 +1,14 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v4.0';
+const CACHE_NAME = 'globo-agua-v5.0';
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/images/logo.jpeg',
-  '/images/mascote.jpeg'
+  './',
+  'index.html',
+  'manifest.json',
+  'images/logo.jpeg',
+  'images/mascote.jpeg'
 ];
 
 self.addEventListener('install', (event) => {

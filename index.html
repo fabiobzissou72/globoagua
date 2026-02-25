@@ -2619,25 +2619,38 @@
     // INIT
     // ============================================================
     async function init() {
+      console.log('🚀 Iniciando Globo Água...', { productsCount: S.products.length });
+
+      // 1. Renderiza IMEDIATAMENTE o que temos (emergência ou cache)
+      try {
+        if (S.products && S.products.length > 0) {
+          console.log('📦 Renderizando produtos iniciais...');
+          const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
+          renderCats(cats);
+          renderProducts();
+        } else {
+          console.warn('⚠️ Nenhum produto encontrado no script ou cache.');
+        }
+      } catch (e) {
+        console.error('❌ Erro na renderização inicial:', e);
+      }
+
+      updateCartUI();
+      renderProfile();
+
+      // 2. Tenta conectar ao Supabase para atualizar os dados
       let attempts = 0;
-      // Aguarda a biblioteca carregar se for necessário (até 4s)
-      while (!getSupabase() && attempts < 8) {
+      while (!getSupabase() && attempts < 10) {
         attempts++;
         await new Promise(r => setTimeout(r, 500));
       }
 
       const client = getSupabase();
       if (client) {
+        console.log('🔗 Conectado ao servidor. Atualizando dados...');
         loadSettings();
-        // Renderiza cache imediatamente
-        if (S.products && S.products.length > 0) {
-          const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
-          renderCats(cats);
-          renderProducts();
-        }
-        loadProducts();
+        loadProducts(); // Atualiza o cache e a tela em background
 
-        // Verifica sessão
         client.auth.getSession().then(({ data }) => {
           if (data?.session && !S.user) {
             S.user = data.session.user;
@@ -2649,17 +2662,11 @@
           }
         });
       } else {
-        console.error('Falha crítica: Supabase não carregou.');
-        document.getElementById('productsGrid').innerHTML =
-          '<div class="loading-center" style="flex-direction:column;gap:15px;padding:40px">' +
-          '<div style="font-size:40px">⚠️</div>' +
-          '<div>Não foi possível conectar ao servidor.</div>' +
-          '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="location.reload()">Recarregar Página</button>' +
-          '</div>';
+        console.warn('⚠️ Servidor offline. Usando modo offline.');
       }
-      updateCartUI();
     }
 
+    // Execução
     init();
   </script>
 </body>
