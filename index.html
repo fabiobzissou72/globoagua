@@ -1523,11 +1523,16 @@
     </div>
     <div style="margin-top:-24px">
       <div class="profile-card">
-        <!-- Biometria Removida -->
         <div class="profile-item" id="btnAddresses" onclick="showView('viewAddresses',null);loadAddresses()">
           <span class="profile-item-icon">📍</span>
           <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span>
           </div>
+          <span class="profile-item-arrow">›</span>
+        </div>
+        <div class="profile-item" id="btnPasskeys">
+          <span class="profile-item-icon">🔑</span>
+          <div class="profile-item-text"><strong>Chaves de Segurança</strong><span>Configurar NFC/USB para acesso
+              rápido</span></div>
           <span class="profile-item-arrow">›</span>
         </div>
       </div>
@@ -2398,26 +2403,38 @@
     // ============================================================
     function renderProfile() {
       const isLogged = !!S.user;
-      document.getElementById('btnLogout').classList.toggle('hidden', !isLogged);
-      document.getElementById('btnPasskeys').classList.toggle('hidden', !isLogged);
-      document.getElementById('btnAddresses').classList.toggle('hidden', !isLogged);
-      document.getElementById('profileLoginPrompt').classList.toggle('hidden', isLogged);
-      // Atualiza link do WhatsApp a partir das configurações
-      const waNum = S.settings?.geral?.whatsapp_suporte || '';
-      document.getElementById('btnWhatsapp').onclick = () => {
-        if (waNum) { window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank'); }
-        else showToast('WhatsApp não configurado');
+      const toggle = (id, show) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !show);
       };
 
+      toggle('btnLogout', isLogged);
+      toggle('btnPasskeys', isLogged);
+      toggle('btnAddresses', isLogged);
+      toggle('profileLoginPrompt', !isLogged);
+
+      // Atualiza link do WhatsApp
+      const waBtn = document.getElementById('btnWhatsapp');
+      if (waBtn) {
+        waBtn.onclick = () => {
+          const waNum = S.settings?.geral?.whatsapp_suporte || '';
+          if (waNum) window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank');
+          else showToast('WhatsApp não configurado');
+        };
+      }
+
+      const avatar = document.getElementById('profileAvatar');
+      const name = document.getElementById('profileName');
+      const email = document.getElementById('profileEmail');
+
       if (isLogged && S.profile) {
-        const initials = (S.profile.nome_completo || S.user.email).charAt(0).toUpperCase();
-        document.getElementById('profileAvatar').textContent = initials;
-        document.getElementById('profileName').textContent = S.profile.nome_completo || 'Usuário';
-        document.getElementById('profileEmail').textContent = S.user.email;
+        if (avatar) avatar.textContent = (S.profile.nome_completo || S.user.email).charAt(0).toUpperCase();
+        if (name) name.textContent = S.profile.nome_completo || 'Usuário';
+        if (email) email.textContent = S.user.email;
       } else {
-        document.getElementById('profileAvatar').textContent = '👤';
-        document.getElementById('profileName').textContent = 'Visitante';
-        document.getElementById('profileEmail').textContent = '';
+        if (avatar) avatar.textContent = '👤';
+        if (name) name.textContent = 'Visitante';
+        if (email) email.textContent = '';
       }
     }
 
@@ -2462,7 +2479,8 @@
       }, 1500);
     }
 
-    document.getElementById('btnPasskeys').onclick = () => registerPasskey();
+    const pkBtn = document.getElementById('btnPasskeys');
+    if (pkBtn) pkBtn.onclick = () => registerPasskey();
 
     // ============================================================
     // ADDRESSES MGMT
