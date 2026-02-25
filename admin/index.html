@@ -1194,6 +1194,20 @@
                   <input class="form-input" id="setPromoBannerLink" placeholder="https://wa.me/... ou /link-interno">
                   <small style="color:#888;font-size:11px">Se vazio, o banner não será clicável.</small>
                 </div>
+                <hr style="margin:20px 0;opacity:0.1">
+                <div class="form-group">
+                  <label class="form-label">Título do Site (SEO - aparece na aba do navegador e no Google)</label>
+                  <input class="form-input" id="setSeoTitle" placeholder="Ex: Globo Água - Delivery">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Descrição do Site (SEO - resumo para o Google)</label>
+                  <textarea class="form-input" id="setSeoDesc" rows="2"
+                    placeholder="Ex: Delivery rápido de água mineral em sua região..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Palavras-chave (SEO - separadas por vírgula)</label>
+                  <input class="form-input" id="setSeoKeywords" placeholder="Ex: água, delivery, galão 20L">
+                </div>
                 <button class="btn btn-primary" onclick="saveSettings('geral')">💾 Salvar</button>
               </div>
             </div>
@@ -1727,7 +1741,6 @@
         categoria: document.getElementById('productCat').value,
         subcategoria: document.getElementById('productSubcat').value.trim(),
         preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
-        preco_oferta: parseFloat(document.getElementById('productPrecoOferta').value) || 0,
         estoque: parseInt(document.getElementById('productEstoque').value) || 999,
         destaque: document.getElementById('productDestaque').checked,
         ativo: document.getElementById('productAtivo').checked
@@ -2284,6 +2297,9 @@
       if (g.banner_promocional_media_url) document.getElementById('setPromoBannerMediaUrl').value = g.banner_promocional_media_url;
       if (g.banner_promocional_media_type) document.getElementById('setPromoBannerMediaType').value = g.banner_promocional_media_type;
       if (g.banner_promocional_link) document.getElementById('setPromoBannerLink').value = g.banner_promocional_link;
+      if (g.seo_title) document.getElementById('setSeoTitle').value = g.seo_title;
+      if (g.seo_desc) document.getElementById('setSeoDesc').value = g.seo_desc;
+      if (g.seo_keywords) document.getElementById('setSeoKeywords').value = g.seo_keywords;
       const e = currentSettings.entrega || {};
       if (e.tipo) document.getElementById('setEntregaTipo').value = e.tipo;
       if (e.valor_fixo !== undefined) document.getElementById('setEntregaValor').value = e.valor_fixo;
@@ -2307,7 +2323,10 @@
         banner_promocional_texto: document.getElementById('setPromoBannerTexto').value.trim(),
         banner_promocional_media_url: document.getElementById('setPromoBannerMediaUrl').value.trim(),
         banner_promocional_media_type: document.getElementById('setPromoBannerMediaType').value,
-        banner_promocional_link: document.getElementById('setPromoBannerLink').value.trim()
+        banner_promocional_link: document.getElementById('setPromoBannerLink').value.trim(),
+        seo_title: document.getElementById('setSeoTitle').value.trim(),
+        seo_desc: document.getElementById('setSeoDesc').value.trim(),
+        seo_keywords: document.getElementById('setSeoKeywords').value.trim()
       };
       else if (key === 'entrega') value = { tipo: document.getElementById('setEntregaTipo').value, valor_fixo: parseFloat(document.getElementById('setEntregaValor').value) || 0 };
       else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value };

@@ -2132,7 +2132,31 @@
         // Aplica o nome da loja se existir
         if (g.nome_loja) {
           document.querySelectorAll('.topbar-logo span').forEach(el => el.textContent = g.nome_loja);
-          document.title = g.nome_loja;
+          // O fallback para document.title
+          if (!g.seo_title) document.title = g.nome_loja;
+        }
+
+        // SEO Injection (Title, Description, Keywords)
+        if (g.seo_title) {
+          document.title = g.seo_title;
+        }
+        if (g.seo_desc) {
+          let metaDesc = document.querySelector('meta[name="description"]');
+          if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.name = 'description';
+            document.head.appendChild(metaDesc);
+          }
+          metaDesc.content = g.seo_desc;
+        }
+        if (g.seo_keywords) {
+          let metaKeywords = document.querySelector('meta[name="keywords"]');
+          if (!metaKeywords) {
+            metaKeywords = document.createElement('meta');
+            metaKeywords.name = 'keywords';
+            document.head.appendChild(metaKeywords);
+          }
+          metaKeywords.content = g.seo_keywords;
         }
       }
 
