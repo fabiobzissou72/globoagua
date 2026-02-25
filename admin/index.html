@@ -1164,8 +1164,10 @@
                     Link gerado: <span id="waLinkPreview" style="color:var(--blue)">wa.me/...</span>
                   </small>
                 </div>
-                <div class="form-group"><label class="form-label">Cor primária</label><input class="form-input"
-                    type="color" id="setCorPrimaria" value="#1976D2"></div>
+                <div class="form-group">
+                  <label class="form-label">Cor primária</label>
+                  <div id="colorPicker" style="margin: 15px 0;"></div>
+                </div>
                 <hr style="margin:20px 0;opacity:0.1">
                 <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
                   <label class="toggle"><input type="checkbox" id="setPromoBannerAtivo"><span
@@ -1390,6 +1392,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script>
     const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
     // Cliente principal: usa anon key para autenticação funcionar corretamente
@@ -1407,6 +1410,7 @@
     let currentSettings = {};
     let uploadedFileObj = null;
     let currentPhotoTab = 'url';
+    let colorPicker = null;
 
     // ============================================================
     // SIDEBAR MOBILE
@@ -2272,7 +2276,9 @@
       const g = currentSettings.geral || {};
       if (g.nome_loja) document.getElementById('setNomeLoja').value = g.nome_loja;
       if (g.whatsapp_suporte) document.getElementById('setWhatsapp').value = g.whatsapp_suporte;
-      if (g.cor_primaria) document.getElementById('setCorPrimaria').value = g.cor_primaria;
+      if (g.cor_primaria) {
+        if (colorPicker) colorPicker.color.hexString = g.cor_primaria;
+      }
       if (g.banner_promocional_ativo !== undefined) document.getElementById('setPromoBannerAtivo').checked = g.banner_promocional_ativo;
       if (g.banner_promocional_texto) document.getElementById('setPromoBannerTexto').value = g.banner_promocional_texto;
       if (g.banner_promocional_media_url) document.getElementById('setPromoBannerMediaUrl').value = g.banner_promocional_media_url;
@@ -2296,7 +2302,7 @@
       if (key === 'geral') value = {
         nome_loja: document.getElementById('setNomeLoja').value,
         whatsapp_suporte: document.getElementById('setWhatsapp').value,
-        cor_primaria: document.getElementById('setCorPrimaria').value,
+        cor_primaria: colorPicker ? colorPicker.color.hexString : '#1976D2',
         banner_promocional_ativo: document.getElementById('setPromoBannerAtivo').checked,
         banner_promocional_texto: document.getElementById('setPromoBannerTexto').value.trim(),
         banner_promocional_media_url: document.getElementById('setPromoBannerMediaUrl').value.trim(),
@@ -2357,6 +2363,18 @@
       document.getElementById('adminNameDisplay').textContent = profile.nome_completo || data.session.user.email;
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
+
+      // Inicializa o Color Picker
+      colorPicker = new iro.ColorPicker("#colorPicker", {
+        width: 220,
+        color: "#1976D2",
+        layout: [
+          { component: iro.ui.Wheel },
+          { component: iro.ui.Slider, options: { sliderType: 'saturation' } },
+          { component: iro.ui.Slider, options: { sliderType: 'value' } },
+        ]
+      });
+
       initApp();
     })();
   </script>
