@@ -1430,8 +1430,10 @@
       <div class="profile-card">
         <div class="profile-item" id="btnPasskeys">
           <span class="profile-item-icon">🪪</span>
-          <div class="profile-item-text"><strong>Face ID / Touch ID</strong><span>Login rápido com biometria do
-              dispositivo</span></div>
+          <div class="profile-item-text">
+            <strong>Face ID / Digital (Biometria)</strong>
+            <span>Login rápido e seguro no seu dispositivo</span>
+          </div>
           <span class="profile-item-arrow">›</span>
         </div>
         <div class="profile-item" id="btnAddresses">
@@ -1522,7 +1524,7 @@
     </div>
     <div class="auth-body">
       <button class="auth-btn btn-biometric" id="btnBiometric" onclick="loginBiometric()">
-        <span style="font-size:22px">🪪</span> Entrar com Face ID / Touch ID
+        <span style="font-size:22px">🪪</span> Entrar com Biometria
       </button>
       <div class="auth-divider">— ou —</div>
       <div class="auth-tabs">
@@ -1930,8 +1932,10 @@
         const { data } = await sb.auth.getSession();
         if (data.session) localStorage.setItem('ga_pk_rt', data.session.refresh_token);
         await sb.from('user_passkeys').insert({ user_id: S.user.id, credential_id: credId, device_name: navigator.userAgent.includes('iPhone') ? 'iPhone' : navigator.userAgent.includes('Mobile') ? 'Celular' : 'Computador' });
-        showToast('✅ Face ID / Touch ID configurado!');
-      } catch (e) { showToast('Biometria não disponível. Use o Safari no iPhone.'); }
+        showToast('✅ Face ID / Digital configurada!');
+      } catch (e) {
+        showToast('Seu dispositivo ou navegador não suporta biometria (WebAuthn) ou houve um erro no cadastro.');
+      }
     }
 
     function bufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
