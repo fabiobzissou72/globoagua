@@ -1,12 +1,13 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v2.0';
+const CACHE_NAME = 'globo-agua-v3.0';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/config.js',
   '/images/logo.jpeg',
   '/images/mascote.jpeg'
 ];
@@ -17,7 +18,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then(cache => {
       return Promise.allSettled(
         STATIC_ASSETS.map(url =>
-          cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+          cache.add(new Request(url, { cache: 'reload' })).catch(() => { })
         )
       );
     })
@@ -44,7 +45,7 @@ self.addEventListener('message', (event) => {
         .then(() => caches.open(CACHE_NAME).then(cache => {
           return Promise.allSettled(
             STATIC_ASSETS.map(url =>
-              cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+              cache.add(new Request(url, { cache: 'reload' })).catch(() => { })
             )
           );
         }))

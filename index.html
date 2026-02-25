@@ -1721,11 +1721,25 @@
     </div>
   </div>
 
-  <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Configurações embutidas para maior estabilidade no PWA/Android
+    window.APP_CONFIG = {
+      SUPABASE_URL: 'https://juzvcmahhdqwzjrjisdo.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1enZjbWFoaGRxd3pqcmppc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MzU4MTEsImV4cCI6MjA4NzUxMTgxMX0.PWLW4DCDNPKaTY3FpwseI4_WVL9fOIGcUpVrm-FcgHU'
+    };
+
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let sb;
+    try {
+      if (typeof supabase !== 'undefined') {
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } else {
+        console.error('Biblioteca Supabase não carregada!');
+      }
+    } catch (e) {
+      console.error('Erro ao inicializar Supabase:', e);
+    }
 
     // ============================================================
     // STATE
@@ -2370,13 +2384,27 @@
     // ============================================================
     // INIT
     // ============================================================
-    loadProducts();
-    updateCartUI();
-    // A sessão é restaurada automaticamente pelo onAuthStateChange (evento INITIAL_SESSION)
-    // Fallback explícito para garantir restauração mesmo em PWA instalado
-    loadSettings();
+    async function init() {
+      // Pequeno delay para garantir carregamento de libs em conexões lentas (Android/PWA)
+      if (!sb) {
+        console.warn('Aguardando inicialização do Supabase...');
+        await new Promise(r => setTimeout(r, 500));
+      }
 
-    sb.auth.getSession().then(({ data }) => {
+      if (sb) {
+        loadSettings();
+        loadProducts();
+      } else {
+        console.error('Falha crítica: Supabase não inicializado.');
+        document.getElementById('productsGrid').innerHTML =
+          '<div class="loading-center">⚠️ Erro de conexão. Recarregue a página.</div>';
+      }
+      updateCartUI();
+    }
+
+    init();
+
+    sb?.auth.getSession().then(({ data }) => {
       if (data.session && !S.user) {
         S.user = data.session.user;
         loadProfile().then(renderProfile);
