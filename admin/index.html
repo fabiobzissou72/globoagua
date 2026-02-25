@@ -1120,6 +1120,13 @@
                     <option value="production">Produção</option>
                   </select>
                 </div>
+                <hr style="margin:20px 0;opacity:0.1">
+                <div class="form-group"><label class="form-label">Chave PIX (Copia e Cola)</label>
+                  <input class="form-input" id="setPixManual" placeholder="Chave PIX ou Código Copia e Cola">
+                  <small style="color:#888;font-size:12px;margin-top:5px;display:block">
+                    Aparecerá para o cliente na finalização do pedido.
+                  </small>
+                </div>
                 <button class="btn btn-primary" onclick="saveSettings('gateway_pagamento')">💾 Salvar</button>
               </div>
             </div>
@@ -1221,6 +1228,23 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('companyModal')">Cancelar</button>
         <button class="btn btn-primary" onclick="saveCompany()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALHES PEDIDO -->
+  <div class="modal-overlay hidden" id="orderDetailModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h3>Detalhes do Pedido</h3>
+        <button class="modal-close" onclick="closeModal('orderDetailModal')">✕</button>
+      </div>
+      <div class="modal-body" id="orderDetailBody">
+        <!-- Preenchido via JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('orderDetailModal')">Fechar</button>
       </div>
     </div>
   </div>
@@ -1523,7 +1547,62 @@
         </select>
       </td>
       <td style="font-size:12px;white-space:nowrap">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openOrderDetailModal('${o.id}')">👀 Detalhes</button>
+      </td>
     </tr>`).join('');
+    }
+
+    async function openOrderDetailModal(id) {
+      const { data: o, error } = await sb.from('orders').select('*, order_items(*)').eq('id', id).single();
+      if (error || !o) { showToast('Erro ao carregar detalhes'); return; }
+
+      const itemsHtml = (o.order_items || []).map(i => `
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #f0f0f0">
+          <span>${i.quantidade}x ${i.produto_nome}</span>
+          <span>R$ ${parseFloat(i.subtotal).toFixed(2).replace('.', ',')}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('orderDetailBody').innerHTML = `
+        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:15px">
+          <h4 style="margin-bottom:10px;color:var(--blue)">📦 Pedido #${o.numero_pedido}</h4>
+          <p><strong>Cliente:</strong> ${o.cliente_nome}</p>
+          <p><strong>WhatsApp:</strong> ${o.cliente_whatsapp || '—'}</p>
+          <p><strong>Email:</strong> ${o.cliente_email}</p>
+          <p><strong>Tipo:</strong> ${o.cliente_tipo || 'PF'} | ${o.cliente_documento || '—'}</p>
+        </div>
+        
+        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:15px">
+          <h4 style="margin-bottom:10px">📍 Entrega</h4>
+          <p><strong>Endereço:</strong> ${o.endereco_completo || '—'}</p>
+          <p><strong>Cidade:</strong> ${o.endereco_cidade} - ${o.endereco_estado}</p>
+          <p><strong>Recebedor:</strong> ${o.recebedor_nome || '—'}</p>
+          <p><strong>WhatsApp Rec.:</strong> ${o.recebedor_whatsapp || '—'}</p>
+          <p><strong>Referência:</strong> ${o.recebedor_referencia || '—'}</p>
+        </div>
+
+        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:15px">
+          <h4 style="margin-bottom:10px">📝 Observações</h4>
+          <p>${o.observacoes || '<i style="color:#aaa">Nenhuma observação</i>'}</p>
+        </div>
+
+        <div style="background:#fff;border:1px solid #eee;padding:15px;border-radius:12px;margin-bottom:15px">
+          <h4 style="margin-bottom:10px">🛒 Itens</h4>
+          ${itemsHtml}
+          <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;font-size:15px;color:var(--blue)">
+            <span>TOTAL</span>
+            <span>R$ ${parseFloat(o.total).toFixed(2).replace('.', ',')}</span>
+          </div>
+        </div>
+
+        <div style="background:#f9f9f9;padding:15px;border-radius:12px">
+          <h4 style="margin-bottom:10px">💳 Pagamento</h4>
+          <p><strong>Método:</strong> ${o.metodo_pagamento}</p>
+          <p><strong>Status:</strong> ${o.status_pagamento}</p>
+        </div>
+      `;
+      document.getElementById('orderDetailModal').classList.remove('hidden');
     }
 
     async function updateOrderStatus(id, status) {
@@ -1639,6 +1718,7 @@
       if (gw.provedor) document.getElementById('setGwProvedor').value = gw.provedor;
       if (gw.public_key) document.getElementById('setGwPubKey').value = gw.public_key;
       if (gw.modo) document.getElementById('setGwModo').value = gw.modo;
+      if (gw.pix_manual) document.getElementById('setPixManual').value = gw.pix_manual;
       updateWaPreview();
     }
 
@@ -1647,7 +1727,12 @@
       if (key === 'geral') value = { nome_loja: document.getElementById('setNomeLoja').value, whatsapp_suporte: document.getElementById('setWhatsapp').value, cor_primaria: document.getElementById('setCorPrimaria').value };
       else if (key === 'entrega') value = { tipo: document.getElementById('setEntregaTipo').value, valor_fixo: parseFloat(document.getElementById('setEntregaValor').value) || 0 };
       else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value };
-      else if (key === 'gateway_pagamento') value = { provedor: document.getElementById('setGwProvedor').value, public_key: document.getElementById('setGwPubKey').value, modo: document.getElementById('setGwModo').value };
+      else if (key === 'gateway_pagamento') value = {
+        provedor: document.getElementById('setGwProvedor').value,
+        public_key: document.getElementById('setGwPubKey').value,
+        modo: document.getElementById('setGwModo').value,
+        pix_manual: document.getElementById('setPixManual').value
+      };
       await sb.from('settings').upsert({ key, value }, { onConflict: 'key' });
       currentSettings[key] = value;
       showToast('✅ Salvo!');

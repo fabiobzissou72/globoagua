@@ -57,8 +57,8 @@
     }
 
     .topbar-logo img {
-      width: 36px;
-      height: 36px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       object-fit: cover
     }
@@ -334,10 +334,10 @@
       background: var(--blue);
       border: none;
       color: #fff;
-      width: 34px;
-      height: 34px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1333,6 +1333,10 @@
       transition: transform .3s cubic-bezier(.4, 0, .2, 1)
     }
 
+    .pdetail-overlay.open .pdetail-sheet {
+      transform: translateY(0);
+    }
+
     @media (min-width: 600px) {
       .pdetail-overlay {
         align-items: center;
@@ -1799,8 +1803,18 @@
       <div class="success-screen">
         <div class="success-icon">✅</div>
         <h2>Pedido realizado!</h2>
-        <p>Recebemos seu pedido e já estamos preparando.</p>
-        <div class="order-number" id="successOrderNum">#000000</div>
+        <p>Recebemos seu pedido e logo mais ele sairá para entrega.</p>
+        <div id="pixManualArea" class="hidden"
+          style="background:#f0f7ff;padding:20px;border-radius:16px;margin:20px 12px;border:1px dashed var(--blue)">
+          <p style="font-size:14px;color:#555;margin-bottom:12px">Pague via PIX Copia e Cola:</p>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="pixKeyOutput" readonly
+              style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #ddd;font-size:13px;background:#fff;outline:none">
+            <button class="auth-btn btn-biometric" style="margin:0;width:auto;padding:0 20px"
+              onclick="copyPix()">Copiar</button>
+          </div>
+        </div>
+        <div class="order-number" id="successOrderNum">#GA123456</div>
         <p>Atualizações pelo WhatsApp.</p>
         <button class="auth-btn btn-biometric" style="margin-top:24px"
           onclick="closeCheckout();showView('viewOrders',null);loadOrders()">Ver meus pedidos</button>
@@ -2171,12 +2185,21 @@
     // CART
     // ============================================================
     function addToCart(productId) {
+      console.log('🛒 Tentando adicionar ao carrinho:', productId);
       const p = S.products.find(x => x.id === productId);
-      if (!p) return;
+      if (!p) {
+        console.error('❌ Produto não encontrado:', productId, S.products);
+        showToast('Erro ao adicionar produto');
+        return;
+      }
       const price = getPrice(p);
       const existing = S.cart.find(x => x.id === productId);
-      if (existing) { existing.qty++; existing.subtotal = existing.qty * existing.price; }
-      else S.cart.push({ id: p.id, nome: p.nome, foto: p.foto_url, price, qty: 1, subtotal: price });
+      if (existing) {
+        existing.qty++;
+        existing.subtotal = existing.qty * existing.price;
+      } else {
+        S.cart.push({ id: p.id, nome: p.nome, foto: p.foto_url, price, qty: 1, subtotal: price });
+      }
       saveCart(); updateCartUI();
       showToast(`${p.nome} adicionado! 🛒`);
     }
@@ -2276,6 +2299,25 @@
       document.getElementById('stepLabel').textContent = `Passo ${s + 1} de 4`;
       document.getElementById('btnNext').classList.toggle('hidden', s === 3);
       if (s === 1) renderReview();
+
+      // Exibe PIX se for o caso
+      if (s === 3) {
+        const pixArea = document.getElementById('pixManualArea');
+        const pixKey = S.settings?.gateway_pagamento?.pix_manual;
+        if (S.selectedPayment === 'PIX' && pixKey) {
+          pixArea.classList.remove('hidden');
+          document.getElementById('pixKeyOutput').value = pixKey;
+        } else {
+          pixArea.classList.add('hidden');
+        }
+      }
+    }
+
+    function copyPix() {
+      const input = document.getElementById('pixKeyOutput');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => showToast('Chave PIX copiada! ✅'));
     }
 
     function nextStep() {
@@ -2476,9 +2518,11 @@
       const name = document.getElementById('profileName');
       const email = document.getElementById('profileEmail');
 
-      if (isLogged && S.profile) {
-        if (avatar) avatar.textContent = (S.profile.nome_completo || S.user.email).charAt(0).toUpperCase();
-        if (name) name.textContent = S.profile.nome_completo || 'Usuário';
+      if (isLogged) {
+        const meta = S.user.user_metadata || {};
+        const userName = S.profile?.nome_completo || meta.nome_completo || 'Usuário';
+        if (avatar) avatar.textContent = userName.charAt(0).toUpperCase();
+        if (name) name.textContent = userName;
         if (email) email.textContent = S.user.email;
       } else {
         if (avatar) avatar.textContent = '👤';
@@ -2586,6 +2630,9 @@
     }
 
     async function saveAddress() {
+      const btn = event.target;
+      const originalText = btn.textContent;
+
       const addr = {
         user_id: S.user.id,
         cep: document.getElementById('newAddrCep').value,
@@ -2596,17 +2643,37 @@
         cidade: document.getElementById('newAddrCidade').value,
         estado: document.getElementById('newAddrEstado').value
       };
-      if (!addr.cep || !addr.rua || !addr.numero) { showToast('Preencha os campos obrigatórios'); return; }
-      const client = getSupabase();
-      const { error } = await client.from('user_addresses').insert(addr);
-      if (error) {
-        showToast('Erro ao salvar endereço');
-        console.error('Erro saveAddress:', error);
+
+      if (!addr.cep || !addr.rua || !addr.numero) {
+        showToast('Preencha os campos obrigatórios ⚠️');
         return;
       }
-      showToast('✅ Endereço salvo!');
-      closeAddressForm();
-      loadAddresses();
+
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div> Salvando...';
+
+        const client = getSupabase();
+        const { error } = await client.from('user_addresses').insert(addr);
+
+        if (error) throw error;
+
+        showToast('✅ Endereço salvo com sucesso!');
+
+        // Limpa campos
+        ['newAddrCep', 'newAddrRua', 'newAddrNum', 'newAddrComp', 'newAddrBairro', 'newAddrCidade', 'newAddrEstado'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+
+        closeAddressForm();
+        await loadAddresses();
+      } catch (err) {
+        console.error('❌ Erro saveAddress:', err);
+        showToast('Erro ao salvar: ' + (err.message || 'Verifique sua conexão'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
 
     async function setDefaultAddress(id) {
@@ -2650,8 +2717,12 @@
     // PRODUCT DETAIL MODAL
     // ============================================================
     function openPDetail(productId) {
+      console.log('🔍 Abrindo detalhes do produto:', productId);
       const p = S.products.find(x => x.id === productId);
-      if (!p) return;
+      if (!p) {
+        console.error('❌ Detalhes: Produto não encontrado:', productId);
+        return;
+      }
       const price = getPrice(p);
       const isB2B = S.companyPrices[p.id] !== undefined;
       // Imagem
@@ -2666,7 +2737,11 @@
       document.getElementById('pdetailDesc').textContent = p.descricao || 'Sem descrição disponível.';
       document.getElementById('pdetailPrice').textContent = (isB2B ? '🏷️ ' : '') + 'R$ ' + price.toFixed(2).replace('.', ',');
       const addBtn = document.getElementById('pdetailAddBtn');
-      addBtn.onclick = () => { addToCart(p.id); closePDetail(); };
+      addBtn.onclick = () => {
+        console.log('➕ Clicou adicionar via modal detail');
+        addToCart(p.id);
+        closePDetail();
+      };
       document.getElementById('pdetailOverlay').classList.add('open');
     }
 
