@@ -1956,7 +1956,8 @@
         <div class="order-number" id="successOrderNum">#GA123456</div>
         <p>Atualizações pelo WhatsApp.</p>
         <button class="auth-btn btn-biometric" style="margin-top:24px"
-          onclick="closeCheckout();showView('viewOrders',null);loadOrders()">Ver meus pedidos</button>
+          onclick="closeCheckout();setTimeout(() => { showView('viewOrders',null); loadOrders(); }, 150)">Ver meus
+          pedidos</button>
       </div>
     </div>
 
@@ -2631,8 +2632,13 @@
 
     document.getElementById('btnCheckout').onclick = () => {
       if (!S.cart.length) { showToast('Carrinho vazio'); return; }
-      if (!S.user) { closeCart(); openAuth(); return; }
-      closeCart(); openCheckout();
+      if (!S.user) {
+        closeCart();
+        setTimeout(openAuth, 150);
+        return;
+      }
+      closeCart();
+      setTimeout(openCheckout, 150);
     };
 
     // ============================================================
