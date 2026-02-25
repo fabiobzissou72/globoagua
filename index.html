@@ -1730,22 +1730,23 @@
     };
 
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
-    let sb;
+    let sb = null;
 
-    function setupSupabase() {
-      try {
-        if (typeof supabase !== 'undefined') {
+    function getSupabase() {
+      if (sb) return sb;
+      if (typeof supabase !== 'undefined') {
+        try {
           sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          return true;
+          return sb;
+        } catch (e) {
+          console.error('Erro ao criar cliente Supabase:', e);
         }
-      } catch (e) {
-        console.error('Erro ao inicializar Supabase:', e);
       }
-      return false;
+      return null;
     }
 
-    // Tenta inicialização imediata
-    setupSupabase();
+    // Inicialização imediata se disponível
+    getSupabase();
 
     // ============================================================
     // STATE
@@ -2392,41 +2393,37 @@
     // ============================================================
     async function init() {
       let attempts = 0;
-      while (!sb && attempts < 3) {
-        console.warn(`Tentativa ${attempts + 1}: Aguardando Supabase...`);
-        setupSupabase();
-        if (sb) break;
+      // Aguarda a biblioteca carregar se for necessário (até 4s)
+      while (!getSupabase() && attempts < 8) {
         attempts++;
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 500));
       }
 
-      if (sb) {
+      const client = getSupabase();
+      if (client) {
         loadSettings();
         loadProducts();
+
+        // Verifica sessão
+        client.auth.getSession().then(({ data }) => {
+          if (data?.session && !S.user) {
+            S.user = data.session.user;
+            loadProfile().then(renderProfile);
+          }
+        });
       } else {
-        console.error('Falha crítica: Supabase não inicializado.');
+        console.error('Falha crítica: Supabase não carregou.');
         document.getElementById('productsGrid').innerHTML =
           '<div class="loading-center" style="flex-direction:column;gap:15px;padding:40px">' +
           '<div style="font-size:40px">⚠️</div>' +
-          '<div>Erro de conexão ao carregar produtos.</div>' +
-          '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="location.reload()">Tentar Novamente</button>' +
+          '<div>Não foi possível conectar ao servidor.</div>' +
+          '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="location.reload()">Recarregar Página</button>' +
           '</div>';
       }
       updateCartUI();
     }
 
     init();
-
-    function checkSession() {
-      if (!sb) return;
-      sb.auth.getSession().then(({ data }) => {
-        if (data?.session && !S.user) {
-          S.user = data.session.user;
-          loadProfile().then(renderProfile);
-        }
-      });
-    }
-    checkSession();
   </script>
 </body>
 
