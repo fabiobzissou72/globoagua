@@ -37,6 +37,36 @@
       --radius: 16px
     }
 
+    .promo-banner-media {
+      width: 100%;
+      border-radius: var(--radius);
+      margin: 12px 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      position: relative;
+      background: #f0f0f0;
+      width: calc(100% - 32px);
+    }
+
+    .promo-banner-media img,
+    .promo-banner-media video {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .promo-banner-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+      padding: 15px;
+      color: #fff;
+    }
+
     .topbar {
       background: var(--blue);
       color: #fff;
@@ -276,7 +306,7 @@
     .product-img {
       width: 100%;
       aspect-ratio: 4 / 3;
-      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1933,47 +1963,6 @@
     <button class="btn-next" id="btnNext" onclick="nextStep()">Continuar →</button>
   </div>
 
-  <script>
-    function openPDetail(id) {
-      const p = S.products.find(x => x.id === id);
-      if (!p) return;
-      const price = getPrice(p);
-      const isB2B = S.companyPrices[p.id] !== undefined;
-      const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
-
-      const overlay = document.getElementById('pdetailOverlay');
-      overlay.innerHTML = `
-        <div class="pdetail-sheet" onclick="event.stopPropagation()">
-          <div class="pdetail-modal-header">
-            <span style="font-weight:700">Detalhes do Produto</span>
-            <button class="pdetail-modal-close" onclick="closePDetail()">✕</button>
-          </div>
-          <div class="pdetail-img">
-            ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
-          </div>
-          <div class="pdetail-body">
-            <div class="pdetail-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
-            <div class="pdetail-name">${p.nome}</div>
-            <div class="pdetail-desc">${p.descricao || 'Sem descrição cadastrada.'}</div>
-          </div>
-          <div class="pdetail-footer">
-            <div style="display:flex;flex-direction:column">
-              <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
-              ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
-              <div class="pdetail-price" style="color:${isB2B ? 'var(--green)' : 'var(--blue)'}">R$ ${price.toFixed(2).replace('.', ',')}</div>
-            </div>
-            <button class="btn-add-modal" onclick="addToCart('${p.id}');closePDetail()">Adicionar +</button>
-          </div>
-        </div>
-      `;
-      overlay.classList.add('open');
-    }
-
-    function closePDetail() {
-      document.getElementById('pdetailOverlay').classList.remove('open');
-    }
-  </script>
-
   <!-- PRODUCT DETAIL MODAL -->
   <div class="pdetail-overlay" id="pdetailOverlay" onclick="closePDetail()"></div>
 
@@ -2120,13 +2109,20 @@
       const { data } = await client.from('settings').select('*');
       (data || []).forEach(s => { S.settings[s.key] = s.value; });
 
-      // Aplica cor primária se existir
       const g = S.settings.geral || {};
       if (g.cor_primaria) {
         document.documentElement.style.setProperty('--blue', g.cor_primaria);
+        // Atualiza meta tag de cor do browser
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute('content', g.cor_primaria);
+
+        // Aplica o nome da loja se existir
+        if (g.nome_loja) {
+          document.querySelectorAll('.topbar-logo span').forEach(el => el.textContent = g.nome_loja);
+          document.title = g.nome_loja;
+        }
       }
 
-      // Recarrega produtos para refletir banner/preços
       renderProducts();
     }
 
@@ -2381,6 +2377,45 @@
       }
     }
 
+    function openPDetail(id) {
+      const p = S.products.find(x => x.id === id);
+      if (!p) return;
+      const price = getPrice(p);
+      const isB2B = S.companyPrices[p.id] !== undefined;
+      const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
+
+      const overlay = document.getElementById('pdetailOverlay');
+      overlay.innerHTML = `
+        <div class="pdetail-sheet" onclick="event.stopPropagation()">
+          <div class="pdetail-modal-header">
+            <span style="font-weight:700">Detalhes do Produto</span>
+            <button class="pdetail-modal-close" onclick="closePDetail()">✕</button>
+          </div>
+          <div class="pdetail-img">
+            ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+          </div>
+          <div class="pdetail-body">
+            <div class="pdetail-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
+            <div class="pdetail-name">${p.nome}</div>
+            <div class="pdetail-desc">${p.descricao || 'Sem descrição cadastrada.'}</div>
+          </div>
+          <div class="pdetail-footer">
+            <div style="display:flex;flex-direction:column">
+              <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
+              ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
+              <div class="pdetail-price" style="color:${isB2B ? 'var(--green)' : 'var(--blue)'}">R$ ${price.toFixed(2).replace('.', ',')}</div>
+            </div>
+            <button class="btn-add-modal" onclick="addToCart('${p.id}');closePDetail()">Adicionar +</button>
+          </div>
+        </div>
+      `;
+      overlay.classList.add('open');
+    }
+
+    function closePDetail() {
+      document.getElementById('pdetailOverlay').classList.remove('open');
+    }
+
     function getPrice(p) {
       if (S.companyPrices[p.id] !== undefined) return S.companyPrices[p.id];
       if (p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao) return parseFloat(p.preco_oferta);
@@ -2410,20 +2445,41 @@
 
       document.getElementById('sectionTitle').textContent = S.currentCategory === 'Todos' ? 'Todos os produtos' : S.currentCategory;
 
-      // Banner Promocional
+      // Banner Promocional (Mídia: Imagem/GIF/Vídeo)
       const promoArea = document.getElementById('promoBannerArea');
       const g = S.settings?.geral || {};
-      if (g.banner_promocional_ativo && g.banner_promocional_texto) {
-        promoArea.innerHTML = `
-          <div class="promo-banner" onclick="window.open('https://wa.me/${(g.whatsapp_suporte || '').replace(/\D/g, '')}', '_blank')">
-            <div style="font-size:24px">📢</div>
-            <div class="install-banner-text">
-              <strong>Promoção Ativa!</strong>
-              <small>${g.banner_promocional_texto}</small>
+      const active = g.banner_promocional_ativo;
+      const media = g.banner_promocional_media_url;
+      const link = g.banner_promocional_link;
+
+      if (active && (media || g.banner_promocional_texto)) {
+        let content = '';
+        if (media) {
+          if (g.banner_promocional_media_type === 'video') {
+            content = `<video src="${media}" autoplay loop muted playsinline></video>`;
+          } else {
+            content = `<img src="${media}" alt="${g.banner_promocional_texto || ''}">`;
+          }
+
+          promoArea.innerHTML = `
+            <div class="promo-banner-media" onclick="${link ? `window.open('${link}', '_blank')` : ''}">
+              ${content}
+              ${g.banner_promocional_texto ? `<div class="promo-banner-overlay"><strong>${g.banner_promocional_texto}</strong></div>` : ''}
             </div>
-            <div class="install-banner-btn">Aproveitar</div>
-          </div>
-        `;
+          `;
+        } else {
+          // Fallback para o banner de texto antigo se não houver mídia
+          promoArea.innerHTML = `
+            <div class="promo-banner" onclick="${link ? `window.open('${link}', '_blank')` : ''}">
+              <div style="font-size:24px">📢</div>
+              <div class="install-banner-text">
+                <strong>Promoção Ativa!</strong>
+                <small>${g.banner_promocional_texto}</small>
+              </div>
+              <div class="install-banner-btn">Aproveitar</div>
+            </div>
+          `;
+        }
         promoArea.classList.remove('hidden');
       } else {
         promoArea.classList.add('hidden');

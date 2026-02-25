@@ -1173,9 +1173,24 @@
                   <label class="form-label" style="margin:0">Ativar Banner Promocional</label>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Texto do Banner Promocional</label>
-                  <input class="form-input" id="setPromoBannerTexto"
-                    placeholder="Ex: Cupom PRIMEIRACOMPRA para 10% OFF!">
+                  <label class="form-label">Texto do Banner (Acessibilidade)</label>
+                  <input class="form-input" id="setPromoBannerTexto" placeholder="Ex: Promoção de Verão">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">URL da Mídia (Imagem, GIF ou Vídeo)</label>
+                  <input class="form-input" id="setPromoBannerMediaUrl" placeholder="https://exemplo.com/banner.jpg">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipo de Mídia</label>
+                  <select class="form-input" id="setPromoBannerMediaType">
+                    <option value="image">Imagem / GIF</option>
+                    <option value="video">Vídeo (MP4)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link de Destino (Opcional)</label>
+                  <input class="form-input" id="setPromoBannerLink" placeholder="https://wa.me/... ou /link-interno">
+                  <small style="color:#888;font-size:11px">Se vazio, o banner não será clicável.</small>
                 </div>
                 <button class="btn btn-primary" onclick="saveSettings('geral')">💾 Salvar</button>
               </div>
@@ -2260,6 +2275,9 @@
       if (g.cor_primaria) document.getElementById('setCorPrimaria').value = g.cor_primaria;
       if (g.banner_promocional_ativo !== undefined) document.getElementById('setPromoBannerAtivo').checked = g.banner_promocional_ativo;
       if (g.banner_promocional_texto) document.getElementById('setPromoBannerTexto').value = g.banner_promocional_texto;
+      if (g.banner_promocional_media_url) document.getElementById('setPromoBannerMediaUrl').value = g.banner_promocional_media_url;
+      if (g.banner_promocional_media_type) document.getElementById('setPromoBannerMediaType').value = g.banner_promocional_media_type;
+      if (g.banner_promocional_link) document.getElementById('setPromoBannerLink').value = g.banner_promocional_link;
       const e = currentSettings.entrega || {};
       if (e.tipo) document.getElementById('setEntregaTipo').value = e.tipo;
       if (e.valor_fixo !== undefined) document.getElementById('setEntregaValor').value = e.valor_fixo;
@@ -2280,7 +2298,10 @@
         whatsapp_suporte: document.getElementById('setWhatsapp').value,
         cor_primaria: document.getElementById('setCorPrimaria').value,
         banner_promocional_ativo: document.getElementById('setPromoBannerAtivo').checked,
-        banner_promocional_texto: document.getElementById('setPromoBannerTexto').value.trim()
+        banner_promocional_texto: document.getElementById('setPromoBannerTexto').value.trim(),
+        banner_promocional_media_url: document.getElementById('setPromoBannerMediaUrl').value.trim(),
+        banner_promocional_media_type: document.getElementById('setPromoBannerMediaType').value,
+        banner_promocional_link: document.getElementById('setPromoBannerLink').value.trim()
       };
       else if (key === 'entrega') value = { tipo: document.getElementById('setEntregaTipo').value, valor_fixo: parseFloat(document.getElementById('setEntregaValor').value) || 0 };
       else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value };
