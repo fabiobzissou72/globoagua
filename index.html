@@ -377,6 +377,21 @@
       pointer-events: all
     }
 
+    .cart-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column
+    }
+
     .cart-drawer.open {
       transform: translateY(0)
     }
@@ -574,6 +589,19 @@
       pointer-events: all
     }
 
+    .auth-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      z-index: 300;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      padding-bottom: env(safe-area-inset-bottom)
+    }
+
     .auth-sheet.open {
       transform: translateY(0)
     }
@@ -721,6 +749,17 @@
       border-color: var(--blue);
       background: var(--blue-light);
       color: var(--blue)
+    }
+
+    .checkout-sheet {
+      position: fixed;
+      inset: 0;
+      background: #f0f4f8;
+      z-index: 400;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      overflow-y: auto;
+      padding-bottom: 100px
     }
 
     .checkout-sheet.open {
@@ -1463,7 +1502,7 @@
         </div>
       </div>
       <div class="profile-card">
-        <div class="profile-item" id="btnClearCache">
+        <div class="profile-item" id="btnClearCache" onclick="clearAppCache()">
           <span class="profile-item-icon">🧹</span>
           <div class="profile-item-text"><strong>Limpar Cache</strong><span>Forçar atualização do app</span></div>
           <span class="profile-item-arrow">›</span>
@@ -1856,7 +1895,6 @@
     // AUTH
     // ============================================================
     sb.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth change:', event, session?.user?.email);
       S.user = session?.user || null;
       if (S.user) {
         await loadProfile();
@@ -1963,7 +2001,20 @@
       closeAuth(); showToast('Conta criada! Confirme seu e-mail.');
     }
 
-    // Funções de Biometria Removidas
+    async function clearAppCache() {
+      if (!confirm('Deseja fazer uma limpeza profunda? Isso recarregará o app e limpará dados temporários.')) return;
+      localStorage.clear();
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+      }
+      showToast('Cache limpo! Recarregando...');
+      setTimeout(() => location.reload(true), 1000);
+    }
 
     // ============================================================
     // PRODUCTS
@@ -2540,6 +2591,12 @@
       const client = getSupabase();
       if (client) {
         loadSettings();
+        // Renderiza cache imediatamente
+        if (S.products && S.products.length > 0) {
+          const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
+          renderCats(cats);
+          renderProducts();
+        }
         loadProducts();
 
         // Verifica sessão
