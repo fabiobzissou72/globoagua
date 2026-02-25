@@ -3337,52 +3337,6 @@
     }
 
     // ============================================================
-    // PRODUCT DETAIL MODAL
-    // ============================================================
-    function openPDetail(productId) {
-      console.log('🔍 Abrindo detalhes do produto:', productId);
-      const p = S.products.find(x => x.id === productId);
-      if (!p) {
-        console.error('❌ Detalhes: Produto não encontrado:', productId);
-        return;
-      }
-      const price = getPrice(p);
-      const isB2B = S.companyPrices[p.id] !== undefined;
-      // Imagem
-      const imgEl = document.getElementById('pdetailImg');
-      if (p.foto_url) {
-        imgEl.innerHTML = `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.innerHTML='💧'">`;
-      } else {
-        imgEl.innerHTML = '💧';
-      }
-      document.getElementById('pdetailCat').textContent = p.categoria;
-      document.getElementById('pdetailName').textContent = p.nome;
-      document.getElementById('pdetailDesc').textContent = p.descricao || 'Sem descrição disponível.';
-      document.getElementById('pdetailPrice').textContent = (isB2B ? '🏷️ ' : '') + 'R$ ' + price.toFixed(2).replace('.', ',');
-      const addBtn = document.getElementById('pdetailAddBtn');
-      addBtn.onclick = () => {
-        console.log('➕ Clicou adicionar via modal detail');
-        addToCart(p.id);
-        closePDetail();
-      };
-      document.getElementById('pdetailOverlay').classList.add('open');
-    }
-
-    function closePDetail() {
-      document.getElementById('pdetailOverlay').classList.remove('open');
-    }
-
-    // ============================================================
-    // SETTINGS LOAD
-    // ============================================================
-    async function loadSettings() {
-      const client = getSupabase();
-      if (!client) return;
-      const { data } = await client.from('settings').select('*');
-      (data || []).forEach(s => { S.settings[s.key] = s.value; });
-    }
-
-    // ============================================================
     // INIT
     // ============================================================
     async function init() {
