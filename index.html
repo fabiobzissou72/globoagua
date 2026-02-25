@@ -57,14 +57,14 @@
     }
 
     .topbar-logo img {
-      width: 48px;
-      height: 48px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       object-fit: cover
     }
 
     .topbar-logo span {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700
     }
 
@@ -390,12 +390,15 @@
       max-height: 85vh !important;
       display: flex !important;
       flex-direction: column !important;
+      visibility: hidden;
       opacity: 1 !important;
-      pointer-events: auto !important
+      pointer-events: none !important;
     }
 
     .cart-drawer.open {
-      transform: translateY(0)
+      transform: translateY(0) !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     }
 
     @media (min-width: 600px) {
@@ -416,6 +419,7 @@
         transform: translate(-50%, -50%) scale(1) !important;
         opacity: 1 !important;
         pointer-events: all !important;
+        visibility: visible !important;
       }
     }
 
@@ -588,12 +592,13 @@
       z-index: 299;
       opacity: 0;
       pointer-events: none;
-      transition: opacity .3s
+      transition: opacity .3s;
+      display: block
     }
 
     .auth-overlay.open {
-      opacity: 1;
-      pointer-events: all
+      opacity: 1 !important;
+      pointer-events: all !important
     }
 
     .auth-sheet {
@@ -613,7 +618,9 @@
     }
 
     .auth-sheet.open {
-      transform: translateY(0)
+      transform: translateY(0) !important;
+      opacity: 1 !important;
+      pointer-events: all !important
     }
 
     @media (min-width: 600px) {
@@ -1018,7 +1025,18 @@
       border-radius: var(--radius);
       margin: 0 12px 12px;
       padding: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .06)
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      cursor: pointer;
+      transition: box-shadow .18s, transform .18s;
+    }
+
+    .order-card:hover {
+      box-shadow: 0 6px 20px rgba(25, 118, 210, .15);
+      transform: translateY(-2px);
+    }
+
+    .order-card:active {
+      transform: scale(.98);
     }
 
     .order-card-header {
@@ -1070,6 +1088,64 @@
       font-size: 13px;
       color: #666;
       line-height: 1.8
+    }
+
+    .order-card-arrow {
+      float: right;
+      color: var(--blue);
+      font-size: 20px;
+      margin-top: 8px;
+    }
+
+    /* Modal de detalhe do pedido cliente */
+    .order-detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 400;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    .order-detail-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .order-detail-sheet {
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .order-detail-overlay.open .order-detail-sheet {
+      transform: translateY(0);
+    }
+
+    @media (min-width: 600px) {
+      .order-detail-overlay {
+        align-items: center;
+        justify-content: center;
+      }
+
+      .order-detail-sheet {
+        width: 500px;
+        border-radius: 24px;
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      .order-detail-overlay.open .order-detail-sheet {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .profile-avatar {
@@ -1529,6 +1605,16 @@
     </div>
     <div style="margin-top:-24px">
       <div class="profile-card">
+        <div class="profile-item" id="btnEditProfile" onclick="openEditProfile()">
+          <span class="profile-item-icon">✏️</span>
+          <div class="profile-item-text"><strong>Editar Perfil</strong><span>Alterar nome, WhatsApp e dados</span></div>
+          <span class="profile-item-arrow">›</span>
+        </div>
+        <div class="profile-item" id="btnMyOrders" onclick="showView('viewOrders',null);loadOrders()">
+          <span class="profile-item-icon">📦</span>
+          <div class="profile-item-text"><strong>Meus Pedidos</strong><span>Histórico de compras</span></div>
+          <span class="profile-item-arrow">›</span>
+        </div>
         <div class="profile-item" id="btnAddresses" onclick="showView('viewAddresses',null);loadAddresses()">
           <span class="profile-item-icon">📍</span>
           <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span>
@@ -1614,7 +1700,8 @@
         <div class="form-group" style="flex:1"><label class="form-label">Estado</label><input class="form-input"
             id="newAddrEstado" placeholder="SP" maxlength="2"></div>
       </div>
-      <button class="auth-btn" style="margin-top:20px" onclick="saveAddress()">Salvar Endereço</button>
+      <button class="auth-btn" id="btnSaveAddress" style="margin-top:20px" onclick="saveAddress()">Salvar
+        Endereço</button>
     </div>
   </div>
 
@@ -1627,8 +1714,8 @@
       onclick="showView('viewCatalog',this);setTimeout(()=>document.getElementById('searchInput').focus(),100)">
       <span class="nav-icon">🔍</span><span class="nav-label">Catálogo</span>
     </button>
-    <button class="nav-btn" onclick="showView('viewOrders',this);loadOrders()">
-      <span class="nav-icon">📦</span><span class="nav-label">Pedidos</span>
+    <button class="nav-btn" onclick="abrirWhatsAppNav()">
+      <span class="nav-icon">💬</span><span class="nav-label">Contato</span>
     </button>
     <button class="nav-btn" onclick="showView('viewProfile',this);renderProfile()">
       <span class="nav-icon">👤</span><span class="nav-label">Perfil</span>
@@ -1844,6 +1931,41 @@
     </div>
   </div>
 
+  <!-- ORDER DETAIL MODAL (cliente) -->
+  <div class="order-detail-overlay" id="orderDetailOverlay" onclick="if(event.target===this)closeOrderDetail()">
+    <div class="order-detail-sheet">
+      <div style="width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:12px auto 0"></div>
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f0f0f0">
+        <h3 style="font-size:17px;font-weight:700">Detalhes do Pedido</h3>
+        <button onclick="closeOrderDetail()"
+          style="background:none;border:none;font-size:24px;color:#999;cursor:pointer">✕</button>
+      </div>
+      <div id="orderDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div class="auth-overlay hidden" id="editProfileOverlay" onclick="closeEditProfile()"></div>
+  <div class="auth-sheet hidden" id="editProfileSheet">
+    <div class="auth-header">
+      <h2>✏️ Editar Perfil</h2>
+      <p>Atualize suas informações pessoais</p>
+    </div>
+    <div class="auth-body">
+      <input class="auth-input" type="text" id="editNome" placeholder="Nome completo">
+      <input class="auth-input" type="tel" id="editWhats" placeholder="WhatsApp (11999999999)">
+      <div class="tipo-toggle">
+        <button class="tipo-btn active" id="editTipoPF" onclick="setEditTipo('PF')">Pessoa Física</button>
+        <button class="tipo-btn" id="editTipoPJ" onclick="setEditTipo('PJ')">Pessoa Jurídica</button>
+      </div>
+      <input class="auth-input" type="text" id="editDoc" placeholder="CPF">
+      <input class="auth-input" id="editRazao" placeholder="Razão Social" style="display:none">
+      <button class="auth-btn btn-biometric" id="btnSaveProfile" onclick="saveProfile()">Salvar Alterações</button>
+      <button class="auth-btn btn-email-login" onclick="closeEditProfile()" style="margin-top:4px">Cancelar</button>
+    </div>
+  </div>
+
   <!-- IOS INSTALL MODAL -->
   <div class="ios-modal hidden" id="iosModal">
     <div class="ios-modal-box">
@@ -1895,7 +2017,10 @@
               autoRefreshToken: true,
               detectSessionInUrl: true,
               storageKey: 'ga_auth_session',
-              storage: window.localStorage // Garantindo persistência no localStorage
+              storage: window.localStorage,
+              // Fix crítico para PWA/Android: desabilita o LockManager que trava em WebViews
+              // O LockManager da Web API causa deadlock no Chrome mobile/PWA
+              lock: async (name, acquireTimeout, fn) => fn()
             }
           });
           return sb;
@@ -1963,25 +2088,26 @@
       }, 2500);
     }
 
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { });
-
-    // ============================================================
-    // AUTH
-    // ============================================================
-    sb.auth.onAuthStateChange(async (event, session) => {
-      S.user = session?.user || null;
-      if (S.user) {
-        await loadProfile();
-      } else {
-        S.profile = null;
-        S.companyPrices = {};
-      }
-      renderProfile();
-      updateCartUI();
-    });
+    // Registro do Service Worker com atualização forçada
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        // Força o novo SW a assumir imediatamente sem esperar fechar abas
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              newSW.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      }).catch(() => { });
+    }
 
     async function loadProfile() {
-      const { data } = await sb.from('profiles').select('*').eq('id', S.user.id).single();
+      const client = getSupabase();
+      if (!client || !S.user) return;
+      const { data } = await client.from('profiles').select('*').eq('id', S.user.id).single();
       S.profile = data;
       if (data?.tipo_pessoa === 'PJ' && data?.documento) {
         await loadCompanyPrices(data.documento.replace(/\D/g, ''));
@@ -1989,7 +2115,9 @@
     }
 
     async function loadCompanyPrices(cnpj) {
-      const { data } = await sb.from('company_prices').select('product_id,preco_especial').eq('cnpj', cnpj);
+      const client = getSupabase();
+      if (!client) return;
+      const { data } = await client.from('company_prices').select('product_id,preco_especial').eq('cnpj', cnpj);
       S.companyPrices = {};
       (data || []).forEach(r => { S.companyPrices[r.product_id] = parseFloat(r.preco_especial); });
     }
@@ -2011,20 +2139,45 @@
       showToast('Aguardando NFC/USB...');
     }
 
-    document.getElementById('btnUser').onclick = () => {
-      if (S.user) { showView('viewProfile', document.querySelector('.nav-btn:last-child')); renderProfile(); }
-      else openAuth();
+    // Clique no botão de Usuário / Perfil
+    document.getElementById('btnUser').onclick = function () {
+      if (S.user) {
+        // Se logado, vai direto para o perfil
+        showView('viewProfile', this);
+        renderProfile();
+      } else {
+        // Se não logado, abre tela de login
+        openAuth();
+      }
     };
 
     function openAuth() {
-      document.getElementById('authSheet').classList.add('open');
-      document.getElementById('authOverlay').classList.add('open');
+      console.log('🔓 openAuth() chamado');
+      const sheet = document.getElementById('authSheet');
+      const overlay = document.getElementById('authOverlay');
+      if (!sheet || !overlay) {
+        console.error('❌ authSheet ou authOverlay não encontrado!');
+        return;
+      }
+      // Força display antes de animar (fix PWA)
+      sheet.style.display = 'block';
+      overlay.style.display = 'block';
+      // requestAnimationFrame garante que o browser processe o display antes de adicionar a class
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          sheet.classList.add('open');
+          overlay.classList.add('open');
+        });
+      });
       updateBiometricBtn();
     }
 
     function closeAuth() {
-      document.getElementById('authSheet').classList.remove('open');
-      document.getElementById('authOverlay').classList.remove('open');
+      console.log('🔒 closeAuth() chamado');
+      const sheet = document.getElementById('authSheet');
+      const overlay = document.getElementById('authOverlay');
+      if (sheet) sheet.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
     }
 
     function setAuthTab(tab, el) {
@@ -2045,7 +2198,9 @@
     async function forgotPassword() {
       const email = document.getElementById('loginEmail').value.trim();
       if (!email) { showToast('Digite seu e-mail primeiro'); return; }
-      const { error } = await sb.auth.resetPasswordForEmail(email, {
+      const client = getSupabase();
+      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      const { error } = await client.auth.resetPasswordForEmail(email, {
         redirectTo: location.origin + '/?resetPwd=1'
       });
       if (error) { showToast('Erro: ' + error.message); return; }
@@ -2065,7 +2220,9 @@
       const email = document.getElementById('loginEmail').value.trim();
       const pwd = document.getElementById('loginPwd').value;
       if (!email || !pwd) { showToast('Preencha e-mail e senha'); return; }
-      const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+      const client = getSupabase();
+      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      const { error } = await client.auth.signInWithPassword({ email, password: pwd });
       if (error) { showToast('E-mail ou senha inválidos'); return; }
       closeAuth(); showToast('✅ Bem-vindo!');
     }
@@ -2079,7 +2236,9 @@
       const razao = document.getElementById('regRazao').value.trim();
       if (!nome || !email || !pwd) { showToast('Preencha nome, e-mail e senha'); return; }
       if (pwd.length < 6) { showToast('Senha mínimo 6 caracteres'); return; }
-      const { error } = await sb.auth.signUp({
+      const client = getSupabase();
+      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      const { error } = await client.auth.signUp({
         email, password: pwd,
         options: { data: { nome_completo: nome, whatsapp: whats, tipo_pessoa: currentTipo, documento: doc, razao_social: razao } }
       });
@@ -2252,14 +2411,28 @@
     }
 
     document.getElementById('btnCart').onclick = () => {
+      console.log('🛒 Abrindo carrinho...');
       renderCartDrawer();
-      document.getElementById('cartDrawer').classList.add('open');
-      document.getElementById('overlay').classList.add('open');
+      const drawer = document.getElementById('cartDrawer');
+      const ovl = document.getElementById('overlay');
+      // Force display/visibility before animating (PWA fix - same as auth)
+      drawer.style.visibility = 'visible';
+      ovl.style.display = 'block';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          drawer.classList.add('open');
+          ovl.classList.add('open');
+        });
+      });
     };
 
     function closeCart() {
-      document.getElementById('cartDrawer').classList.remove('open');
-      document.getElementById('overlay').classList.remove('open');
+      const drawer = document.getElementById('cartDrawer');
+      const ovl = document.getElementById('overlay');
+      drawer.classList.remove('open');
+      ovl.classList.remove('open');
+      // Hide after transition
+      setTimeout(() => { drawer.style.visibility = 'hidden'; }, 350);
     }
 
     document.getElementById('btnCheckout').onclick = () => {
@@ -2271,13 +2444,39 @@
     // ============================================================
     // CHECKOUT
     // ============================================================
-    function openCheckout() {
+    async function openCheckout() {
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
+
+      // Preenche nome/whats do perfil básico
       if (S.profile) {
         document.getElementById('recNome').value = S.profile.nome_completo || '';
         document.getElementById('recWhats').value = S.profile.whatsapp || '';
       }
+
+      // Busca endereço salvo na tabela de endereços
+      if (S.user) {
+        try {
+          const _sb = getSupabase();
+          if (!_sb) throw new Error('Sem conexão');
+          const { data: addr } = await _sb.from('user_addresses')
+            .select('*')
+            .eq('user_id', S.user.id)
+            .eq('is_default', true)
+            .maybeSingle();
+
+          if (addr) {
+            document.getElementById('addrCep').value = addr.cep || '';
+            document.getElementById('addrRua').value = addr.rua || '';
+            document.getElementById('addrNum').value = addr.numero || '';
+            document.getElementById('addrComp').value = addr.complemento || '';
+            document.getElementById('addrBairro').value = addr.bairro || '';
+            document.getElementById('addrCidade').value = addr.cidade || '';
+            document.getElementById('addrEstado').value = addr.estado || '';
+          }
+        } catch (e) { console.warn('Erro ao carregar endereço padrão:', e); }
+      }
+
       updateCheckoutStep();
       document.getElementById('checkoutSheet').classList.add('open');
     }
@@ -2355,53 +2554,69 @@
 
     async function placeOrder() {
       const btn = document.getElementById('btnNext');
+      if (!btn) return;
       const originalHtml = btn.innerHTML;
 
       try {
         btn.innerHTML = '<div class="spinner"></div> Enviando...';
         btn.disabled = true;
 
+        if (!S.user) {
+          showToast('Usuário não identificado. Faça login novamente.');
+          throw new Error('User not logged in');
+        }
+
         const num = 'GA' + Date.now().toString().slice(-6);
         const sub = cartTotal();
+
+        // Coleta dados do formulário de endereço
+        const addrRua = document.getElementById('addrRua').value;
+        const addrNum = document.getElementById('addrNum').value;
+        const addrCidade = document.getElementById('addrCidade').value;
+        const addrEstado = document.getElementById('addrEstado').value;
+
         const addr = [
-          document.getElementById('addrRua').value,
-          document.getElementById('addrNum').value,
+          addrRua,
+          addrNum,
           document.getElementById('addrComp').value,
           document.getElementById('addrBairro').value
         ].filter(Boolean).join(', ');
+
         const obs = document.getElementById('orderObs').value.trim();
 
-        console.log('📦 Iniciando criação do pedido:', num);
-
         // 1. Criar o Pedido
-        const { data: order, error: orderError } = await sb.from('orders').insert({
+        const payload = {
           numero_pedido: num,
           user_id: S.user.id,
-          cliente_nome: S.profile?.nome_completo || '',
+          cliente_nome: S.profile?.nome_completo || S.user.user_metadata?.nome_completo || document.getElementById('recNome').value || 'Cliente',
           cliente_email: S.user.email,
-          cliente_whatsapp: S.profile?.whatsapp || '',
-          cliente_tipo: S.profile?.tipo_pessoa || 'PF',
-          cliente_documento: S.profile?.documento || '',
+          cliente_whatsapp: S.profile?.whatsapp || S.user.user_metadata?.whatsapp || document.getElementById('recWhats').value || '',
+          cliente_tipo: S.profile?.tipo_pessoa || S.user.user_metadata?.tipo_pessoa || 'PF',
+          cliente_documento: S.profile?.documento || S.user.user_metadata?.documento || '',
           endereco_completo: addr,
-          endereco_cidade: document.getElementById('addrCidade').value,
-          endereco_estado: document.getElementById('addrEstado').value,
-          recebedor_nome: document.getElementById('recNome').value,
-          recebedor_whatsapp: document.getElementById('recWhats').value,
-          recebedor_referencia: document.getElementById('recRef').value,
+          endereco_cidade: addrCidade,
+          endereco_estado: addrEstado,
+          recebedor_nome: document.getElementById('recNome').value || 'Não informado',
+          recebedor_whatsapp: document.getElementById('recWhats').value || '',
+          recebedor_referencia: document.getElementById('recRef').value || '',
           observacoes: obs,
           subtotal: sub,
           taxa_entrega: 0,
           total: sub,
-          metodo_pagamento: S.selectedPayment,
+          metodo_pagamento: S.selectedPayment || 'PIX',
           status: 'NOVO',
           status_pagamento: 'PENDENTE'
-        }).select().single();
+        };
+
+        const fClient = getSupabase();
+        if (!fClient) throw new Error('Sem conexão com servidor');
+
+        const { data: order, error: orderError } = await fClient.from('orders').insert(payload).select().single();
 
         if (orderError) throw orderError;
 
         // 2. Criar os Itens do Pedido
-        console.log('📝 Inserindo itens para o pedido:', order.id);
-        const { error: itemsError } = await sb.from('order_items').insert(S.cart.map(i => ({
+        const { error: itemsError } = await fClient.from('order_items').insert(S.cart.map(i => ({
           order_id: order.id,
           product_id: i.id,
           produto_nome: i.nome,
@@ -2413,18 +2628,27 @@
 
         if (itemsError) throw itemsError;
 
-        // 3. Webhook (Opcional)
+        // 3. Webhook
         const webhookUrl = S.settings?.webhook_speedit?.url;
         if (webhookUrl) {
+          const webhookPayload = {
+            event: 'order.created',
+            order: {
+              ...order,
+              created_at_local: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+            },
+            items: S.cart
+          };
+
           fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'order.created', order: order, items: S.cart })
-          }).catch(err => console.error('⚠️ Erro Webhook:', err));
+            mode: 'no-cors', // Evita erros de fuso/bloqueio no frontend, apenas dispara
+            body: JSON.stringify(webhookPayload)
+          }).catch(err => console.warn('Webhook disparado (sem confirmação de resposta)'));
         }
 
         // 4. Sucesso
-        console.log('✅ Pedido finalizado com sucesso!');
         S.cart = [];
         saveCart();
         updateCartUI();
@@ -2434,8 +2658,8 @@
 
       } catch (err) {
         console.error('❌ Erro crítico ao finalizar pedido:', err);
-        showToast('Erro ao criar pedido: ' + (err.message || 'Verifique sua conexão'));
-      } finally {
+        showToast('Erro: ' + (err.message || 'Verifique sua conexão'));
+        // IMPORTANTE: reseta o botão para o usuário tentar novamente se falhar
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
@@ -2469,13 +2693,15 @@
         return;
       }
       document.getElementById('ordersList').innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
-      const { data } = await sb.from('orders').select('*').eq('user_id', S.user.id).order('created_at', { ascending: false });
+      const client = getSupabase();
+      if (!client) { document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro de conexão</p></div>'; return; }
+      const { data } = await client.from('orders').select('*').eq('user_id', S.user.id).order('created_at', { ascending: false });
       if (!data?.length) {
         document.getElementById('ordersList').innerHTML = '<div class="loading-center">😕 Nenhum pedido ainda</div>';
         return;
       }
       document.getElementById('ordersList').innerHTML = data.map(o => `
-    <div class="order-card">
+    <div class="order-card" onclick="openOrderDetail('${o.id}')">
       <div class="order-card-header">
         <span class="order-card-num">#${o.numero_pedido}</span>
         <span class="status-badge status-${o.status}">${o.status}</span>
@@ -2483,10 +2709,81 @@
       <div class="order-card-info">
         <div>${new Date(o.created_at).toLocaleString('pt-BR')}</div>
         <div><strong>Total: ${fmt(o.total)}</strong> · ${o.metodo_pagamento || ''}</div>
-        <div>${o.endereco_cidade} - ${o.endereco_estado}</div>
+        <div>${o.endereco_cidade || ''} - ${o.endereco_estado || ''}</div>
       </div>
+      <div class="order-card-arrow">›</div>
     </div>
   `).join('');
+    }
+
+    async function openOrderDetail(orderId) {
+      const client = getSupabase();
+      if (!client) return;
+      const overlay = document.getElementById('orderDetailOverlay');
+      const body = document.getElementById('orderDetailBody');
+      body.innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
+      overlay.classList.add('open');
+
+      const { data: o, error } = await client.from('orders').select('*, order_items(*)').eq('id', orderId).single();
+      if (error || !o) {
+        body.innerHTML = '<div class="loading-center">😕 Erro ao carregar detalhes</div>';
+        return;
+      }
+
+      const items = (o.order_items || []);
+      const itemsHtml = items.length
+        ? items.map(i => `
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:14px">
+            <span>${i.quantidade}x ${i.produto_nome}</span>
+            <strong>${fmt(i.subtotal)}</strong>
+          </div>`).join('')
+        : '<p style="color:#aaa;font-size:13px">Itens não disponíveis</p>';
+
+      const statusColors = { NOVO: '#1565C0', CONFIRMADO: '#2E7D32', PRODUCAO: '#E65100', ENTREGUE: '#1B5E20', CANCELADO: '#B71C1C' };
+      const statusBgs = { NOVO: '#E3F2FD', CONFIRMADO: '#E8F5E9', PRODUCAO: '#FFF3E0', ENTREGUE: '#E8F5E9', CANCELADO: '#FFEBEE' };
+
+      body.innerHTML = `
+        <div style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <span style="font-size:20px;font-weight:800;color:var(--blue)">#${o.numero_pedido}</span>
+            <span style="background:${statusBgs[o.status] || '#f0f0f0'};color:${statusColors[o.status] || '#333'};border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700">${o.status}</span>
+          </div>
+
+          <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">🕐 Data & Pagamento</div>
+            <div style="font-size:14px;color:#333">${new Date(o.created_at).toLocaleString('pt-BR')}</div>
+            <div style="font-size:14px;color:#555;margin-top:4px">💳 ${o.metodo_pagamento || '—'}</div>
+          </div>
+
+          <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">📍 Endereço de Entrega</div>
+            <div style="font-size:14px;color:#333;line-height:1.7">
+              ${o.endereco_completo || '—'}<br>
+              ${o.endereco_cidade || ''} - ${o.endereco_estado || ''}<br>
+              <span style="color:#888;font-size:13px">Recebedor: ${o.recebedor_nome || '—'}</span>
+              ${o.recebedor_referencia ? `<br><span style="color:#aaa;font-size:12px">Ref: ${o.recebedor_referencia}</span>` : ''}
+            </div>
+          </div>
+
+          ${o.observacoes ? `<div style="background:#fffde7;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">📝 Observações</div>
+            <div style="font-size:14px;color:#555">${o.observacoes}</div>
+          </div>` : ''}
+
+          <div style="background:#fff;border:2px solid #e3f2fd;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:10px">🛒 Itens do Pedido</div>
+            ${itemsHtml}
+            <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:12px;font-size:16px;color:var(--blue);padding-top:10px;border-top:2px solid #e3f2fd">
+              <span>TOTAL</span>
+              <span>${fmt(o.total)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function closeOrderDetail() {
+      document.getElementById('orderDetailOverlay').classList.remove('open');
     }
 
     // ============================================================
@@ -2502,6 +2799,8 @@
       toggle('btnLogout', isLogged);
       toggle('btnPasskeys', isLogged);
       toggle('btnAddresses', isLogged);
+      toggle('btnEditProfile', isLogged);
+      toggle('btnMyOrders', isLogged);
       toggle('profileLoginPrompt', !isLogged);
 
       // Atualiza link do WhatsApp
@@ -2528,6 +2827,112 @@
         if (avatar) avatar.textContent = '👤';
         if (name) name.textContent = 'Visitante';
         if (email) email.textContent = '';
+      }
+    }
+
+    // WhatsApp na nav inferior
+    function abrirWhatsAppNav() {
+      const waNum = S.settings?.geral?.whatsapp_suporte || '';
+      if (waNum) window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank');
+      else showToast('WhatsApp não configurado');
+    }
+
+    // ============================================================
+    // EDITAR PERFIL
+    // ============================================================
+    let editTipo = 'PF';
+
+    function openEditProfile() {
+      if (!S.user) { showToast('Faça login primeiro'); return; }
+      const meta = S.user.user_metadata || {};
+      const p = S.profile || {};
+      document.getElementById('editNome').value = p.nome_completo || meta.nome_completo || '';
+      document.getElementById('editWhats').value = p.whatsapp || meta.whatsapp || '';
+      const tipo = p.tipo_pessoa || meta.tipo_pessoa || 'PF';
+      editTipo = tipo;
+      setEditTipo(tipo);
+      document.getElementById('editDoc').value = p.documento || meta.documento || '';
+      document.getElementById('editRazao').value = p.razao_social || meta.razao_social || '';
+
+      const sheet = document.getElementById('editProfileSheet');
+      const overlay = document.getElementById('editProfileOverlay');
+      sheet.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      sheet.style.display = 'block';
+      overlay.style.display = 'block';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        sheet.classList.add('open');
+        overlay.classList.add('open');
+      }));
+    }
+
+    function closeEditProfile() {
+      const sheet = document.getElementById('editProfileSheet');
+      const overlay = document.getElementById('editProfileOverlay');
+      sheet.classList.remove('open');
+      overlay.classList.remove('open');
+      setTimeout(() => {
+        sheet.classList.add('hidden');
+        overlay.classList.add('hidden');
+      }, 350);
+    }
+
+    function setEditTipo(t) {
+      editTipo = t;
+      document.getElementById('editTipoPF').classList.toggle('active', t === 'PF');
+      document.getElementById('editTipoPJ').classList.toggle('active', t === 'PJ');
+      document.getElementById('editRazao').style.display = t === 'PJ' ? 'block' : 'none';
+      document.getElementById('editDoc').placeholder = t === 'PF' ? 'CPF' : 'CNPJ';
+    }
+
+    async function saveProfile() {
+      const nome = document.getElementById('editNome').value.trim();
+      const whats = document.getElementById('editWhats').value.trim();
+      const doc = document.getElementById('editDoc').value.trim();
+      const razao = document.getElementById('editRazao').value.trim();
+      if (!nome) { showToast('Informe o nome completo'); return; }
+
+      const btn = document.getElementById('btnSaveProfile');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Salvando...';
+
+      try {
+        const client = getSupabase();
+        if (!client) throw new Error('Sem conexão');
+
+        // Atualiza metadados do auth
+        const { error: authErr } = await client.auth.updateUser({
+          data: { nome_completo: nome, whatsapp: whats, tipo_pessoa: editTipo, documento: doc, razao_social: razao }
+        });
+        if (authErr) throw authErr;
+
+        // Atualiza tabela profiles
+        const { error: dbErr } = await client.from('profiles').upsert({
+          id: S.user.id,
+          nome_completo: nome,
+          whatsapp: whats,
+          tipo_pessoa: editTipo,
+          documento: doc,
+          razao_social: razao
+        }, { onConflict: 'id' });
+        if (dbErr) throw dbErr;
+
+        // Atualiza state local
+        if (!S.profile) S.profile = {};
+        S.profile.nome_completo = nome;
+        S.profile.whatsapp = whats;
+        S.profile.tipo_pessoa = editTipo;
+        S.profile.documento = doc;
+        S.profile.razao_social = razao;
+
+        closeEditProfile();
+        renderProfile();
+        showToast('✅ Perfil atualizado!');
+      } catch (e) {
+        showToast('Erro: ' + (e.message || 'Tente novamente'));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Salvar Alterações';
       }
     }
 
@@ -2630,22 +3035,20 @@
     }
 
     async function saveAddress() {
-      const btn = event.target;
-      const originalText = btn.textContent;
+      const btn = document.getElementById('btnSaveAddress');
+      const originalText = btn ? btn.textContent : 'Salvar Endereço';
 
-      const addr = {
-        user_id: S.user.id,
-        cep: document.getElementById('newAddrCep').value,
-        rua: document.getElementById('newAddrRua').value,
-        numero: document.getElementById('newAddrNum').value,
-        complemento: document.getElementById('newAddrComp').value,
-        bairro: document.getElementById('newAddrBairro').value,
-        cidade: document.getElementById('newAddrCidade').value,
-        estado: document.getElementById('newAddrEstado').value
-      };
+      if (!S.user) {
+        showToast('❌ Você precisa estar logado');
+        return;
+      }
 
-      if (!addr.cep || !addr.rua || !addr.numero) {
-        showToast('Preencha os campos obrigatórios ⚠️');
+      const cep = document.getElementById('newAddrCep').value.trim();
+      const rua = document.getElementById('newAddrRua').value.trim();
+      const numero = document.getElementById('newAddrNum').value.trim();
+
+      if (!cep || !rua || !numero) {
+        showToast('Preencha CEP, Rua e Número ⚠️');
         return;
       }
 
@@ -2654,23 +3057,46 @@
         btn.innerHTML = '<div class="spinner"></div> Salvando...';
 
         const client = getSupabase();
-        const { error } = await client.from('user_addresses').insert(addr);
+        if (!client) throw new Error('Sem conexão com servidor');
 
-        if (error) throw error;
+        // Verifica se já tem endereços (para definir is_default no primeiro)
+        const { data: existing } = await client.from('user_addresses').select('id').eq('user_id', S.user.id);
+        const isFirst = !existing || existing.length === 0;
 
-        showToast('✅ Endereço salvo com sucesso!');
+        const addr = {
+          user_id: S.user.id,
+          cep: cep,
+          rua: rua,
+          numero: numero,
+          complemento: document.getElementById('newAddrComp').value.trim() || '',
+          bairro: document.getElementById('newAddrBairro').value.trim() || '',
+          cidade: document.getElementById('newAddrCidade').value.trim() || '',
+          estado: document.getElementById('newAddrEstado').value.trim() || '',
+          is_default: isFirst // Primeiro endereço vira padrão automaticamente
+        };
+
+        console.log('📡 Salvando endereço...', addr);
+        const { data, error } = await client.from('user_addresses').insert(addr).select();
+
+        if (error) {
+          console.error('❌ Erro Supabase ao salvar endereço:', error);
+          throw error;
+        }
+
+        console.log('✅ Endereço salvo:', data);
+        showToast('✅ Endereço salvo!');
 
         // Limpa campos
         ['newAddrCep', 'newAddrRua', 'newAddrNum', 'newAddrComp', 'newAddrBairro', 'newAddrCidade', 'newAddrEstado'].forEach(id => {
-          document.getElementById(id).value = '';
+          const el = document.getElementById(id);
+          if (el) el.value = '';
         });
 
         closeAddressForm();
         await loadAddresses();
       } catch (err) {
-        console.error('❌ Erro saveAddress:', err);
+        console.error('❌ Erro crítico no saveAddress:', err);
         showToast('Erro ao salvar: ' + (err.message || 'Verifique sua conexão'));
-      } finally {
         btn.disabled = false;
         btn.textContent = originalText;
       }
@@ -2699,10 +3125,26 @@
     // UTILS
     // ============================================================
     function showView(id, btn) {
+      console.log('📌 Mudando para view:', id);
+      // Remove active de todas as views
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+
+      const targetView = document.getElementById(id);
+      if (targetView) {
+        targetView.classList.add('active');
+        window.scrollTo(0, 0); // Volta ao topo na troca de tela
+      }
+
+      // Atualiza botões da navegação inferior
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        // Fallback: se não passou o botão, tenta achar pelo ID da view
+        if (id === 'viewCatalog') document.querySelector('.nav-btn:nth-child(1)')?.classList.add('active');
+        if (id === 'viewOrders') document.querySelector('.nav-btn:nth-child(2)')?.classList.add('active');
+        if (id === 'viewProfile') document.querySelector('.nav-btn:nth-child(3)')?.classList.add('active');
+      }
     }
 
     function fmt(n) { return 'R$ ' + parseFloat(n || 0).toFixed(2).replace('.', ','); }
@@ -2753,7 +3195,9 @@
     // SETTINGS LOAD
     // ============================================================
     async function loadSettings() {
-      const { data } = await sb.from('settings').select('*');
+      const client = getSupabase();
+      if (!client) return;
+      const { data } = await client.from('settings').select('*');
       (data || []).forEach(s => { S.settings[s.key] = s.value; });
     }
 
@@ -2780,6 +3224,17 @@
       updateCartUI();
       renderProfile();
 
+      // Garante que o botão Entrar/Cadastrar sempre funciona no PWA
+      const loginPromptBtn = document.querySelector('#profileLoginPrompt button');
+      if (loginPromptBtn) {
+        loginPromptBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('👆 Botão Entrar/Cadastrar clicado');
+          openAuth();
+        });
+      }
+
       // 2. Tenta conectar ao Supabase para atualizar os dados
       let attempts = 0;
       while (!getSupabase() && attempts < 10) {
@@ -2791,18 +3246,39 @@
       if (client) {
         console.log('🔗 Conectado ao servidor. Atualizando dados...');
         loadSettings();
-        loadProducts(); // Atualiza o cache e a tela em background
+        loadProducts();
 
-        client.auth.getSession().then(({ data }) => {
-          if (data?.session && !S.user) {
-            S.user = data.session.user;
-            if (typeof loadProfile === 'function') {
-              loadProfile().then(renderProfile);
-            } else {
-              renderProfile();
-            }
+        // STEP 1: Recupera sessão salva PRIMEIRO (evita desloge ao recarregar)
+        try {
+          const { data: sessionData } = await client.auth.getSession();
+          if (sessionData?.session) {
+            console.log('🔑 Sessão restaurada:', sessionData.session.user.email);
+            S.user = sessionData.session.user;
+            await loadProfile();
+            renderProfile();
+            updateCartUI();
           }
+        } catch (e) {
+          console.warn('⚠️ Erro ao recuperar sessão:', e);
+        }
+
+        // STEP 2: Escuta mudanças futuras de auth (login/logout)
+        client.auth.onAuthStateChange(async (event, session) => {
+          console.log('🔑 Auth Change:', event, session?.user?.email);
+          // Ignora o INITIAL_SESSION pois já tratamos acima
+          if (event === 'INITIAL_SESSION') return;
+          S.user = session?.user || null;
+          if (S.user) {
+            await loadProfile();
+            closeAuth();
+          } else {
+            S.profile = null;
+            S.companyPrices = {};
+          }
+          renderProfile();
+          updateCartUI();
         });
+
       } else {
         console.warn('⚠️ Servidor offline. Usando modo offline.');
       }
