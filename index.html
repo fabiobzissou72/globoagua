@@ -1676,6 +1676,8 @@
           <button type="button" class="link-btn" onclick="forgotPassword()">Esqueci minha senha</button>
         </div>
         <button class="auth-btn btn-email-login" onclick="loginEmail()">Entrar com e-mail</button>
+        <button class="auth-btn" id="btnUsbLogin" style="margin-top:10px;background:#333" onclick="loginPasskey()">🔑
+          Login com NFC/USB</button>
       </div>
       <div id="registerForm" class="hidden">
         <input class="auth-input" type="text" id="regNome" placeholder="Nome completo">
@@ -1977,8 +1979,20 @@
     }
 
     function updateBiometricBtn() {
+      const el = document.getElementById('btnUsbLogin');
       const hasPk = !!localStorage.getItem('ga_pk_id');
-      document.getElementById('btnBiometric').classList.toggle('hidden', !hasPk);
+      if (el) el.classList.toggle('hidden', !hasPk);
+    }
+
+    async function registerPasskey() {
+      showToast('⚠️ NFC/USB não detectado ou indisponível no navegador');
+      console.warn('Implementação de WebAuthn necessária para NFC/USB');
+    }
+
+    async function loginPasskey() {
+      const hasPk = !!localStorage.getItem('ga_pk_id');
+      if (!hasPk) { showToast('Nenhuma chave cadastrada neste dispositivo'); return; }
+      showToast('Aguardando NFC/USB...');
     }
 
     document.getElementById('btnUser').onclick = () => {
