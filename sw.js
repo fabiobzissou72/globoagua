@@ -1,7 +1,7 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v9.4';
+const CACHE_NAME = 'globo-agua-v9.5';
 
 const STATIC_ASSETS = [
   './',

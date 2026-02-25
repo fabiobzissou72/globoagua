@@ -2229,7 +2229,10 @@
       if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
       const { error } = await client.auth.signUp({
         email, password: pwd,
-        options: { data: { nome_completo: nome, whatsapp: whats, tipo_pessoa: currentTipo, documento: doc, razao_social: razao } }
+        options: {
+          data: { nome_completo: nome, whatsapp: whats, tipo_pessoa: currentTipo, documento: doc, razao_social: razao },
+          emailRedirectTo: location.origin
+        }
       });
       if (error) { showToast(error.message); return; }
       closeAuth(); showToast('Conta criada! Confirme seu e-mail.');
