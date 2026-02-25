@@ -774,8 +774,8 @@
       transform: translateY(100%) !important;
       transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
       overflow-y: auto !important;
-      padding-bottom: 100px !important;
-      display: block !important
+      display: flex !important;
+      flex-direction: column !important;
     }
 
     .checkout-sheet.open {
@@ -905,10 +905,9 @@
     }
 
     .btn-next {
-      position: fixed;
+      position: sticky;
       bottom: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
       background: var(--blue);
       color: #fff;
       border: none;
@@ -919,7 +918,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px
+      gap: 8px;
+      z-index: 20;
+      margin-top: auto;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
     }
 
     .order-item-review {
@@ -2311,57 +2313,90 @@
 
     async function placeOrder() {
       const btn = document.getElementById('btnNext');
-      btn.innerHTML = '<div class="spinner"></div> Enviando...';
-      btn.disabled = true;
-      const num = 'GA' + Date.now().toString().slice(-6);
-      const sub = cartTotal();
-      const addr = [document.getElementById('addrRua').value, document.getElementById('addrNum').value, document.getElementById('addrComp').value, document.getElementById('addrBairro').value].filter(Boolean).join(', ');
-      const obs = document.getElementById('orderObs').value.trim();
+      const originalHtml = btn.innerHTML;
 
-      const { data: order, error } = await sb.from('orders').insert({
-        numero_pedido: num, user_id: S.user.id,
-        cliente_nome: S.profile?.nome_completo || '',
-        cliente_email: S.user.email,
-        cliente_whatsapp: S.profile?.whatsapp || '',
-        cliente_tipo: S.profile?.tipo_pessoa || 'PF',
-        cliente_documento: S.profile?.documento || '',
-        endereco_completo: addr,
-        endereco_cidade: document.getElementById('addrCidade').value,
-        endereco_estado: document.getElementById('addrEstado').value,
-        recebedor_nome: document.getElementById('recNome').value,
-        recebedor_whatsapp: document.getElementById('recWhats').value,
-        recebedor_referencia: document.getElementById('recRef').value,
-        observacoes: obs,
-        subtotal: sub, taxa_entrega: 0, total: sub,
-        metodo_pagamento: S.selectedPayment,
-        status: 'NOVO', status_pagamento: 'PENDENTE'
-      }).select().single();
+      try {
+        btn.innerHTML = '<div class="spinner"></div> Enviando...';
+        btn.disabled = true;
 
-      if (error) {
-        showToast('Erro ao criar pedido. Tente novamente.');
-        btn.innerHTML = 'Confirmar pedido'; btn.disabled = false; return;
+        const num = 'GA' + Date.now().toString().slice(-6);
+        const sub = cartTotal();
+        const addr = [
+          document.getElementById('addrRua').value,
+          document.getElementById('addrNum').value,
+          document.getElementById('addrComp').value,
+          document.getElementById('addrBairro').value
+        ].filter(Boolean).join(', ');
+        const obs = document.getElementById('orderObs').value.trim();
+
+        console.log('📦 Iniciando criação do pedido:', num);
+
+        // 1. Criar o Pedido
+        const { data: order, error: orderError } = await sb.from('orders').insert({
+          numero_pedido: num,
+          user_id: S.user.id,
+          cliente_nome: S.profile?.nome_completo || '',
+          cliente_email: S.user.email,
+          cliente_whatsapp: S.profile?.whatsapp || '',
+          cliente_tipo: S.profile?.tipo_pessoa || 'PF',
+          cliente_documento: S.profile?.documento || '',
+          endereco_completo: addr,
+          endereco_cidade: document.getElementById('addrCidade').value,
+          endereco_estado: document.getElementById('addrEstado').value,
+          recebedor_nome: document.getElementById('recNome').value,
+          recebedor_whatsapp: document.getElementById('recWhats').value,
+          recebedor_referencia: document.getElementById('recRef').value,
+          observacoes: obs,
+          subtotal: sub,
+          taxa_entrega: 0,
+          total: sub,
+          metodo_pagamento: S.selectedPayment,
+          status: 'NOVO',
+          status_pagamento: 'PENDENTE'
+        }).select().single();
+
+        if (orderError) throw orderError;
+
+        // 2. Criar os Itens do Pedido
+        console.log('📝 Inserindo itens para o pedido:', order.id);
+        const { error: itemsError } = await sb.from('order_items').insert(S.cart.map(i => ({
+          order_id: order.id,
+          product_id: i.id,
+          produto_nome: i.nome,
+          produto_foto_url: i.foto || '',
+          preco_unitario: i.price,
+          quantidade: i.qty,
+          subtotal: i.subtotal
+        })));
+
+        if (itemsError) throw itemsError;
+
+        // 3. Webhook (Opcional)
+        const webhookUrl = S.settings?.webhook_speedit?.url;
+        if (webhookUrl) {
+          fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ event: 'order.created', order: order, items: S.cart })
+          }).catch(err => console.error('⚠️ Erro Webhook:', err));
+        }
+
+        // 4. Sucesso
+        console.log('✅ Pedido finalizado com sucesso!');
+        S.cart = [];
+        saveCart();
+        updateCartUI();
+        document.getElementById('successOrderNum').textContent = '#' + num;
+        S.checkoutStep = 3;
+        updateCheckoutStep();
+
+      } catch (err) {
+        console.error('❌ Erro crítico ao finalizar pedido:', err);
+        showToast('Erro ao criar pedido: ' + (err.message || 'Verifique sua conexão'));
+      } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
       }
-
-      await sb.from('order_items').insert(S.cart.map(i => ({
-        order_id: order.id, product_id: i.id,
-        produto_nome: i.nome, produto_foto_url: i.foto || '',
-        preco_unitario: i.price, quantidade: i.qty, subtotal: i.subtotal
-      })));
-
-      // DISPARO DE WEBHOOK (SE CONFIGURADO)
-      const webhookUrl = S.settings?.webhook_speedit?.url;
-      if (webhookUrl) {
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event: 'order.created', order: order, items: S.cart })
-        }).catch(err => console.error('Erro ao disparar webhook:', err));
-      }
-
-      S.cart = []; saveCart(); updateCartUI();
-      document.getElementById('successOrderNum').textContent = '#' + num;
-      S.checkoutStep = 3; updateCheckoutStep();
-      btn.innerHTML = 'Confirmar pedido'; btn.disabled = false;
     }
 
     function maskCep(el) {
