@@ -1736,7 +1736,15 @@
       if (sb) return sb;
       if (typeof supabase !== 'undefined') {
         try {
-          sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          // Configuração otimizada para evitar deadlocks em PWAs mobile
+          sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true,
+              storageKey: 'ga_auth_session'
+            }
+          });
           return sb;
         } catch (e) {
           console.error('Erro ao criar cliente Supabase:', e);
@@ -1967,20 +1975,40 @@
     // ============================================================
     async function loadProducts() {
       try {
-        const { data, error } = await sb.from('products').select('*').eq('ativo', true).order('destaque', { ascending: false }).order('nome');
+        const client = getSupabase();
+        if (!client) return;
+
+        // Timeout de proteção: se o banco não responder em 6s, gera erro
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 6000));
+
+        const fetchTask = client.from('products').select('*').eq('ativo', true)
+          .order('destaque', { ascending: false }).order('nome');
+
+        const { data, error } = await Promise.race([fetchTask, timeout]);
+
         if (error) throw error;
         S.products = data || [];
         const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
         renderCats(cats);
         renderProducts();
       } catch (e) {
-        document.getElementById('productsGrid').innerHTML =
-          `<div class="loading-center" style="grid-column:1/-1;flex-direction:column;gap:8px">
-        <span style="font-size:32px">⚠️</span>
-        <strong>Erro ao carregar produtos</strong>
-        <small style="color:#aaa;text-align:center">${e.message || 'Verifique a conexão e as configurações do banco'}</small>
-        <button onclick="loadProducts()" style="margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:14px">Tentar novamente</button>
-      </div>`;
+        console.error('Erro ao carregar produtos:', e);
+        if (e.message === 'TIMEOUT') {
+          document.getElementById('productsGrid').innerHTML =
+            '<div class="loading-center" style="flex-direction:column;gap:15px;padding:40px">' +
+            '<div>A conexão com o banco está demorando demais.</div>' +
+            '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="clearAppCache()">Limpeza Profunda (Recuperar App)</button>' +
+            '</div>';
+        } else {
+          document.getElementById('productsGrid').innerHTML =
+            `<div class="loading-center" style="grid-column:1/-1;flex-direction:column;gap:8px">
+          <span style="font-size:32px">⚠️</span>
+          <strong>Erro ao carregar produtos</strong>
+          <small style="color:#aaa;text-align:center">${e.message || 'Verifique a conexão e as configurações do banco'}</small>
+          <button onclick="loadProducts()" style="margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:14px">Tentar novamente</button>
+        </div>`;
+        }
+        showToast('Erro ao carregar catálogo');
       }
     }
 
@@ -2314,19 +2342,28 @@
     };
 
 
-    document.getElementById('btnClearCache').onclick = async () => {
-      // Notifica o service worker para limpar o cache
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage('CLEAR_CACHE');
+    document.getElementById('btnClearCache').onclick = () => clearAppCache();
+
+    async function clearAppCache() {
+      showToast('Iniciando limpeza profunda...');
+      // 1. Limpa Service Workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (let r of regs) await r.unregister();
       }
-      // Limpa diretamente também
+      // 2. Limpa Caches
       if ('caches' in window) {
         const keys = await caches.keys();
         await Promise.all(keys.map(k => caches.delete(k)));
       }
-      showToast('Cache limpo! Recarregando...');
-      setTimeout(() => location.reload(), 1500);
-    };
+      // 3. Limpa LocalStorage (exceto ga_pk_id para biometria)
+      const pkId = localStorage.getItem('ga_pk_id');
+      localStorage.clear();
+      if (pkId) localStorage.setItem('ga_pk_id', pkId);
+
+      showToast('Tudo limpo! Reiniciando...');
+      setTimeout(() => { location.href = location.origin + '/?refresh=' + Date.now(); }, 1500);
+    }
 
     document.getElementById('btnPasskeys').onclick = () => registerPasskey();
     document.getElementById('btnAddresses').onclick = () => showToast('Em breve: gerenciar endereços');

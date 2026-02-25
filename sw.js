@@ -1,13 +1,12 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v3.0';
+const CACHE_NAME = 'globo-agua-v4.0';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/config.js',
   '/images/logo.jpeg',
   '/images/mascote.jpeg'
 ];
@@ -29,7 +28,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        // Removido o filtro: Limpa ABSOLUTAMENTE TUDO ao ativar para garantir frescor total
+        keys.map(k => caches.delete(k))
       )
     )
   );
