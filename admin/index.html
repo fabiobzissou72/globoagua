@@ -1941,12 +1941,34 @@
       const razao = document.getElementById('companyRazao').value.trim();
       const cnpj = document.getElementById('companyCnpj').value.replace(/\D/g, '');
       if (!razao || !cnpj) { showToast('Informe razão social e CNPJ'); return; }
-      const data = { razao_social: razao, nome_fantasia: document.getElementById('companyFantasia').value.trim(), cnpj, contato: document.getElementById('companyContato').value.trim() };
+
+      const data = {
+        razao_social: razao,
+        nome_fantasia: document.getElementById('companyFantasia').value.trim(),
+        cnpj,
+        contato: document.getElementById('companyContato').value.trim()
+      };
+
+      let oldCnpj = null;
+      if (id) {
+        const c = allCompanies.find(x => x.id === id);
+        oldCnpj = c?.cnpj;
+      }
+
       if (id) await sbAdmin.from('companies').update(data).eq('id', id);
       else await sbAdmin.from('companies').insert(data);
+
+      // Se o CNPJ mudou, reflete a mudança nos preços especiais
+      if (id && oldCnpj && oldCnpj !== cnpj) {
+        await sbAdmin.from('company_prices').update({ cnpj }).eq('cnpj', oldCnpj);
+        showToast('✅ Empresa e preços sincronizados!');
+      } else {
+        showToast('✅ Empresa salva!');
+      }
+
       closeModal('companyModal');
-      await loadAllCompanies(); renderCompanies();
-      showToast('✅ Empresa salva!');
+      await loadAllCompanies();
+      renderCompanies();
     }
 
     async function deleteCompany(id) {

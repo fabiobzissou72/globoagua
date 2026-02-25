@@ -2100,6 +2100,7 @@
       if (data?.tipo_pessoa === 'PJ' && data?.documento) {
         await loadCompanyPrices(data.documento.replace(/\D/g, ''));
       }
+      renderProducts();
     }
 
     async function loadCompanyPrices(cnpj) {
@@ -3267,6 +3268,7 @@
             S.companyPrices = {};
           }
           renderProfile();
+          renderProducts(); // Atualiza preços na tela se mudou o cliente
           updateCartUI();
         });
 
