@@ -378,18 +378,20 @@
     }
 
     .cart-drawer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 20px 20px 0 0;
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: #fff !important;
+      border-radius: 20px 20px 0 0 !important;
+      z-index: 1000 !important;
+      transform: translateY(100%) !important;
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
+      max-height: 85vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      opacity: 1 !important;
+      pointer-events: auto !important
     }
 
     .cart-drawer.open {
@@ -398,22 +400,22 @@
 
     @media (min-width: 600px) {
       .cart-drawer {
-        left: 50%;
-        top: 50%;
-        bottom: auto;
-        transform: translate(-50%, -50%) scale(0.9);
-        width: 450px;
-        max-height: 80vh;
-        border-radius: 24px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        opacity: 0;
-        pointer-events: none;
+        left: 50% !important;
+        top: 50% !important;
+        bottom: auto !important;
+        transform: translate(-50%, -50%) scale(0.9) !important;
+        width: 450px !important;
+        max-height: 80vh !important;
+        border-radius: 24px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
       }
 
       .cart-drawer.open {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1) !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
       }
     }
 
@@ -595,16 +597,19 @@
     }
 
     .auth-sheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-radius: 20px 20px 0 0;
-      z-index: 300;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      padding-bottom: env(safe-area-inset-bottom)
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: #fff !important;
+      border-radius: 20px 20px 0 0 !important;
+      z-index: 1001 !important;
+      transform: translateY(100%) !important;
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
+      padding-bottom: env(safe-area-inset-bottom) !important;
+      display: block !important;
+      opacity: 1 !important;
+      pointer-events: auto !important
     }
 
     .auth-sheet.open {
@@ -613,22 +618,22 @@
 
     @media (min-width: 600px) {
       .auth-sheet {
-        left: 50%;
-        top: 50%;
-        bottom: auto;
-        transform: translate(-50%, -50%) scale(0.9);
-        width: 400px;
-        border-radius: 24px;
-        padding-bottom: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        opacity: 0;
-        pointer-events: none;
+        left: 50% !important;
+        top: 50% !important;
+        bottom: auto !important;
+        transform: translate(-50%, -50%) scale(0.9) !important;
+        width: 400px !important;
+        border-radius: 24px !important;
+        padding-bottom: 20px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
       }
 
       .auth-sheet.open {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1) !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
       }
     }
 
@@ -762,14 +767,15 @@
     }
 
     .checkout-sheet {
-      position: fixed;
-      inset: 0;
-      background: #f0f4f8;
-      z-index: 400;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-      overflow-y: auto;
-      padding-bottom: 100px
+      position: fixed !important;
+      inset: 0 !important;
+      background: #f0f4f8 !important;
+      z-index: 1002 !important;
+      transform: translateY(100%) !important;
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
+      overflow-y: auto !important;
+      padding-bottom: 100px !important;
+      display: block !important
     }
 
     .checkout-sheet.open {
@@ -778,21 +784,21 @@
 
     @media (min-width: 600px) {
       .checkout-sheet {
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -40%) scale(0.9);
-        width: 500px;
-        height: 80vh;
-        border-radius: 24px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        opacity: 0;
-        pointer-events: none;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -40%) scale(0.9) !important;
+        width: 500px !important;
+        height: 80vh !important;
+        border-radius: 24px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
       }
 
       .checkout-sheet.open {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1) !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
       }
     }
 
@@ -1467,7 +1473,7 @@
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo">
-      <img src="/images/logo.jpeg" alt="Globo Água">
+      <img src="images/logo.jpeg" alt="Globo Água">
       <span>Globo Água</span>
     </div>
     <div class="topbar-actions">
@@ -1893,6 +1899,14 @@
       deferredPrompt: null,
       settings: {}
     };
+
+    const EMERGENCY_CATALOG = [
+      { id: 'e1', nome: 'Água Mineral 20L', preco_padrao: 18.00, categoria: 'Bombonas', ativo: true, destaque: true },
+      { id: 'e2', nome: 'Água Mineral 500ml', preco_padrao: 2.50, categoria: 'Garrafas', ativo: true },
+      { id: 'e3', nome: 'Garrafão 10L', preco_padrao: 14.00, categoria: 'Bombonas', ativo: true }
+    ];
+
+    if (!S.products || S.products.length === 0) S.products = EMERGENCY_CATALOG;
 
     // ============================================================
     // PWA INSTALL
@@ -2627,7 +2641,11 @@
         client.auth.getSession().then(({ data }) => {
           if (data?.session && !S.user) {
             S.user = data.session.user;
-            loadProfile().then(renderProfile);
+            if (typeof loadProfile === 'function') {
+              loadProfile().then(renderProfile);
+            } else {
+              renderProfile();
+            }
           }
         });
       } else {
