@@ -1704,10 +1704,6 @@
       document.getElementById('productAtivo').checked = p?.ativo !== false;
       // Se editando, destaca o botão do volume atual
       if (p?.subcategoria) pickVolume(p.subcategoria);
-      document.getElementById('productPreco').value = p?.preco_padrao || '';
-      document.getElementById('productEstoque').value = p?.estoque ?? 999;
-      document.getElementById('productDestaque').checked = p?.destaque || false;
-      document.getElementById('productAtivo').checked = p?.ativo !== false;
       document.getElementById('productFoto').value = p?.foto_url || '';
       uploadedFileObj = null;
       setPhotoTab('url');
@@ -1741,6 +1737,7 @@
         categoria: document.getElementById('productCat').value,
         subcategoria: document.getElementById('productSubcat').value.trim(),
         preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
+        preco_oferta: parseFloat(document.getElementById('productPrecoOferta').value) || 0,
         estoque: parseInt(document.getElementById('productEstoque').value) || 999,
         destaque: document.getElementById('productDestaque').checked,
         ativo: document.getElementById('productAtivo').checked
