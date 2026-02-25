@@ -1731,15 +1731,21 @@
 
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
     let sb;
-    try {
-      if (typeof supabase !== 'undefined') {
-        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } else {
-        console.error('Biblioteca Supabase não carregada!');
+
+    function setupSupabase() {
+      try {
+        if (typeof supabase !== 'undefined') {
+          sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          return true;
+        }
+      } catch (e) {
+        console.error('Erro ao inicializar Supabase:', e);
       }
-    } catch (e) {
-      console.error('Erro ao inicializar Supabase:', e);
+      return false;
     }
+
+    // Tenta inicialização imediata
+    setupSupabase();
 
     // ============================================================
     // STATE
@@ -2385,10 +2391,13 @@
     // INIT
     // ============================================================
     async function init() {
-      // Pequeno delay para garantir carregamento de libs em conexões lentas (Android/PWA)
-      if (!sb) {
-        console.warn('Aguardando inicialização do Supabase...');
-        await new Promise(r => setTimeout(r, 500));
+      let attempts = 0;
+      while (!sb && attempts < 3) {
+        console.warn(`Tentativa ${attempts + 1}: Aguardando Supabase...`);
+        setupSupabase();
+        if (sb) break;
+        attempts++;
+        await new Promise(r => setTimeout(r, 800));
       }
 
       if (sb) {
@@ -2397,19 +2406,27 @@
       } else {
         console.error('Falha crítica: Supabase não inicializado.');
         document.getElementById('productsGrid').innerHTML =
-          '<div class="loading-center">⚠️ Erro de conexão. Recarregue a página.</div>';
+          '<div class="loading-center" style="flex-direction:column;gap:15px;padding:40px">' +
+          '<div style="font-size:40px">⚠️</div>' +
+          '<div>Erro de conexão ao carregar produtos.</div>' +
+          '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="location.reload()">Tentar Novamente</button>' +
+          '</div>';
       }
       updateCartUI();
     }
 
     init();
 
-    sb?.auth.getSession().then(({ data }) => {
-      if (data.session && !S.user) {
-        S.user = data.session.user;
-        loadProfile().then(renderProfile);
-      }
-    });
+    function checkSession() {
+      if (!sb) return;
+      sb.auth.getSession().then(({ data }) => {
+        if (data?.session && !S.user) {
+          S.user = data.session.user;
+          loadProfile().then(renderProfile);
+        }
+      });
+    }
+    checkSession();
   </script>
 </body>
 
