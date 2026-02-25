@@ -1436,7 +1436,7 @@
           </div>
           <span class="profile-item-arrow">›</span>
         </div>
-        <div class="profile-item" id="btnAddresses">
+        <div class="profile-item" id="btnAddresses" onclick="showView('viewAddresses',null);loadAddresses()">
           <span class="profile-item-icon">📍</span>
           <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span>
           </div>
@@ -1472,6 +1472,50 @@
         <button class="auth-btn btn-biometric" style="max-width:280px;margin:0 auto" onclick="openAuth()">Entrar /
           Cadastrar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- VIEW: ENDEREÇOS -->
+  <div class="view" id="viewAddresses">
+    <div class="checkout-topbar">
+      <button onclick="showView('viewProfile', null);renderProfile()">←</button>
+      <h2>Meus Endereços</h2>
+    </div>
+    <div style="padding:16px">
+      <div id="addressesList"></div>
+      <button class="auth-btn" style="margin-top:20px" onclick="openAddressForm()">+ Adicionar Endereço</button>
+    </div>
+  </div>
+
+  <!-- ADDRESS FORM MODAL -->
+  <div class="auth-overlay hidden" id="addrOverlay" onclick="closeAddressForm()"></div>
+  <div class="auth-sheet hidden" id="addrSheet">
+    <div class="auth-header">
+      <h3>Novo Endereço</h3>
+    </div>
+    <div class="auth-body" style="padding:0 20px 20px">
+      <div class="form-group">
+        <label class="form-label">CEP</label>
+        <input class="form-input" id="newAddrCep" placeholder="00000-000" maxlength="9" oninput="maskCep(this)"
+          onblur="fetchCepManual()">
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label class="form-label">Rua</label><input class="form-input"
+            id="newAddrRua" placeholder="Rua..."></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Nº</label><input class="form-input"
+            id="newAddrNum" placeholder="123"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Complemento</label><input class="form-input" id="newAddrComp"
+          placeholder="Apto, bloco..."></div>
+      <div class="form-group"><label class="form-label">Bairro</label><input class="form-input" id="newAddrBairro"
+          placeholder="Bairro"></div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label class="form-label">Cidade</label><input class="form-input"
+            id="newAddrCidade" placeholder="Cidade"></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Estado</label><input class="form-input"
+            id="newAddrEstado" placeholder="SP" maxlength="2"></div>
+      </div>
+      <button class="auth-btn" style="margin-top:20px" onclick="saveAddress()">Salvar Endereço</button>
     </div>
   </div>
 
@@ -2332,13 +2376,15 @@
     }
 
     document.getElementById('btnLogout').onclick = async () => {
-      await sb.auth.signOut();
-      S.user = null; S.profile = null; S.companyPrices = {};
-      // Mantém ga_pk_id para que o botão de biometria continue disponível no próximo login
-      localStorage.removeItem('ga_pk_rt');
-      renderProfile();
-      showView('viewCatalog', document.querySelector('.nav-btn'));
-      showToast('Sessão encerrada');
+      const client = getSupabase();
+      if (client) {
+        await client.auth.signOut();
+        S.user = null; S.profile = null; S.companyPrices = {};
+        localStorage.removeItem('ga_pk_rt');
+        renderProfile();
+        showView('viewCatalog', document.querySelector('.nav-btn'));
+        showToast('Sessão encerrada');
+      }
     };
 
 
@@ -2366,7 +2412,96 @@
     }
 
     document.getElementById('btnPasskeys').onclick = () => registerPasskey();
-    document.getElementById('btnAddresses').onclick = () => showToast('Em breve: gerenciar endereços');
+
+    // ============================================================
+    // ADDRESSES MGMT
+    // ============================================================
+    function openAddressForm() {
+      document.getElementById('addrOverlay').classList.remove('hidden');
+      document.getElementById('addrSheet').classList.add('open');
+    }
+    function closeAddressForm() {
+      document.getElementById('addrOverlay').classList.add('hidden');
+      document.getElementById('addrSheet').classList.remove('open');
+    }
+
+    async function fetchCepManual() {
+      const cep = document.getElementById('newAddrCep').value.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+      try {
+        const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const d = await r.json();
+        if (d.erro) { showToast('CEP não encontrado'); return; }
+        document.getElementById('newAddrRua').value = d.logradouro || '';
+        document.getElementById('newAddrBairro').value = d.bairro || '';
+        document.getElementById('newAddrCidade').value = d.localidade || '';
+        document.getElementById('newAddrEstado').value = d.uf || '';
+        document.getElementById('newAddrNum').focus();
+      } catch (e) { }
+    }
+
+    async function loadAddresses() {
+      if (!S.user) return;
+      const client = getSupabase();
+      const { data } = await client.from('user_addresses').select('*').eq('user_id', S.user.id).order('is_default', { ascending: false });
+      const list = document.getElementById('addressesList');
+      if (!data?.length) {
+        list.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Nenhum endereço cadastrado</div>';
+        return;
+      }
+      list.innerHTML = data.map(a => `
+        <div class="profile-card" style="margin:0 0 12px">
+          <div style="padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <strong style="font-size:14px">${a.rua}, ${a.numero}</strong>
+              ${a.is_default ? '<span style="font-size:10px;background:#e3f2fd;color:var(--blue);padding:2px 6px;border-radius:4px">PADRÃO</span>' : ''}
+            </div>
+            <div style="font-size:13px;color:#666;margin-top:4px">${a.bairro} - ${a.cidade}/${a.estado}</div>
+            <div style="font-size:12px;color:#999;margin-top:2px">CEP: ${a.cep}</div>
+            <div style="display:flex;gap:12px;margin-top:12px border-top:1px solid #f0f0f0;padding-top:12px">
+              ${!a.is_default ? `<button onclick="setDefaultAddress('${a.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;padding:0">Usar como padrão</button>` : ''}
+              <button onclick="deleteAddress('${a.id}')" style="background:none;border:none;color:#e53935;font-size:12px;font-weight:700;padding:0">Excluir</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveAddress() {
+      const addr = {
+        user_id: S.user.id,
+        cep: document.getElementById('newAddrCep').value,
+        rua: document.getElementById('newAddrRua').value,
+        numero: document.getElementById('newAddrNum').value,
+        complemento: document.getElementById('newAddrComp').value,
+        bairro: document.getElementById('newAddrBairro').value,
+        cidade: document.getElementById('newAddrCidade').value,
+        estado: document.getElementById('newAddrEstado').value
+      };
+      if (!addr.cep || !addr.rua || !addr.numero) { showToast('Preencha os campos obrigatórios'); return; }
+      const client = getSupabase();
+      const { error } = await client.from('user_addresses').insert(addr);
+      if (error) { showToast('Erro ao salvar endereço'); return; }
+      showToast('Endereço salvo!');
+      closeAddressForm();
+      loadAddresses();
+    }
+
+    async function setDefaultAddress(id) {
+      const client = getSupabase();
+      await client.from('user_addresses').update({ is_default: false }).eq('user_id', S.user.id);
+      await client.from('user_addresses').update({ is_default: true }).eq('id', id);
+      loadAddresses();
+      showToast('Endereço padrão atualizado');
+    }
+
+    async function deleteAddress(id) {
+      if (!confirm('Excluir este endereço?')) return;
+      const client = getSupabase();
+      await client.from('user_addresses').delete().eq('id', id);
+      loadAddresses();
+      showToast('Endereço excluído');
+    }
     document.getElementById('btnInstallGuide').onclick = () => {
       document.getElementById('iosModal').classList.remove('hidden');
     };
