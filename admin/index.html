@@ -1622,24 +1622,42 @@
     }
 
     async function deleteProduct(id) {
-      if (!confirm('Excluir este produto?\n\nEsta ação não pode ser desfeita.')) return;
+      if (!confirm('Deseja EXCLUIR PERMANENTEMENTE este produto?\n\nEssa ação não poderá ser desfeita.')) return;
+
       try {
-        // Primeiro tenta deletar os itens de pedido associados (order_items referenciam product_id)
-        // Se houver FK constraint, inativa em vez de deletar
         const { error } = await sbAdmin.from('products').delete().eq('id', id);
+
         if (error) {
-          // Se falhar por FK constraint, apenas desativa o produto
-          if (error.code === '23503' || error.message?.includes('foreign key') || error.message?.includes('violates')) {
-            const { error: errUpdate } = await sbAdmin.from('products').update({ ativo: false }).eq('id', id);
-            if (errUpdate) throw errUpdate;
-            await loadAllProducts();
-            showToast('⚠️ Produto desativado (possui pedidos vinculados)');
+          // Erro de Foreign Key (pedidos vinculados)
+          if (error.code === '23503' || error.message?.includes('foreign key')) {
+            const opt = confirm('Este produto possui histórico de vendas e não pode ser removido diretamente.\n\nClique em OK para APENAS DESATIVAR (ele sumirá do app mas mantém o histórico) ou CANCELAR para tentar a EXCLUSÃO FORÇADA (apaga também os itens dos pedidos antigos para poder deletar o produto).');
+
+            if (opt) {
+              // Apenas desativa
+              const { error: errUpd } = await sbAdmin.from('products').update({ ativo: false }).eq('id', id);
+              if (errUpd) throw errUpd;
+              await loadAllProducts();
+              showToast('Produto desativado com sucesso.');
+            } else {
+              // Tenta exclusão forçada (remove itens de pedidos primeiro)
+              if (confirm('⚠️ ATENÇÃO: A exclusão forçada apagará este produto de todos os pedidos já realizados no passado. Tem certeza absoluta?')) {
+                showToast('⏳ Processando exclusão forçada...');
+                const { error: errItems } = await sbAdmin.from('order_items').delete().eq('product_id', id);
+                if (errItems) throw errItems;
+
+                const { error: errFinal } = await sbAdmin.from('products').delete().eq('id', id);
+                if (errFinal) throw errFinal;
+
+                await loadAllProducts();
+                showToast('✅ Produto e histórico vinculados foram excluídos!');
+              }
+            }
           } else {
             throw error;
           }
         } else {
           await loadAllProducts();
-          showToast('✅ Produto excluído!');
+          showToast('✅ Produto excluído com sucesso!');
         }
       } catch (e) {
         console.error('deleteProduct error:', e);
