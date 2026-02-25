@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Globo Água">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/images/logo.jpeg">
+  <link rel="apple-touch-icon" href="images/logo.jpeg">
   <title>Globo Água</title>
   <style>
     * {
@@ -399,16 +399,21 @@
     @media (min-width: 600px) {
       .cart-drawer {
         left: 50%;
-        bottom: 50%;
-        transform: translate(-50%, 100%);
+        top: 50%;
+        bottom: auto;
+        transform: translate(-50%, -50%) scale(0.9);
         width: 450px;
         max-height: 80vh;
         border-radius: 24px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        pointer-events: none;
       }
 
       .cart-drawer.open {
-        transform: translate(-50%, 50%);
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        pointer-events: all;
       }
     }
 
@@ -609,16 +614,21 @@
     @media (min-width: 600px) {
       .auth-sheet {
         left: 50%;
-        bottom: 50%;
-        transform: translate(-50%, 100%);
+        top: 50%;
+        bottom: auto;
+        transform: translate(-50%, -50%) scale(0.9);
         width: 400px;
         border-radius: 24px;
         padding-bottom: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        pointer-events: none;
       }
 
       .auth-sheet.open {
-        transform: translate(-50%, 50%);
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        pointer-events: all;
       }
     }
 
@@ -1175,6 +1185,18 @@
       overflow-y: auto
     }
 
+    @media (min-width: 600px) {
+      .ios-modal {
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ios-modal-box {
+        width: 400px;
+        border-radius: 24px;
+      }
+    }
+
     .ios-modal-box h3 {
       font-size: 18px;
       font-weight: 700;
@@ -1303,8 +1325,23 @@
       transition: transform .3s cubic-bezier(.4, 0, .2, 1)
     }
 
-    .pdetail-overlay.open .pdetail-sheet {
-      transform: translateY(0)
+    @media (min-width: 600px) {
+      .pdetail-overlay {
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pdetail-sheet {
+        width: 500px;
+        border-radius: 24px;
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      .pdetail-overlay.open .pdetail-sheet {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .pdetail-img {
@@ -1441,7 +1478,7 @@
 
   <!-- INSTALL BANNER -->
   <div class="install-banner hidden" id="installBanner">
-    <img src="/images/mascote.jpeg" alt="">
+    <img src="images/mascote.jpeg" alt="">
     <div class="install-banner-text">
       <strong>Instale o Globo Água</strong>
       <small>Acesso rápido, funciona offline</small>
@@ -1607,7 +1644,7 @@
   <!-- AUTH SHEET -->
   <div class="auth-sheet" id="authSheet">
     <div class="auth-header">
-      <img src="/images/logo.jpeg" alt="Globo Água">
+      <img src="images/logo.jpeg" alt="Globo Água">
       <h2>Globo Água</h2>
       <p>Entre para finalizar seu pedido</p>
     </div>
@@ -2001,20 +2038,6 @@
       closeAuth(); showToast('Conta criada! Confirme seu e-mail.');
     }
 
-    async function clearAppCache() {
-      if (!confirm('Deseja fazer uma limpeza profunda? Isso recarregará o app e limpará dados temporários.')) return;
-      localStorage.clear();
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
-      }
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map(r => r.unregister()));
-      }
-      showToast('Cache limpo! Recarregando...');
-      setTimeout(() => location.reload(true), 1000);
-    }
 
     // ============================================================
     // PRODUCTS
@@ -2024,38 +2047,34 @@
         const client = getSupabase();
         if (!client) return;
 
-        // Timeout de proteção: se o banco não responder em 6s, gera erro
         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 6000));
-
         const fetchTask = client.from('products').select('*').eq('ativo', true)
           .order('destaque', { ascending: false }).order('nome');
 
         const { data, error } = await Promise.race([fetchTask, timeout]);
 
         if (error) throw error;
-        S.products = data || [];
-        localStorage.setItem('ga_products_cache', JSON.stringify(S.products));
-        const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
-        renderCats(cats);
-        renderProducts();
+        if (data && data.length > 0) {
+          S.products = data;
+          localStorage.setItem('ga_products_cache', JSON.stringify(S.products));
+          const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
+          renderCats(cats);
+          renderProducts();
+        } else if (!S.products || S.products.length === 0) {
+          throw new Error('Nenhum produto retornado do banco');
+        }
       } catch (e) {
         console.error('Erro ao carregar produtos:', e);
-        if (e.message === 'TIMEOUT') {
-          document.getElementById('productsGrid').innerHTML =
-            '<div class="loading-center" style="flex-direction:column;gap:15px;padding:40px">' +
-            '<div>A conexão com o banco está demorando demais.</div>' +
-            '<button class="auth-btn" style="width:auto;padding:10px 20px" onclick="clearAppCache()">Limpeza Profunda (Recuperar App)</button>' +
-            '</div>';
-        } else {
+        // Não limpa o grid se já tivermos produtos do cache
+        if (!S.products || S.products.length === 0) {
           document.getElementById('productsGrid').innerHTML =
             `<div class="loading-center" style="grid-column:1/-1;flex-direction:column;gap:8px">
           <span style="font-size:32px">⚠️</span>
-          <strong>Erro ao carregar produtos</strong>
-          <small style="color:#aaa;text-align:center">${e.message || 'Verifique a conexão e as configurações do banco'}</small>
+          <strong>Houve um problema ao carregar</strong>
+          <small style="color:#aaa;text-align:center">Verifique sua internet</small>
           <button onclick="loadProducts()" style="margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:14px">Tentar novamente</button>
         </div>`;
         }
-        showToast('Erro ao carregar catálogo');
       }
     }
 
@@ -2404,7 +2423,9 @@
     document.getElementById('btnClearCache').onclick = () => clearAppCache();
 
     async function clearAppCache() {
+      if (!confirm('Deseja fazer uma limpeza profunda? Isso recarregará o app e limpará todos os dados.')) return;
       showToast('Iniciando limpeza profunda...');
+
       // 1. Limpa Service Workers
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
@@ -2415,13 +2436,16 @@
         const keys = await caches.keys();
         await Promise.all(keys.map(k => caches.delete(k)));
       }
-      // 3. Limpa LocalStorage (exceto ga_pk_id para biometria)
-      const pkId = localStorage.getItem('ga_pk_id');
+      // 3. Limpa LocalStorage
       localStorage.clear();
-      if (pkId) localStorage.setItem('ga_pk_id', pkId);
 
       showToast('Tudo limpo! Reiniciando...');
-      setTimeout(() => { location.href = location.origin + '/?refresh=' + Date.now(); }, 1500);
+      // Recarregamento robusto para file:/// e http
+      setTimeout(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('refresh', Date.now());
+        window.location.href = url.toString();
+      }, 1500);
     }
 
     document.getElementById('btnPasskeys').onclick = () => registerPasskey();
