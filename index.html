@@ -2250,7 +2250,7 @@
 
     function closeAuth(fromHistory = false) {
       if (!fromHistory && document.getElementById('authSheet')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       console.log('🔒 closeAuth() chamado');
       const sheet = document.getElementById('authSheet');
@@ -2270,7 +2270,7 @@
 
     function closeConf(fromHistory = false) {
       if (!fromHistory && document.getElementById('confSheet')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       const sheet = document.getElementById('confSheet');
       if (sheet) sheet.classList.remove('open');
@@ -2423,7 +2423,7 @@
 
     function closePDetail(fromHistory = false) {
       if (!fromHistory && document.getElementById('pdetailOverlay')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       document.getElementById('pdetailOverlay').classList.remove('open');
     }
@@ -2619,7 +2619,7 @@
 
     function closeCart(fromHistory = false) {
       if (!fromHistory && document.getElementById('cartDrawer')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       const drawer = document.getElementById('cartDrawer');
       const ovl = document.getElementById('overlay');
@@ -2681,7 +2681,7 @@
 
     function closeCheckout(fromHistory = false) {
       if (!fromHistory && document.getElementById('checkoutSheet')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       document.getElementById('checkoutSheet').classList.remove('open');
     }
@@ -2698,6 +2698,7 @@
       document.getElementById('checkoutTitle').textContent = titles[s];
       document.getElementById('stepLabel').textContent = `Passo ${s + 1} de 4`;
       document.getElementById('btnNext').classList.toggle('hidden', s === 3);
+      document.getElementById('btnNext').textContent = s === 2 ? 'Finalizar Pedido' : 'Continuar →';
       if (s === 1) renderReview();
 
       // Exibe PIX se for o caso
@@ -2987,7 +2988,7 @@
 
     function closeOrderDetail(fromHistory = false) {
       if (!fromHistory && document.getElementById('orderDetailOverlay')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       document.getElementById('orderDetailOverlay').classList.remove('open');
     }
@@ -3075,7 +3076,7 @@
 
     function closeEditProfile(fromHistory = false) {
       if (!fromHistory && document.getElementById('editProfileSheet')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       const sheet = document.getElementById('editProfileSheet');
       const overlay = document.getElementById('editProfileOverlay');
@@ -3200,7 +3201,7 @@
     }
     function closeAddressForm(fromHistory = false) {
       if (!fromHistory && document.getElementById('addrSheet')?.classList.contains('open')) {
-        history.back(); return;
+        history.back();
       }
       document.getElementById('addrOverlay').classList.add('hidden');
       document.getElementById('addrSheet').classList.remove('open');
