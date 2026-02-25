@@ -2048,13 +2048,7 @@
       settings: {}
     };
 
-    const EMERGENCY_CATALOG = [
-      { id: 'e1', nome: 'Água Mineral 20L', preco_padrao: 18.00, categoria: 'Bombonas', ativo: true, destaque: true },
-      { id: 'e2', nome: 'Água Mineral 500ml', preco_padrao: 2.50, categoria: 'Garrafas', ativo: true },
-      { id: 'e3', nome: 'Garrafão 10L', preco_padrao: 14.00, categoria: 'Bombonas', ativo: true }
-    ];
-
-    if (!S.products || S.products.length === 0) S.products = EMERGENCY_CATALOG;
+    // Sem catálogo de emergência fixo — categorias e produtos vêm apenas do banco/admin
 
     // ============================================================
     // PWA INSTALL

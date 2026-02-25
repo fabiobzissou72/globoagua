@@ -985,15 +985,21 @@
           <div class="table-card">
             <div class="table-header">
               <h3>Pedidos</h3>
-              <select class="form-input" id="orderStatusFilter" style="width:auto;padding:7px 12px"
-                onchange="loadAdminOrders()">
-                <option value="">Todos</option>
-                <option value="NOVO">Novo</option>
-                <option value="CONFIRMADO">Confirmado</option>
-                <option value="PRODUCAO">Em produção</option>
-                <option value="ENTREGUE">Entregue</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <select class="form-input" id="orderStatusFilter" style="width:auto;padding:7px 12px"
+                  onchange="loadAdminOrders()">
+                  <option value="">Todos</option>
+                  <option value="NOVO">Novo</option>
+                  <option value="CONFIRMADO">Confirmado</option>
+                  <option value="PRODUCAO">Em produção</option>
+                  <option value="ENTREGUE">Entregue</option>
+                  <option value="CANCELADO">Cancelado</option>
+                </select>
+                <button class="btn btn-ghost" onclick="exportOrdersExcel()"
+                  title="Exportar todos os pedidos para Excel">
+                  📊 Exportar Excel
+                </button>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
@@ -1001,10 +1007,12 @@
                   <tr>
                     <th>Nº</th>
                     <th>Cliente</th>
+                    <th>CPF/CNPJ</th>
                     <th>Total</th>
                     <th>Pagto</th>
                     <th>Status</th>
                     <th>Data</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTable"></tbody>
@@ -1153,29 +1161,45 @@
             placeholder="Descrição breve"></div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Categoria</label>
-            <select class="form-input" id="productCat">
-              <option>Água</option>
-              <option>Refrigerantes</option>
-              <option>Energéticos</option>
-              <option>Bebidas</option>
+            <select class="form-input" id="productCat" onchange="updateSubcatOptions()">
+              <option value="Água">💧 Água</option>
+              <option value="Água Gaseificada">💧 Água Gaseificada</option>
+              <option value="Água Saborizada">💧 Água Saborizada</option>
+              <option value="Refrigerantes">🥤 Refrigerantes</option>
+              <option value="Sucos">🧃 Sucos</option>
+              <option value="Energéticos">⚡ Energéticos</option>
+              <option value="Bebidas">🍹 Outras Bebidas</option>
+              <option value="Galão">🪣 Galão / Garrafão</option>
+              <option value="Gelo">🧊 Gelo</option>
+              <option value="Outros">📦 Outros</option>
             </select>
           </div>
-          <div class="form-group"><label class="form-label">Subcategoria (Ex: 20L, 10L)</label>
-            <input class="form-input" id="productSubcat" list="subcatList" placeholder="Ex: 20L">
-            <datalist id="subcatList">
-              <option value="20 Litros">
-              <option value="10 Litros">
-              <option value="1.5 Litros">
-              <option value="500 ml">
-              <option value="Lata 350ml">
-            </datalist>
+          <div class="form-group"><label class="form-label">Volume / Tamanho</label>
+            <input class="form-input" id="productSubcat" list="subcatList" placeholder="Ex: 20 Litros">
+            <datalist id="subcatList"></datalist>
           </div>
+        </div>
+
+        <!-- ATALHOS DE VOLUME (visível apenas para categorias de água) -->
+        <div id="volumeQuickPick" class="form-group" style="display:none">
+          <label class="form-label">⚡ Clique para preencher o volume</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px" id="volumeBtns"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Preço (R$) *</label><input class="form-input" type="number"
               id="productPreco" step="0.01" placeholder="0,00"></div>
           <div class="form-group"><label class="form-label">Estoque</label><input class="form-input" type="number"
               id="productEstoque" value="999"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+            <label class="toggle"><input type="checkbox" id="productDestaque"><span class="slider"></span></label>
+            <label class="form-label" style="margin:0">⭐ Produto em destaque</label>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+            <label class="toggle"><input type="checkbox" id="productAtivo" checked><span class="slider"></span></label>
+            <label class="form-label" style="margin:0">✅ Produto ativo</label>
+          </div>
         </div>
 
         <!-- FOTO: URL ou UPLOAD -->
@@ -1252,10 +1276,16 @@
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script>
-    const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
+    // Cliente principal: usa anon key para autenticação funcionar corretamente
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { storageKey: 'ga-admin-session' }
+    });
+    // Cliente admin: usa service key para bypassar RLS em operações de backend
+    const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
     });
 
     let adminUser = null;
@@ -1288,12 +1318,19 @@
       btn.textContent = 'Entrando...';
       btn.disabled = true;
       try {
+        // Usa sb (anon key) para autenticação
         const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-        if (error) { showToast('E-mail ou senha incorretos'); return; }
-        const { data: profile } = await sb.from('profiles').select('is_admin,nome_completo').eq('id', data.user.id).single();
+        if (error) {
+          console.error('Login error:', error);
+          showToast('E-mail ou senha incorretos: ' + error.message);
+          return;
+        }
+        // Usa sbAdmin (service key) para verificar perfil bypassando RLS
+        const { data: profile, error: profErr } = await sbAdmin.from('profiles').select('is_admin,nome_completo').eq('id', data.user.id).single();
+        if (profErr) { console.error('Profile error:', profErr); }
         if (!profile?.is_admin) {
           await sb.auth.signOut();
-          showToast('Acesso negado: não é administrador'); return;
+          showToast('Acesso negado: usuário não é administrador'); return;
         }
         adminUser = data.user;
         document.getElementById('adminNameDisplay').textContent = profile.nome_completo || email;
@@ -1301,6 +1338,7 @@
         document.getElementById('appScreen').classList.remove('hidden');
         initApp();
       } catch (e) {
+        console.error('Login exception:', e);
         showToast('Erro de conexão. Tente novamente.');
       } finally {
         btn.textContent = 'Entrar';
@@ -1342,10 +1380,10 @@
     async function loadDashboard() {
       const today = new Date().toISOString().split('T')[0];
       const [ordersToday, allOrders, clients, products] = await Promise.all([
-        sb.from('orders').select('total,status').gte('created_at', today),
-        sb.from('orders').select('total,status,created_at,numero_pedido,cliente_nome').order('created_at', { ascending: false }).limit(50),
-        sb.from('profiles').select('id', { count: 'exact', head: true }),
-        sb.from('products').select('id', { count: 'exact', head: true }).eq('ativo', true)
+        sbAdmin.from('orders').select('total,status').gte('created_at', today),
+        sbAdmin.from('orders').select('total,status,created_at,numero_pedido,cliente_nome').order('created_at', { ascending: false }).limit(50),
+        sbAdmin.from('profiles').select('id', { count: 'exact', head: true }),
+        sbAdmin.from('products').select('id', { count: 'exact', head: true }).eq('ativo', true)
       ]);
       const todayOrders = ordersToday.data || [];
       const revenue = todayOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
@@ -1381,7 +1419,8 @@
     // PRODUCTS
     // ============================================================
     async function loadAllProducts() {
-      const { data } = await sb.from('products').select('*').order('nome');
+      const { data, error } = await sbAdmin.from('products').select('*').order('nome');
+      if (error) console.error('loadAllProducts:', error);
       allProducts = data || [];
       renderProductsTable();
     }
@@ -1405,9 +1444,66 @@
     }
 
     async function toggleProduct(id, field, val) {
-      await sb.from('products').update({ [field]: val }).eq('id', id);
+      await sbAdmin.from('products').update({ [field]: val }).eq('id', id);
       const p = allProducts.find(x => x.id === id);
       if (p) p[field] = val;
+    }
+
+    // ============================================================
+    // SUBCATEGORIAS DINÂMICAS
+    // ============================================================
+    const SUBCAT_MAP = {
+      'Água': ['20 Litros', '10 Litros', '5 Litros', '3 Litros', '2 Litros', '1.5 Litros', '1 Litro', '510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '250 ml', '200 ml'],
+      'Água Gaseificada': ['510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '1.5 Litros', '1 Litro'],
+      'Água Saborizada': ['510 ml', '500 ml', '350 ml', '310 ml', '1.5 Litros'],
+      'Galão': ['20 Litros', '10 Litros', '5 Litros'],
+      'Refrigerantes': ['Lata 350ml', 'Lata 269ml', 'Long Neck 355ml', '600 ml', '1 Litro', '1.5 Litros', '2 Litros', '2.5 Litros'],
+      'Sucos': ['Caixinha 200ml', 'Garrafa 300ml', 'Garrafa 500ml', '1 Litro'],
+      'Energéticos': ['Lata 250ml', 'Lata 355ml', 'Garrafa 473ml'],
+      'Bebidas': ['Lata 350ml', 'Garrafa 600ml', '1 Litro', '1.5 Litros'],
+      'Gelo': ['Saco 5 kg', 'Saco 2 kg', 'Saco 1 kg'],
+      'Outros': []
+    };
+
+    // Categorias que mostram atalhos de volume
+    const WATER_CATS = ['Água', 'Água Gaseificada', 'Água Saborizada', 'Galão'];
+
+    function updateSubcatOptions() {
+      const cat = document.getElementById('productCat').value;
+      const subcats = SUBCAT_MAP[cat] || [];
+
+      // Atualiza o datalist
+      document.getElementById('subcatList').innerHTML =
+        subcats.map(s => `<option value="${s}">`).join('');
+
+      // Mostra/esconde atalhos de volume
+      const quickPick = document.getElementById('volumeQuickPick');
+      const btnsEl = document.getElementById('volumeBtns');
+      if (WATER_CATS.includes(cat) && subcats.length) {
+        quickPick.style.display = '';
+        btnsEl.innerHTML = subcats.map(vol => `
+          <button type="button" onclick="pickVolume('${vol}')" style="
+            padding:5px 11px;border:2px solid #1976D2;border-radius:20px;
+            background:#fff;color:#1976D2;font-size:12px;font-weight:700;
+            cursor:pointer;transition:.15s;white-space:nowrap"
+            onmouseover="this.style.background='#1976D2';this.style.color='#fff'"
+            onmouseout="this.style.background='#fff';this.style.color='#1976D2'">${vol}</button>`).join('');
+      } else {
+        quickPick.style.display = 'none';
+      }
+
+      // Limpa o campo se categoria mudou
+      document.getElementById('productSubcat').value = '';
+    }
+
+    function pickVolume(vol) {
+      document.getElementById('productSubcat').value = vol;
+      // Destaca o botão selecionado
+      document.querySelectorAll('#volumeBtns button').forEach(btn => {
+        const active = btn.textContent.trim() === vol;
+        btn.style.background = active ? '#1976D2' : '#fff';
+        btn.style.color = active ? '#fff' : '#1976D2';
+      });
     }
 
     // FOTO: tabs
@@ -1445,9 +1541,9 @@
       if (!uploadedFileObj) return null;
       const ext = uploadedFileObj.name.split('.').pop();
       const path = `${productId}.${ext}`;
-      const { data, error } = await sb.storage.from('produtos').upload(path, uploadedFileObj, { upsert: true, contentType: uploadedFileObj.type });
+      const { data, error } = await sbAdmin.storage.from('produtos').upload(path, uploadedFileObj, { upsert: true, contentType: uploadedFileObj.type });
       if (error) { showToast('Erro no upload: ' + error.message); return null; }
-      const { data: urlData } = sb.storage.from('produtos').getPublicUrl(path);
+      const { data: urlData } = sbAdmin.storage.from('produtos').getPublicUrl(path);
       return urlData.publicUrl;
     }
 
@@ -1458,10 +1554,15 @@
       document.getElementById('productNome').value = p?.nome || '';
       document.getElementById('productDesc').value = p?.descricao || '';
       document.getElementById('productCat').value = p?.categoria || 'Água';
+      // Atualiza subcats ANTES de setar o valor do subcat
+      updateSubcatOptions();
       document.getElementById('productSubcat').value = p?.subcategoria || '';
+      // Se editando, destaca o botão do volume atual
+      if (p?.subcategoria) pickVolume(p.subcategoria);
       document.getElementById('productPreco').value = p?.preco_padrao || '';
       document.getElementById('productEstoque').value = p?.estoque ?? 999;
       document.getElementById('productDestaque').checked = p?.destaque || false;
+      document.getElementById('productAtivo').checked = p?.ativo !== false;
       document.getElementById('productFoto').value = p?.foto_url || '';
       uploadedFileObj = null;
       setPhotoTab('url');
@@ -1497,14 +1598,14 @@
         preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
         estoque: parseInt(document.getElementById('productEstoque').value) || 999,
         destaque: document.getElementById('productDestaque').checked,
-        ativo: true
+        ativo: document.getElementById('productAtivo').checked
       };
 
       let error;
       if (id) {
-        ({ error } = await sb.from('products').update(data).eq('id', id));
+        ({ error } = await sbAdmin.from('products').update(data).eq('id', id));
       } else {
-        ({ error } = await sb.from('products').insert(data));
+        ({ error } = await sbAdmin.from('products').insert(data));
       }
 
       btn.innerHTML = '💾 Salvar'; btn.disabled = false;
@@ -1521,10 +1622,29 @@
     }
 
     async function deleteProduct(id) {
-      if (!confirm('Excluir este produto?')) return;
-      await sb.from('products').delete().eq('id', id);
-      await loadAllProducts();
-      showToast('Produto excluído');
+      if (!confirm('Excluir este produto?\n\nEsta ação não pode ser desfeita.')) return;
+      try {
+        // Primeiro tenta deletar os itens de pedido associados (order_items referenciam product_id)
+        // Se houver FK constraint, inativa em vez de deletar
+        const { error } = await sbAdmin.from('products').delete().eq('id', id);
+        if (error) {
+          // Se falhar por FK constraint, apenas desativa o produto
+          if (error.code === '23503' || error.message?.includes('foreign key') || error.message?.includes('violates')) {
+            const { error: errUpdate } = await sbAdmin.from('products').update({ ativo: false }).eq('id', id);
+            if (errUpdate) throw errUpdate;
+            await loadAllProducts();
+            showToast('⚠️ Produto desativado (possui pedidos vinculados)');
+          } else {
+            throw error;
+          }
+        } else {
+          await loadAllProducts();
+          showToast('✅ Produto excluído!');
+        }
+      } catch (e) {
+        console.error('deleteProduct error:', e);
+        showToast('Erro ao excluir: ' + (e.message || 'Verifique o console'));
+      }
     }
 
     // ============================================================
@@ -1532,13 +1652,14 @@
     // ============================================================
     async function loadAdminOrders() {
       const filter = document.getElementById('orderStatusFilter')?.value || '';
-      let query = sb.from('orders').select('*').order('created_at', { ascending: false }).limit(100);
+      let query = sbAdmin.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
       if (filter) query = query.eq('status', filter);
       const { data } = await query;
       document.getElementById('ordersTable').innerHTML = (data || []).map(o => `
     <tr>
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
       <td>${o.cliente_nome}<br><small style="color:#aaa">${o.cliente_whatsapp || ''}</small></td>
+      <td><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? '🏢' : '👤'} ${o.cliente_documento || '—'}</small></td>
       <td><strong>R$ ${parseFloat(o.total || 0).toFixed(2).replace('.', ',')}</strong></td>
       <td><span class="badge badge-${o.status_pagamento || 'PENDENTE'}">${o.status_pagamento || 'PENDENTE'}</span></td>
       <td>
@@ -1553,8 +1674,163 @@
     </tr>`).join('');
     }
 
+    async function exportOrdersExcel() {
+      showToast('⏳ Gerando relatório detalhado...');
+      try {
+        // Busca pedidos com seus itens
+        const { data: orders, error } = await sbAdmin
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+        if (!orders || !orders.length) { showToast('Nenhum pedido para exportar'); return; }
+
+        const wb = XLSX.utils.book_new();
+
+        // ── ABA 1: DETALHE POR PEDIDO (uma linha por item) ──
+        const rowsDetalhe = [];
+
+        orders.forEach(o => {
+          const itens = o.order_items || [];
+          const dataFmt = new Date(o.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+          const tipo = o.cliente_tipo === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física';
+
+          if (itens.length === 0) {
+            // Pedido sem itens registrados
+            rowsDetalhe.push({
+              'Nº Pedido': o.numero_pedido,
+              'Data/Hora': dataFmt,
+              'Cliente': o.cliente_nome || '',
+              'Tipo': tipo,
+              'CPF/CNPJ': o.cliente_documento || '',
+              'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
+              'E-mail': o.cliente_email || '',
+              'WhatsApp': o.cliente_whatsapp || '',
+              'Produto': '(sem itens)',
+              'Qtd': '',
+              'Preço Unit. (R$)': '',
+              'Subtotal Item (R$)': '',
+              'Endereço': o.endereco_completo || '',
+              'Cidade': o.endereco_cidade || '',
+              'Estado': o.endereco_estado || '',
+              'Recebedor': o.recebedor_nome || '',
+              'WhatsApp Receb.': o.recebedor_whatsapp || '',
+              'Referência': o.recebedor_referencia || '',
+              'Observações': o.observacoes || '',
+              'Pagamento': o.metodo_pagamento || '',
+              'Status Pag.': o.status_pagamento || '',
+              'Status Pedido': o.status || '',
+              'TOTAL PEDIDO (R$)': parseFloat(o.total || 0).toFixed(2).replace('.', ','),
+            });
+          } else {
+            itens.forEach((item, idx) => {
+              rowsDetalhe.push({
+                'Nº Pedido': o.numero_pedido,
+                'Data/Hora': dataFmt,
+                'Cliente': o.cliente_nome || '',
+                'Tipo': tipo,
+                'CPF/CNPJ': o.cliente_documento || '',
+                'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
+                'E-mail': o.cliente_email || '',
+                'WhatsApp': o.cliente_whatsapp || '',
+                'Produto': item.produto_nome || '',
+                'Qtd': item.quantidade || 0,
+                'Preço Unit. (R$)': parseFloat(item.preco_unitario || 0).toFixed(2).replace('.', ','),
+                'Subtotal Item (R$)': parseFloat(item.subtotal || 0).toFixed(2).replace('.', ','),
+                'Endereço': o.endereco_completo || '',
+                'Cidade': o.endereco_cidade || '',
+                'Estado': o.endereco_estado || '',
+                'Recebedor': o.recebedor_nome || '',
+                'WhatsApp Receb.': o.recebedor_whatsapp || '',
+                'Referência': o.recebedor_referencia || '',
+                'Observações': o.observacoes || '',
+                'Pagamento': o.metodo_pagamento || '',
+                'Status Pag.': o.status_pagamento || '',
+                'Status Pedido': o.status || '',
+                // total do pedido só na primeira linha
+                'TOTAL PEDIDO (R$)': idx === 0 ? parseFloat(o.total || 0).toFixed(2).replace('.', ',') : '',
+              });
+            });
+          }
+
+          // Linha separadora de pedido (linha em branco)
+          rowsDetalhe.push({});
+        });
+
+        // Total geral
+        const grandTotal = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+        rowsDetalhe.push({
+          'Nº Pedido': 'TOTAL GERAL',
+          'TOTAL PEDIDO (R$)': grandTotal.toFixed(2).replace('.', ','),
+        });
+
+        const ws1 = XLSX.utils.json_to_sheet(rowsDetalhe);
+        // Larguras das colunas
+        ws1['!cols'] = [
+          { wch: 14 }, { wch: 20 }, { wch: 28 }, { wch: 16 }, { wch: 18 }, { wch: 28 },
+          { wch: 28 }, { wch: 16 }, { wch: 32 }, { wch: 6 }, { wch: 16 }, { wch: 18 },
+          { wch: 32 }, { wch: 20 }, { wch: 8 }, { wch: 24 }, { wch: 16 }, { wch: 20 },
+          { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 18 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws1, 'Pedidos Detalhados');
+
+        // ── ABA 2: RESUMO POR CLIENTE ──
+        const clientMap = {};
+        orders.forEach(o => {
+          const key = o.cliente_documento || o.cliente_email || o.cliente_nome;
+          if (!clientMap[key]) {
+            clientMap[key] = {
+              'Cliente': o.cliente_nome || '',
+              'Tipo': o.cliente_tipo === 'PJ' ? 'PJ' : 'PF',
+              'CPF/CNPJ': o.cliente_documento || '',
+              'E-mail': o.cliente_email || '',
+              'WhatsApp': o.cliente_whatsapp || '',
+              'Qtd Pedidos': 0,
+              'Total Gasto (R$)': 0
+            };
+          }
+          clientMap[key]['Qtd Pedidos']++;
+          clientMap[key]['Total Gasto (R$)'] += parseFloat(o.total || 0);
+        });
+        const rowsClientes = Object.values(clientMap).map(c => ({
+          ...c,
+          'Total Gasto (R$)': c['Total Gasto (R$)'].toFixed(2).replace('.', ',')
+        })).sort((a, b) => parseFloat(b['Total Gasto (R$)'].replace(',', '.')) - parseFloat(a['Total Gasto (R$)'].replace(',', '.')));
+
+        const ws2 = XLSX.utils.json_to_sheet(rowsClientes);
+        ws2['!cols'] = [{ wch: 28 }, { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 16 }, { wch: 12 }, { wch: 18 }];
+        XLSX.utils.book_append_sheet(wb, ws2, 'Resumo por Cliente');
+
+        // ── ABA 3: PRODUTOS MAIS VENDIDOS ──
+        const prodMap = {};
+        orders.forEach(o => {
+          (o.order_items || []).forEach(item => {
+            const k = item.produto_nome || 'Desconhecido';
+            if (!prodMap[k]) prodMap[k] = { 'Produto': k, 'Total Vendido (unid.)': 0, 'Receita Total (R$)': 0 };
+            prodMap[k]['Total Vendido (unid.)'] += item.quantidade || 0;
+            prodMap[k]['Receita Total (R$)'] += parseFloat(item.subtotal || 0);
+          });
+        });
+        const rowsProd = Object.values(prodMap).map(p => ({
+          ...p, 'Receita Total (R$)': p['Receita Total (R$)'].toFixed(2).replace('.', ',')
+        })).sort((a, b) => b['Total Vendido (unid.)'] - a['Total Vendido (unid.)']);
+
+        const ws3 = XLSX.utils.json_to_sheet(rowsProd);
+        ws3['!cols'] = [{ wch: 32 }, { wch: 20 }, { wch: 20 }];
+        XLSX.utils.book_append_sheet(wb, ws3, 'Produtos Mais Vendidos');
+
+        const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        XLSX.writeFile(wb, `relatorio_globo_agua_${date}.xlsx`);
+        showToast('✅ Relatório completo gerado!');
+      } catch (e) {
+        console.error('Erro ao exportar:', e);
+        showToast('Erro ao gerar relatório: ' + (e.message || 'Tente novamente'));
+      }
+    }
+
     async function openOrderDetailModal(id) {
-      const { data: o, error } = await sb.from('orders').select('*, order_items(*)').eq('id', id).single();
+      const { data: o, error } = await sbAdmin.from('orders').select('*, order_items(*)').eq('id', id).single();
       if (error || !o) { showToast('Erro ao carregar detalhes'); return; }
 
       const itemsHtml = (o.order_items || []).map(i => `
@@ -1606,7 +1882,7 @@
     }
 
     async function updateOrderStatus(id, status) {
-      await sb.from('orders').update({ status }).eq('id', id);
+      await sbAdmin.from('orders').update({ status }).eq('id', id);
       showToast('Status atualizado!');
     }
 
@@ -1614,7 +1890,7 @@
     // COMPANIES
     // ============================================================
     async function loadAllCompanies() {
-      const { data } = await sb.from('companies').select('*').order('razao_social');
+      const { data } = await sbAdmin.from('companies').select('*').order('razao_social');
       allCompanies = data || [];
     }
 
@@ -1648,8 +1924,8 @@
       const cnpj = document.getElementById('companyCnpj').value.replace(/\D/g, '');
       if (!razao || !cnpj) { showToast('Informe razão social e CNPJ'); return; }
       const data = { razao_social: razao, nome_fantasia: document.getElementById('companyFantasia').value.trim(), cnpj, contato: document.getElementById('companyContato').value.trim() };
-      if (id) await sb.from('companies').update(data).eq('id', id);
-      else await sb.from('companies').insert(data);
+      if (id) await sbAdmin.from('companies').update(data).eq('id', id);
+      else await sbAdmin.from('companies').insert(data);
       closeModal('companyModal');
       await loadAllCompanies(); renderCompanies();
       showToast('✅ Empresa salva!');
@@ -1657,7 +1933,7 @@
 
     async function deleteCompany(id) {
       if (!confirm('Excluir esta empresa?')) return;
-      await sb.from('companies').delete().eq('id', id);
+      await sbAdmin.from('companies').delete().eq('id', id);
       await loadAllCompanies(); renderCompanies();
       showToast('Empresa excluída');
     }
@@ -1676,7 +1952,7 @@
       const container = document.getElementById('priceMatrixContainer');
       if (!cnpj) { container.innerHTML = '<div class="loading"><span style="color:#aaa">Selecione uma empresa</span></div>'; return; }
       container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-      const { data: prices } = await sb.from('company_prices').select('product_id,preco_especial').eq('cnpj', cnpj);
+      const { data: prices } = await sbAdmin.from('company_prices').select('product_id,preco_especial').eq('cnpj', cnpj);
       const priceMap = {};
       (prices || []).forEach(p => { priceMap[p.product_id] = p.preco_especial; });
       container.innerHTML = `<div class="table-wrap price-matrix"><table>
@@ -1695,7 +1971,7 @@
       const val = parseFloat(document.getElementById('price_' + productId).value);
       if (isNaN(val) || val <= 0) { showToast('Valor inválido'); return; }
       const company = allCompanies.find(c => c.cnpj === cnpj);
-      await sb.from('company_prices').upsert({ cnpj, product_id: productId, company_id: company?.id, preco_especial: val }, { onConflict: 'cnpj,product_id' });
+      await sbAdmin.from('company_prices').upsert({ cnpj, product_id: productId, company_id: company?.id, preco_especial: val }, { onConflict: 'cnpj,product_id' });
       showToast('✅ Preço salvo!');
     }
 
@@ -1703,7 +1979,7 @@
     // SETTINGS
     // ============================================================
     async function loadSettings() {
-      const { data } = await sb.from('settings').select('*');
+      const { data } = await sbAdmin.from('settings').select('*');
       (data || []).forEach(s => { currentSettings[s.key] = s.value; });
       const g = currentSettings.geral || {};
       if (g.nome_loja) document.getElementById('setNomeLoja').value = g.nome_loja;
@@ -1733,7 +2009,7 @@
         modo: document.getElementById('setGwModo').value,
         pix_manual: document.getElementById('setPixManual').value
       };
-      await sb.from('settings').upsert({ key, value }, { onConflict: 'key' });
+      await sbAdmin.from('settings').upsert({ key, value }, { onConflict: 'key' });
       currentSettings[key] = value;
       showToast('✅ Salvo!');
     }
@@ -1769,7 +2045,8 @@
     (async () => {
       const { data } = await sb.auth.getSession();
       if (!data?.session) return;
-      const { data: profile } = await sb.from('profiles')
+      // Usa sbAdmin para verificar perfil (bypassar RLS)
+      const { data: profile } = await sbAdmin.from('profiles')
         .select('is_admin,nome_completo')
         .eq('id', data.session.user.id)
         .single();

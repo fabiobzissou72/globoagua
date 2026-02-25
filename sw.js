@@ -1,7 +1,7 @@
 // ============================================================
 // GLOBO ÁGUA - Service Worker
 // ============================================================
-const CACHE_NAME = 'globo-agua-v8.0';
+const CACHE_NAME = 'globo-agua-v9.1';
 
 const STATIC_ASSETS = [
   './',
@@ -63,6 +63,22 @@ self.addEventListener('fetch', (event) => {
   if (request.url.includes('cdn.jsdelivr.net')) return;
   if (request.url.includes('googleapis.com')) return;
   if (request.url.includes('viacep.com.br')) return;
+
+  // Para o HTML principal: SEMPRE da rede, nunca do cache (garante atualizações chegarem no PWA)
+  const isHtml = request.url.endsWith('/') || request.url.endsWith('index.html') || request.headers.get('accept')?.includes('text/html');
+  if (isHtml) {
+    event.respondWith(
+      fetch(request, { cache: 'no-store' }).catch(() =>
+        caches.match(request).then(cached =>
+          cached || new Response(
+            '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Água<br><small style="color:#666">Sem conexão. Verifique sua internet.</small></body></html>',
+            { headers: { 'Content-Type': 'text/html' } }
+          )
+        )
+      )
+    );
+    return;
+  }
 
   event.respondWith(
     fetch(request)
