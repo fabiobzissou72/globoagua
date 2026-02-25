@@ -105,14 +105,16 @@
       font-weight: 700
     }
 
-    .install-banner {
+    .install-banner,
+    .promo-banner {
       background: linear-gradient(135deg, var(--blue-dark), var(--blue));
       color: #fff;
       padding: 12px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      cursor: pointer
+      cursor: pointer;
+      z-index: 101;
     }
 
     .install-banner img {
@@ -286,7 +288,7 @@
     .product-img img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       object-position: center;
       display: block;
       transition: transform .3s ease
@@ -387,7 +389,7 @@
       z-index: 1000 !important;
       transform: translateY(100%) !important;
       transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
-      max-height: 85vh !important;
+      max-height: 95vh !important;
       display: flex !important;
       flex-direction: column !important;
       visibility: hidden;
@@ -408,7 +410,7 @@
         bottom: auto !important;
         transform: translate(-50%, -50%) scale(0.9) !important;
         width: 450px !important;
-        max-height: 80vh !important;
+        max-height: 90vh !important;
         border-radius: 24px !important;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
         opacity: 0 !important;
@@ -603,16 +605,14 @@
 
     .auth-sheet {
       position: fixed !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
+      inset: 0 !important;
       background: #fff !important;
-      border-radius: 20px 20px 0 0 !important;
       z-index: 1001 !important;
       transform: translateY(100%) !important;
       transition: transform .3s cubic-bezier(.4, 0, .2, 1) !important;
       padding-bottom: env(safe-area-inset-bottom) !important;
-      display: block !important;
+      display: flex !important;
+      flex-direction: column !important;
       opacity: 1 !important;
       pointer-events: auto !important
     }
@@ -653,7 +653,7 @@
       width: 80px;
       height: 80px;
       border-radius: 20px;
-      object-fit: cover;
+      object-fit: contain;
       margin-bottom: 12px
     }
 
@@ -1401,12 +1401,38 @@
 
     .pdetail-sheet {
       background: #fff;
-      border-radius: 20px 20px 0 0;
       width: 100%;
-      max-height: 90vh;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
       overflow-y: auto;
       transform: translateY(100%);
       transition: transform .3s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .pdetail-modal-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .pdetail-modal-close {
+      background: #f0f4f8;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
 
     .pdetail-overlay.open .pdetail-sheet {
@@ -1447,7 +1473,8 @@
     .pdetail-img img {
       width: 100%;
       height: 100%;
-      object-fit: cover
+      object-fit: contain;
+      background: #fff;
     }
 
     .pdetail-handle {
@@ -1905,25 +1932,49 @@
     <button class="btn-next" id="btnNext" onclick="nextStep()">Continuar →</button>
   </div>
 
-  <!-- PRODUCT DETAIL MODAL -->
-  <div class="pdetail-overlay" id="pdetailOverlay" onclick="closePDetail()">
-    <div class="pdetail-sheet" onclick="event.stopPropagation()">
-      <div class="pdetail-handle"></div>
-      <div class="pdetail-img" id="pdetailImg">💧</div>
-      <div class="pdetail-body">
-        <div class="pdetail-cat" id="pdetailCat"></div>
-        <div class="pdetail-name" id="pdetailName"></div>
-        <div class="pdetail-desc" id="pdetailDesc"></div>
-      </div>
-      <div class="pdetail-footer">
-        <div>
-          <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
-          <div class="pdetail-price" id="pdetailPrice"></div>
+  <script>
+    function openPDetail(id) {
+      const p = S.products.find(x => x.id === id);
+      if (!p) return;
+      const price = getPrice(p);
+      const isB2B = S.companyPrices[p.id] !== undefined;
+      const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
+
+      const overlay = document.getElementById('pdetailOverlay');
+      overlay.innerHTML = `
+        <div class="pdetail-sheet" onclick="event.stopPropagation()">
+          <div class="pdetail-modal-header">
+            <span style="font-weight:700">Detalhes do Produto</span>
+            <button class="pdetail-modal-close" onclick="closePDetail()">✕</button>
+          </div>
+          <div class="pdetail-img">
+            ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+          </div>
+          <div class="pdetail-body">
+            <div class="pdetail-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
+            <div class="pdetail-name">${p.nome}</div>
+            <div class="pdetail-desc">${p.descricao || 'Sem descrição cadastrada.'}</div>
+          </div>
+          <div class="pdetail-footer">
+            <div style="display:flex;flex-direction:column">
+              <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
+              ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
+              <div class="pdetail-price" style="color:${isB2B ? 'var(--green)' : 'var(--blue)'}">R$ ${price.toFixed(2).replace('.', ',')}</div>
+            </div>
+            <button class="btn-add-modal" onclick="addToCart('${p.id}');closePDetail()">Adicionar +</button>
+          </div>
         </div>
-        <button class="btn-add-modal" id="pdetailAddBtn">Adicionar ao carrinho +</button>
-      </div>
-    </div>
-  </div>
+      `;
+      overlay.classList.add('open');
+    }
+
+    function closePDetail() {
+      document.getElementById('pdetailOverlay').classList.remove('open');
+    }
+  </script>
+
+  <!-- PRODUCT DETAIL MODAL -->
+  <div class="pdetail-overlay" id="pdetailOverlay" onclick="closePDetail()"></div>
 
   <!-- ORDER DETAIL MODAL (cliente) -->
   <div class="order-detail-overlay" id="orderDetailOverlay" onclick="if(event.target===this)closeOrderDetail()">
@@ -2062,7 +2113,25 @@
       settings: {}
     };
 
-    // Sem catálogo de emergência fixo — categorias e produtos vêm apenas do banco/admin
+    async function loadSettings() {
+      const client = getSupabase();
+      if (!client) return;
+      const { data } = await client.from('settings').select('*');
+      (data || []).forEach(s => { S.settings[s.key] = s.value; });
+
+      // Aplica cor primária se existir
+      const g = S.settings.geral || {};
+      if (g.cor_primaria) {
+        document.documentElement.style.setProperty('--blue', g.cor_primaria);
+      }
+
+      // Recarrega produtos para refletir banner/preços
+      renderProducts();
+    }
+
+    // Inicialização
+    loadSettings();
+
 
     // ============================================================
     // PWA INSTALL
@@ -2312,7 +2381,9 @@
     }
 
     function getPrice(p) {
-      return S.companyPrices[p.id] !== undefined ? S.companyPrices[p.id] : parseFloat(p.preco_padrao);
+      if (S.companyPrices[p.id] !== undefined) return S.companyPrices[p.id];
+      if (p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao) return parseFloat(p.preco_oferta);
+      return parseFloat(p.preco_padrao);
     }
 
     function renderCats(cats) {
@@ -2338,6 +2409,25 @@
 
       document.getElementById('sectionTitle').textContent = S.currentCategory === 'Todos' ? 'Todos os produtos' : S.currentCategory;
 
+      // Banner Promocional
+      const promoArea = document.getElementById('promoBannerArea');
+      const g = S.settings?.geral || {};
+      if (g.banner_promocional_ativo && g.banner_promocional_texto) {
+        promoArea.innerHTML = `
+          <div class="promo-banner" onclick="window.open('https://wa.me/${(g.whatsapp_suporte || '').replace(/\D/g, '')}', '_blank')">
+            <div style="font-size:24px">📢</div>
+            <div class="install-banner-text">
+              <strong>Promoção Ativa!</strong>
+              <small>${g.banner_promocional_texto}</small>
+            </div>
+            <div class="install-banner-btn">Aproveitar</div>
+          </div>
+        `;
+        promoArea.classList.remove('hidden');
+      } else {
+        promoArea.classList.add('hidden');
+      }
+
       const grid = document.getElementById('productsGrid');
       if (!list.length) {
         grid.innerHTML = '<div class="loading-center" style="grid-column:1/-1">😕 Nenhum produto encontrado</div>';
@@ -2346,6 +2436,9 @@
       grid.innerHTML = list.map(p => {
         const price = getPrice(p);
         const isB2B = S.companyPrices[p.id] !== undefined;
+        const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
+        const finalPrice = hasOffer ? parseFloat(p.preco_oferta) : price;
+
         return `<div class="product-card" onclick="openPDetail('${p.id}')">
       <div class="product-img">
         ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
@@ -2355,7 +2448,10 @@
         <div class="product-nome">${p.nome}</div>
         <div class="product-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
         <div class="product-price-row">
-          <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? '🏷️ ' : ''}R$ ${price.toFixed(2).replace('.', ',')}</span>
+          <div style="display:flex;flex-direction:column">
+            ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
+            <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? '🏷️ ' : ''}R$ ${finalPrice.toFixed(2).replace('.', ',')}</span>
+          </div>
           <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>
         </div>
       </div>

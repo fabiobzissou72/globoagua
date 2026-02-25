@@ -1166,6 +1166,17 @@
                 </div>
                 <div class="form-group"><label class="form-label">Cor primária</label><input class="form-input"
                     type="color" id="setCorPrimaria" value="#1976D2"></div>
+                <hr style="margin:20px 0;opacity:0.1">
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                  <label class="toggle"><input type="checkbox" id="setPromoBannerAtivo"><span
+                      class="slider"></span></label>
+                  <label class="form-label" style="margin:0">Ativar Banner Promocional</label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Texto do Banner Promocional</label>
+                  <input class="form-input" id="setPromoBannerTexto"
+                    placeholder="Ex: Cupom PRIMEIRACOMPRA para 10% OFF!">
+                </div>
                 <button class="btn btn-primary" onclick="saveSettings('geral')">💾 Salvar</button>
               </div>
             </div>
@@ -1269,8 +1280,12 @@
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px" id="volumeBtns"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Preço (R$) *</label><input class="form-input" type="number"
-              id="productPreco" step="0.01" placeholder="0,00"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Preço Padrão (R$) *</label><input class="form-input"
+                type="number" id="productPreco" step="0.01" placeholder="0,00"></div>
+            <div class="form-group"><label class="form-label">Preço de Oferta (R$)</label><input class="form-input"
+                type="number" id="productPrecoOferta" step="0.01" placeholder="0,00"></div>
+          </div>
           <div class="form-group"><label class="form-label">Estoque</label><input class="form-input" type="number"
               id="productEstoque" value="999"></div>
         </div>
@@ -1517,12 +1532,15 @@
     function renderProductsTable() {
       document.getElementById('productsTable').innerHTML = allProducts.map(p => `
     <tr>
-      <td><div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:20px">
-        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='💧'">` : '💧'}
+      <td><div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid #eee">
+        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='💧'">` : '💧'}
       </div></td>
       <td><strong>${p.nome}</strong><br><small style="color:#aaa">${p.descricao || ''}</small></td>
       <td><span style="display:block;font-weight:600">${p.categoria}</span><small style="color:#999">${p.subcategoria || '-'}</small></td>
-      <td><strong>R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</strong></td>
+      <td>
+        <strong>R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</strong>
+        ${p.preco_oferta > 0 ? `<br><small style="color:var(--green);font-weight:700">Oferta: R$ ${parseFloat(p.preco_oferta).toFixed(2).replace('.', ',')}</small>` : ''}
+      </td>
       <td><label class="toggle"><input type="checkbox" ${p.ativo ? 'checked' : ''} onchange="toggleProduct('${p.id}','ativo',this.checked)"><span class="slider"></span></label></td>
       <td><label class="toggle"><input type="checkbox" ${p.destaque ? 'checked' : ''} onchange="toggleProduct('${p.id}','destaque',this.checked)"><span class="slider"></span></label></td>
       <td style="white-space:nowrap">
@@ -1608,7 +1626,7 @@
     function previewFotoUrl() {
       const url = document.getElementById('productFoto').value.trim();
       const preview = document.getElementById('fotoPreview');
-      if (url) { preview.src = url; preview.classList.remove('hidden'); }
+      if (url) { preview.src = url; preview.classList.remove('hidden'); preview.style.objectFit = 'contain'; }
       else preview.classList.add('hidden');
     }
 
@@ -1646,6 +1664,11 @@
       // Atualiza subcats ANTES de setar o valor do subcat
       updateSubcatOptions();
       document.getElementById('productSubcat').value = p?.subcategoria || '';
+      document.getElementById('productPreco').value = p?.preco_padrao || '';
+      document.getElementById('productPrecoOferta').value = p?.preco_oferta || '';
+      document.getElementById('productEstoque').value = p?.estoque || '999';
+      document.getElementById('productDestaque').checked = p?.destaque || false;
+      document.getElementById('productAtivo').checked = p?.ativo !== false;
       // Se editando, destaca o botão do volume atual
       if (p?.subcategoria) pickVolume(p.subcategoria);
       document.getElementById('productPreco').value = p?.preco_padrao || '';
@@ -1685,6 +1708,7 @@
         categoria: document.getElementById('productCat').value,
         subcategoria: document.getElementById('productSubcat').value.trim(),
         preco_padrao: parseFloat(document.getElementById('productPreco').value) || 0,
+        preco_oferta: parseFloat(document.getElementById('productPrecoOferta').value) || 0,
         estoque: parseInt(document.getElementById('productEstoque').value) || 999,
         destaque: document.getElementById('productDestaque').checked,
         ativo: document.getElementById('productAtivo').checked
@@ -2234,6 +2258,8 @@
       if (g.nome_loja) document.getElementById('setNomeLoja').value = g.nome_loja;
       if (g.whatsapp_suporte) document.getElementById('setWhatsapp').value = g.whatsapp_suporte;
       if (g.cor_primaria) document.getElementById('setCorPrimaria').value = g.cor_primaria;
+      if (g.banner_promocional_ativo !== undefined) document.getElementById('setPromoBannerAtivo').checked = g.banner_promocional_ativo;
+      if (g.banner_promocional_texto) document.getElementById('setPromoBannerTexto').value = g.banner_promocional_texto;
       const e = currentSettings.entrega || {};
       if (e.tipo) document.getElementById('setEntregaTipo').value = e.tipo;
       if (e.valor_fixo !== undefined) document.getElementById('setEntregaValor').value = e.valor_fixo;
@@ -2249,7 +2275,13 @@
 
     async function saveSettings(key) {
       let value = {};
-      if (key === 'geral') value = { nome_loja: document.getElementById('setNomeLoja').value, whatsapp_suporte: document.getElementById('setWhatsapp').value, cor_primaria: document.getElementById('setCorPrimaria').value };
+      if (key === 'geral') value = {
+        nome_loja: document.getElementById('setNomeLoja').value,
+        whatsapp_suporte: document.getElementById('setWhatsapp').value,
+        cor_primaria: document.getElementById('setCorPrimaria').value,
+        banner_promocional_ativo: document.getElementById('setPromoBannerAtivo').checked,
+        banner_promocional_texto: document.getElementById('setPromoBannerTexto').value.trim()
+      };
       else if (key === 'entrega') value = { tipo: document.getElementById('setEntregaTipo').value, valor_fixo: parseFloat(document.getElementById('setEntregaValor').value) || 0 };
       else if (key === 'webhook_speedit') value = { url: document.getElementById('setWebhookUrl').value };
       else if (key === 'gateway_pagamento') value = {
