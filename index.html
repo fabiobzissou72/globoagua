@@ -2234,6 +2234,7 @@
         console.error('❌ authSheet ou authOverlay não encontrado!');
         return;
       }
+      history.pushState({ modal: 'auth' }, '');
       // Força display antes de animar (fix PWA)
       sheet.style.display = 'block';
       overlay.style.display = 'block';
@@ -2247,7 +2248,10 @@
       updateBiometricBtn();
     }
 
-    function closeAuth() {
+    function closeAuth(fromHistory = false) {
+      if (!fromHistory && document.getElementById('authSheet')?.classList.contains('open')) {
+        history.back(); return;
+      }
       console.log('🔒 closeAuth() chamado');
       const sheet = document.getElementById('authSheet');
       const overlay = document.getElementById('authOverlay');
@@ -2258,12 +2262,16 @@
     function openConf() {
       const sheet = document.getElementById('confSheet');
       if (sheet) {
+        history.pushState({ modal: 'conf' }, '');
         sheet.style.display = 'block';
         requestAnimationFrame(() => sheet.classList.add('open'));
       }
     }
 
-    function closeConf() {
+    function closeConf(fromHistory = false) {
+      if (!fromHistory && document.getElementById('confSheet')?.classList.contains('open')) {
+        history.back(); return;
+      }
       const sheet = document.getElementById('confSheet');
       if (sheet) sheet.classList.remove('open');
     }
@@ -2384,6 +2392,7 @@
       const isB2B = S.companyPrices[p.id] !== undefined;
       const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
 
+      history.pushState({ modal: 'pdetail' }, '');
       const overlay = document.getElementById('pdetailOverlay');
       overlay.innerHTML = `
         <div class="pdetail-sheet" onclick="event.stopPropagation()">
@@ -2412,7 +2421,10 @@
       overlay.classList.add('open');
     }
 
-    function closePDetail() {
+    function closePDetail(fromHistory = false) {
+      if (!fromHistory && document.getElementById('pdetailOverlay')?.classList.contains('open')) {
+        history.back(); return;
+      }
       document.getElementById('pdetailOverlay').classList.remove('open');
     }
 
@@ -2593,6 +2605,7 @@
       renderCartDrawer();
       const drawer = document.getElementById('cartDrawer');
       const ovl = document.getElementById('overlay');
+      history.pushState({ modal: 'cart' }, '');
       // Force display/visibility before animating (PWA fix - same as auth)
       drawer.style.visibility = 'visible';
       ovl.style.display = 'block';
@@ -2604,7 +2617,10 @@
       });
     };
 
-    function closeCart() {
+    function closeCart(fromHistory = false) {
+      if (!fromHistory && document.getElementById('cartDrawer')?.classList.contains('open')) {
+        history.back(); return;
+      }
       const drawer = document.getElementById('cartDrawer');
       const ovl = document.getElementById('overlay');
       drawer.classList.remove('open');
@@ -2626,6 +2642,7 @@
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
 
+      history.pushState({ modal: 'checkout' }, '');
       // Abre o modal IMEDIATAMENTE antes de qualquer busca no banco
       updateCheckoutStep();
       document.getElementById('checkoutSheet').classList.add('open');
@@ -2662,7 +2679,10 @@
       }
     }
 
-    function closeCheckout() {
+    function closeCheckout(fromHistory = false) {
+      if (!fromHistory && document.getElementById('checkoutSheet')?.classList.contains('open')) {
+        history.back(); return;
+      }
       document.getElementById('checkoutSheet').classList.remove('open');
     }
 
@@ -2900,6 +2920,8 @@
     async function openOrderDetail(orderId) {
       const client = getSupabase();
       if (!client) return;
+
+      history.pushState({ modal: 'orderDetail' }, '');
       const overlay = document.getElementById('orderDetailOverlay');
       const body = document.getElementById('orderDetailBody');
       body.innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
@@ -2963,7 +2985,10 @@
       `;
     }
 
-    function closeOrderDetail() {
+    function closeOrderDetail(fromHistory = false) {
+      if (!fromHistory && document.getElementById('orderDetailOverlay')?.classList.contains('open')) {
+        history.back(); return;
+      }
       document.getElementById('orderDetailOverlay').classList.remove('open');
     }
 
@@ -3035,6 +3060,7 @@
       document.getElementById('editDoc').value = p.documento || meta.documento || '';
       document.getElementById('editRazao').value = p.razao_social || meta.razao_social || '';
 
+      history.pushState({ modal: 'editProfile' }, '');
       const sheet = document.getElementById('editProfileSheet');
       const overlay = document.getElementById('editProfileOverlay');
       sheet.classList.remove('hidden');
@@ -3047,7 +3073,10 @@
       }));
     }
 
-    function closeEditProfile() {
+    function closeEditProfile(fromHistory = false) {
+      if (!fromHistory && document.getElementById('editProfileSheet')?.classList.contains('open')) {
+        history.back(); return;
+      }
       const sheet = document.getElementById('editProfileSheet');
       const overlay = document.getElementById('editProfileOverlay');
       sheet.classList.remove('open');
@@ -3165,10 +3194,14 @@
     // ADDRESSES MGMT
     // ============================================================
     function openAddressForm() {
+      history.pushState({ modal: 'addressForm' }, '');
       document.getElementById('addrOverlay').classList.remove('hidden');
       document.getElementById('addrSheet').classList.add('open');
     }
-    function closeAddressForm() {
+    function closeAddressForm(fromHistory = false) {
+      if (!fromHistory && document.getElementById('addrSheet')?.classList.contains('open')) {
+        history.back(); return;
+      }
       document.getElementById('addrOverlay').classList.add('hidden');
       document.getElementById('addrSheet').classList.remove('open');
     }
@@ -3421,6 +3454,26 @@
       } else {
         console.warn('⚠️ Servidor offline. Usando modo offline.');
       }
+    }
+
+    // ============================================================
+    // NAVIGATION & HISTORY
+    // ============================================================
+    window.addEventListener('popstate', function (event) {
+      closeAllModals(true);
+    });
+
+    function closeAllModals(fromHistory = false) {
+      closeAuth(fromHistory);
+      closeCart(fromHistory);
+      closePDetail(fromHistory);
+      closeCheckout(fromHistory);
+      closeAddressForm(fromHistory);
+      closeOrderDetail(fromHistory);
+      closeEditProfile(fromHistory);
+      closeConf(fromHistory);
+      // Fecha modal do iPhone se aberto
+      document.getElementById('iosModal').classList.add('hidden');
     }
 
     // Execução
