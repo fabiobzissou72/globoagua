@@ -2123,6 +2123,30 @@
       (data || []).forEach(s => { S.settings[s.key] = s.value; });
 
       const g = S.settings.geral || {};
+
+      // SEO Injection (Title, Description, Keywords)
+      if (g.seo_title) {
+        document.title = g.seo_title;
+      }
+      if (g.seo_desc) {
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = g.seo_desc;
+      }
+      if (g.seo_keywords) {
+        let metaKeywords = document.querySelector('meta[name="keywords"]');
+        if (!metaKeywords) {
+          metaKeywords = document.createElement('meta');
+          metaKeywords.name = 'keywords';
+          document.head.appendChild(metaKeywords);
+        }
+        metaKeywords.content = g.seo_keywords;
+      }
+
       if (g.cor_primaria) {
         document.documentElement.style.setProperty('--blue', g.cor_primaria);
         // Atualiza meta tag de cor do browser
@@ -2132,31 +2156,8 @@
         // Aplica o nome da loja se existir
         if (g.nome_loja) {
           document.querySelectorAll('.topbar-logo span').forEach(el => el.textContent = g.nome_loja);
-          // O fallback para document.title
+          // O fallback para document.title se não houver SEO title
           if (!g.seo_title) document.title = g.nome_loja;
-        }
-
-        // SEO Injection (Title, Description, Keywords)
-        if (g.seo_title) {
-          document.title = g.seo_title;
-        }
-        if (g.seo_desc) {
-          let metaDesc = document.querySelector('meta[name="description"]');
-          if (!metaDesc) {
-            metaDesc = document.createElement('meta');
-            metaDesc.name = 'description';
-            document.head.appendChild(metaDesc);
-          }
-          metaDesc.content = g.seo_desc;
-        }
-        if (g.seo_keywords) {
-          let metaKeywords = document.querySelector('meta[name="keywords"]');
-          if (!metaKeywords) {
-            metaKeywords = document.createElement('meta');
-            metaKeywords.name = 'keywords';
-            document.head.appendChild(metaKeywords);
-          }
-          metaKeywords.content = g.seo_keywords;
         }
       }
 
