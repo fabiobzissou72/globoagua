@@ -342,7 +342,7 @@
     }
 
     td {
-      padding: 11px 14px;
+      padding: 12px 14px;
       border-bottom: 1px solid #f8f8f8;
       font-size: 13px;
       vertical-align: middle
@@ -350,6 +350,10 @@
 
     tr:hover td {
       background: #fafbff
+    }
+
+    .col-hide-mobile {
+      display: table-cell;
     }
 
     /* BADGES */
@@ -786,8 +790,25 @@
         display: block
       }
 
+      .topbar {
+        padding: 10px 14px;
+      }
+
+      .topbar h1 {
+        font-size: 16px;
+      }
+
       .stat-grid {
-        grid-template-columns: 1fr 1fr
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .stat-card {
+        padding: 12px;
+      }
+
+      .stat-card-val {
+        font-size: 20px;
       }
 
       .charts-grid {
@@ -795,7 +816,7 @@
       }
 
       .content {
-        padding: 14px
+        padding: 12px
       }
 
       .form-row {
@@ -806,18 +827,49 @@
         align-items: flex-end
       }
 
+      .modal {
+        border-radius: 20px 20px 0 0;
+        max-width: 100%;
+      }
+
       .admin-name {
         display: none
       }
+
+      .col-hide-mobile {
+        display: none;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 10px 8px;
+      }
     }
 
-    @media(max-width:400px) {
+    @media(max-width:480px) {
       .stat-grid {
-        grid-template-columns: 1fr 1fr
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat-card-icon {
+        font-size: 20px;
       }
 
       .stat-card-val {
-        font-size: 20px
+        font-size: 18px;
+      }
+
+      .table-header h3 {
+        font-size: 14px;
+      }
+
+      .btn {
+        padding: 8px 10px;
+        font-size: 12px;
       }
     }
   </style>
@@ -1010,11 +1062,10 @@
                   <tr>
                     <th>Nº</th>
                     <th>Cliente</th>
-                    <th>CPF/CNPJ</th>
+                    <th class="col-hide-mobile">CPF/CNPJ</th>
                     <th>Total</th>
-                    <th>Pagto</th>
                     <th>Status</th>
-                    <th>Data</th>
+                    <th class="col-hide-mobile">Data</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -1039,11 +1090,11 @@
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>WhatsApp</th>
-                    <th>E-mail</th>
+                    <th class="col-hide-mobile">WhatsApp</th>
+                    <th class="col-hide-mobile">E-mail</th>
                     <th>Tipo</th>
                     <th>Doc.</th>
-                    <th>Cadastro</th>
+                    <th class="col-hide-mobile">Cadastro</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -1321,7 +1372,7 @@
     });
 
     let adminUser = null;
-    let allProducts = [], allCompanies = [], allProfiles = [];
+    let allProducts = [], allCompanies = [], allProfiles = [], allOrders = [];
     let charts = {};
     let currentSettings = {};
     let uploadedFileObj = null;
@@ -1403,9 +1454,9 @@
       document.getElementById('section' + name.charAt(0).toUpperCase() + name.slice(1)).classList.remove('hidden');
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
-      const titles = { dashboard: 'Dashboard', products: 'Produtos', orders: 'Pedidos', companies: 'Empresas B2B', prices: 'Preços Especiais', settings: 'Configurações' };
+      const titles = { dashboard: 'Dashboard', products: 'Produtos', orders: 'Pedidos', clients: 'Clientes', companies: 'Empresas B2B', prices: 'Preços Especiais', settings: 'Configurações' };
       document.getElementById('pageTitle').textContent = titles[name] || name;
-      closeSidebar();
+      closeSidebar(); // Garante o fechamento no mobile
       if (name === 'orders') loadAdminOrders();
       if (name === 'clients') renderClientsTable();
       if (name === 'companies') renderCompanies();
@@ -1417,9 +1468,9 @@
     // ============================================================
     async function loadDashboard() {
       const today = new Date().toISOString().split('T')[0];
-      const [ordersToday, allOrders, clients, products] = await Promise.all([
+      const [ordersToday, ordersAll, clients, products] = await Promise.all([
         sbAdmin.from('orders').select('total,status').gte('created_at', today),
-        sbAdmin.from('orders').select('total,status,created_at,numero_pedido,cliente_nome').order('created_at', { ascending: false }).limit(50),
+        sbAdmin.from('orders').select('total,status,created_at,numero_pedido,cliente_nome').order('created_at', { ascending: false }).limit(200),
         sbAdmin.from('profiles').select('id', { count: 'exact', head: true }),
         sbAdmin.from('products').select('id', { count: 'exact', head: true }).eq('ativo', true)
       ]);
@@ -1430,7 +1481,7 @@
       document.getElementById('statClients').textContent = clients.count || 0;
       document.getElementById('statProducts').textContent = products.count || 0;
 
-      const rows = (allOrders.data || []).slice(0, 8);
+      const rows = (ordersAll.data || []).slice(0, 8);
       document.getElementById('recentOrders').innerHTML = rows.map(o => `
     <tr>
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
@@ -1439,7 +1490,7 @@
       <td><span class="badge badge-${o.status}">${o.status}</span></td>
       <td style="font-size:12px">${new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
     </tr>`).join('');
-      renderCharts(allOrders.data || []);
+      renderCharts(ordersAll.data || []);
     }
 
     function renderCharts(orders) {
@@ -1711,19 +1762,26 @@
       let query = sbAdmin.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
       if (filter) query = query.eq('status', filter);
       const { data } = await query;
-      document.getElementById('ordersTable').innerHTML = (data || []).map(o => `
+      allOrders = data || [];
+      renderAdminOrders();
+    }
+
+    function renderAdminOrders() {
+      const statusFilter = document.getElementById('orderStatusFilter').value;
+      const list = allOrders.filter(o => !statusFilter || o.status === statusFilter);
+
+      document.getElementById('ordersTable').innerHTML = list.map(o => `
     <tr>
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
       <td>${o.cliente_nome}<br><small style="color:#aaa">${o.cliente_whatsapp || ''}</small></td>
-      <td><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? '🏢' : '👤'} ${o.cliente_documento || '—'}</small></td>
+      <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? '🏢' : '👤'} ${o.cliente_documento || '—'}</small></td>
       <td><strong>R$ ${parseFloat(o.total || 0).toFixed(2).replace('.', ',')}</strong></td>
-      <td><span class="badge badge-${o.status_pagamento || 'PENDENTE'}">${o.status_pagamento || 'PENDENTE'}</span></td>
       <td>
         <select class="form-input" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px" onchange="updateOrderStatus('${o.id}',this.value)">
           ${['NOVO', 'CONFIRMADO', 'PRODUCAO', 'ENTREGUE', 'CANCELADO'].map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
         </select>
       </td>
-      <td style="font-size:12px;white-space:nowrap">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
+      <td class="col-hide-mobile" style="font-size:12px;white-space:nowrap">${new Date(o.created_at).toLocaleString('pt-BR')}</td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="openOrderDetailModal('${o.id}')">👀 Detalhes</button>
       </td>
@@ -1967,11 +2025,11 @@
         return `
     <tr>
       <td><strong>${p.nome_completo || p.razao_social || '—'}</strong><br><small style="color:#aaa">${p.email || '—'}</small></td>
-      <td>${p.whatsapp || '—'}</td>
-      <td>${p.email || '—'}</td>
+      <td class="col-hide-mobile">${p.whatsapp || '—'}</td>
+      <td class="col-hide-mobile">${p.email || '—'}</td>
       <td><span class="badge badge-confirmado" style="background:${isPJ ? '#1b5e20' : '#455a64'}">${p.tipo_pessoa || 'PF'}</span></td>
       <td>${doc || '—'}</td>
-      <td style="font-size:12px;color:#888">${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+      <td class="col-hide-mobile" style="font-size:12px;color:#888">${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-primary btn-sm" onclick="goToPrices('${doc}')" title="Definir Preços Especiais">🏷️</button>
         ${isPJ && !alreadyCompany ? `<button class="btn btn-ghost btn-sm" onclick="promoteToCompany('${p.id}')" title="Adicionar à lista de Empresas B2B">🏢 +</button>` : ''}
