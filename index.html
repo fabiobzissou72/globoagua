@@ -60,6 +60,19 @@
       object-fit: cover;
     }
 
+    @media (min-width: 900px) {
+      .promo-banner-media {
+        max-width: 1200px;
+        margin: 12px auto;
+      }
+
+      .promo-banner-media img,
+      .promo-banner-media video {
+        height: 260px;
+        object-position: center;
+      }
+    }
+
     .promo-banner-overlay {
       position: absolute;
       bottom: 0;
@@ -86,7 +99,8 @@
     .topbar-logo {
       display: flex;
       align-items: center;
-      gap: 10px
+      gap: 10px;
+      cursor: pointer
     }
 
     .topbar-logo img {
@@ -560,6 +574,24 @@
       font-weight: 700;
       min-width: 20px;
       text-align: center
+    }
+
+    .qty-input {
+      width: 56px;
+      height: 30px;
+      border: 1px solid #d8dee6;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      background: #fff;
+      color: #1a1a2e;
+      outline: none;
+    }
+
+    .qty-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, .12);
     }
 
     .cart-item-subtotal {
@@ -1614,7 +1646,7 @@
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <div class="topbar-logo">
+    <div class="topbar-logo" id="btnGoHomeLogo" onclick="goHomeFromLogo()">
       <img src="images/logo.jpeg" alt="Globo Água">
       <span>Globo Água</span>
     </div>
@@ -1681,6 +1713,11 @@
         <div class="profile-item" id="btnEditProfile" onclick="openEditProfile()">
           <span class="profile-item-icon">✏️</span>
           <div class="profile-item-text"><strong>Editar Perfil</strong><span>Alterar nome, WhatsApp e dados</span></div>
+          <span class="profile-item-arrow">›</span>
+        </div>
+        <div class="profile-item" id="btnChangePassword" onclick="openChangePassword()">
+          <span class="profile-item-icon">🔒</span>
+          <div class="profile-item-text"><strong>Alterar Senha</strong><span>Definir uma nova senha de acesso</span></div>
           <span class="profile-item-arrow">›</span>
         </div>
         <div class="profile-item" id="btnMyOrders" onclick="showView('viewOrders',null);loadOrders()">
@@ -1836,7 +1873,7 @@
         <div style="text-align:right;margin-bottom:10px">
           <button type="button" class="link-btn" onclick="forgotPassword()">Esqueci minha senha</button>
         </div>
-        <button class="auth-btn btn-email-login" onclick="loginEmail()">Entrar com e-mail</button>
+        <button class="auth-btn btn-biometric" onclick="loginEmail()">Entrar com e-mail</button>
 
       </div>
       <div id="registerForm" class="hidden">
@@ -1854,7 +1891,7 @@
             style="margin-bottom:0;padding-right:44px">
           <button type="button" class="pwd-eye" onclick="togglePwd('regPwd',this)" tabindex="-1">👁</button>
         </div>
-        <button class="auth-btn btn-email-login" onclick="registerUser()">Criar conta</button>
+        <button class="auth-btn btn-biometric" onclick="registerUser()">Criar conta</button>
       </div>
     </div>
   </div>
@@ -2013,7 +2050,26 @@
       <input class="auth-input" type="text" id="editDoc" placeholder="CPF">
       <input class="auth-input" id="editRazao" placeholder="Razão Social" style="display:none">
       <button class="auth-btn btn-biometric" id="btnSaveProfile" onclick="saveProfile()">Salvar Alterações</button>
+      <button class="auth-btn btn-email-login" onclick="openChangePasswordFromEdit()">Alterar Senha</button>
       <button class="auth-btn btn-email-login" onclick="closeEditProfile()" style="margin-top:4px">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div class="auth-overlay hidden" id="changePasswordOverlay" onclick="closeChangePassword()"></div>
+  <div class="auth-sheet hidden" id="changePasswordSheet">
+    <div class="auth-header">
+      <h2>🔒 Alterar Senha</h2>
+      <p>Digite sua nova senha de acesso</p>
+    </div>
+    <div class="auth-body">
+      <input class="auth-input" type="password" id="changePwdNew" placeholder="Nova senha (mín. 6 caracteres)"
+        autocomplete="new-password">
+      <input class="auth-input" type="password" id="changePwdConfirm" placeholder="Confirmar nova senha"
+        autocomplete="new-password">
+      <button class="auth-btn btn-biometric" id="btnSaveNewPassword" onclick="saveNewPassword()">Salvar Nova
+        Senha</button>
+      <button class="auth-btn btn-email-login" onclick="closeChangePassword()" style="margin-top:4px">Cancelar</button>
     </div>
   </div>
 
@@ -2115,6 +2171,7 @@
       currentCategory: 'Todos',
       checkoutStep: 0,
       selectedPayment: 'PIX',
+      postLoginAction: null,
       deferredPrompt: null,
       settings: {}
     };
@@ -2122,8 +2179,20 @@
     async function loadSettings() {
       const client = getSupabase();
       if (!client) return;
-      const { data } = await client.from('settings').select('*');
+      const publicKeys = ['geral', 'entrega', 'gateway_pagamento', 'webhook_speedit'];
+      const { data } = await client.from('settings').select('key,value').in('key', publicKeys);
       (data || []).forEach(s => { S.settings[s.key] = s.value; });
+
+      // Defesa em profundidade: remove campos sensíveis caso existam por engano no DB.
+      if (S.settings.gateway_pagamento && typeof S.settings.gateway_pagamento === 'object') {
+        delete S.settings.gateway_pagamento.access_token;
+        delete S.settings.gateway_pagamento.secret;
+        delete S.settings.gateway_pagamento.private_key;
+      }
+      if (S.settings.webhook_speedit && typeof S.settings.webhook_speedit === 'object') {
+        delete S.settings.webhook_speedit.token;
+        delete S.settings.webhook_speedit.secret;
+      }
 
       const g = S.settings.geral || {};
 
@@ -2224,9 +2293,11 @@
       if (!client || !S.user) return;
       const { data } = await client.from('profiles').select('*').eq('id', S.user.id).single();
       S.profile = data;
+      S.companyPrices = {};
       if (data?.tipo_pessoa === 'PJ' && data?.documento) {
         await loadCompanyPrices(data.documento.replace(/\D/g, ''));
       }
+      repriceCart(false);
       renderProducts();
     }
 
@@ -2267,7 +2338,10 @@
       }
     };
 
-    function openAuth() {
+    function openAuth(origin = 'default') {
+      if (origin !== 'checkout') {
+        S.postLoginAction = null;
+      }
       console.log('🔓 openAuth() chamado');
       const sheet = document.getElementById('authSheet');
       const overlay = document.getElementById('authOverlay');
@@ -2405,6 +2479,7 @@
         if (data && data.length > 0) {
           S.products = data;
           localStorage.setItem('ga_products_cache', JSON.stringify(S.products));
+          repriceCart(false);
           const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
           renderCats(cats);
           renderProducts();
@@ -2432,6 +2507,11 @@
       const price = getPrice(p);
       const isB2B = S.companyPrices[p.id] !== undefined;
       const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
+      const safeImg = safeHttpUrl(p.foto_url);
+      const safeName = escHtml(p.nome || '');
+      const safeCat = escHtml(p.categoria || '');
+      const safeSubcat = escHtml(p.subcategoria || '');
+      const safeDesc = escHtml(p.descricao || 'Sem descrição cadastrada.');
 
       history.pushState({ modal: 'pdetail' }, '');
       const overlay = document.getElementById('pdetailOverlay');
@@ -2442,12 +2522,12 @@
             <button class="pdetail-modal-close" onclick="closePDetail()">✕</button>
           </div>
           <div class="pdetail-img">
-            ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+            ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='💧'">` : '💧'}
           </div>
           <div class="pdetail-body">
-            <div class="pdetail-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
-            <div class="pdetail-name">${p.nome}</div>
-            <div class="pdetail-desc">${p.descricao || 'Sem descrição cadastrada.'}</div>
+            <div class="pdetail-cat">${safeCat}${safeSubcat ? ' • ' + safeSubcat : ''}</div>
+            <div class="pdetail-name">${safeName}</div>
+            <div class="pdetail-desc">${safeDesc}</div>
           </div>
           <div class="pdetail-footer">
             <div style="display:flex;flex-direction:column">
@@ -2478,7 +2558,7 @@
     function renderCats(cats) {
       const list = cats || ['Todos', ...new Set(S.products.map(p => p.categoria))];
       document.getElementById('catsRow').innerHTML = list.map(c =>
-        `<button class="cat-btn${c === S.currentCategory ? ' active' : ''}" onclick="filterCat('${c}')">${c}</button>`
+        `<button class="cat-btn${c === S.currentCategory ? ' active' : ''}" onclick="filterCat(decodeURIComponent('${encodeURIComponent(c)}'))">${escHtml(c)}</button>`
       ).join('');
     }
 
@@ -2492,7 +2572,7 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const list = S.products.filter(p => {
         const catOk = S.currentCategory === 'Todos' || p.categoria === S.currentCategory;
-        const searchOk = !search || p.nome.toLowerCase().includes(search);
+        const searchOk = !search || (p.nome || '').toLowerCase().includes(search);
         return catOk && searchOk;
       });
 
@@ -2502,32 +2582,33 @@
       const promoArea = document.getElementById('promoBannerArea');
       const g = S.settings?.geral || {};
       const active = g.banner_promocional_ativo;
-      const media = g.banner_promocional_media_url;
-      const link = g.banner_promocional_link;
+      const media = safeHttpUrl(g.banner_promocional_media_url);
+      const link = safeHttpUrl(g.banner_promocional_link);
+      const promoText = escHtml(g.banner_promocional_texto || '');
 
       if (active && (media || g.banner_promocional_texto)) {
         let content = '';
         if (media) {
           if (g.banner_promocional_media_type === 'video') {
-            content = `<video src="${media}" autoplay loop muted playsinline></video>`;
+            content = `<video src="${escAttr(media)}" autoplay loop muted playsinline></video>`;
           } else {
-            content = `<img src="${media}" alt="${g.banner_promocional_texto || ''}">`;
+            content = `<img src="${escAttr(media)}" alt="${escAttr(g.banner_promocional_texto || '')}">`;
           }
 
           promoArea.innerHTML = `
-            <div class="promo-banner-media" onclick="${link ? `window.open('${link}', '_blank')` : ''}">
+            <div class="promo-banner-media" ${link ? `data-link="${escAttr(link)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
               ${content}
-              ${g.banner_promocional_texto ? `<div class="promo-banner-overlay"><strong>${g.banner_promocional_texto}</strong></div>` : ''}
+              ${promoText ? `<div class="promo-banner-overlay"><strong>${promoText}</strong></div>` : ''}
             </div>
           `;
         } else {
           // Fallback para o banner de texto antigo se não houver mídia
           promoArea.innerHTML = `
-            <div class="promo-banner" onclick="${link ? `window.open('${link}', '_blank')` : ''}">
+            <div class="promo-banner" ${link ? `data-link="${escAttr(link)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
               <div style="font-size:24px">📢</div>
               <div class="install-banner-text">
                 <strong>Promoção Ativa!</strong>
-                <small>${g.banner_promocional_texto}</small>
+                <small>${promoText}</small>
               </div>
               <div class="install-banner-btn">Aproveitar</div>
             </div>
@@ -2548,15 +2629,19 @@
         const isB2B = S.companyPrices[p.id] !== undefined;
         const hasOffer = !isB2B && p.preco_oferta > 0 && p.preco_oferta < p.preco_padrao;
         const finalPrice = hasOffer ? parseFloat(p.preco_oferta) : price;
+        const safeImg = safeHttpUrl(p.foto_url);
+        const safeNome = escHtml(p.nome || '');
+        const safeCategoria = escHtml(p.categoria || '');
+        const safeSubcategoria = escHtml(p.subcategoria || '');
 
         return `<div class="product-card" onclick="openPDetail('${p.id}')">
       <div class="product-img">
-        ${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='💧'">` : '💧'}
       </div>
       <div class="product-info">
         ${p.destaque ? '<span class="badge-destaque">⭐ Destaque</span>' : ''}
-        <div class="product-nome">${p.nome}</div>
-        <div class="product-cat">${p.categoria}${p.subcategoria ? ' • ' + p.subcategoria : ''}</div>
+        <div class="product-nome">${safeNome}</div>
+        <div class="product-cat">${safeCategoria}${safeSubcategoria ? ' • ' + safeSubcategoria : ''}</div>
         <div class="product-price-row">
           <div style="display:flex;flex-direction:column">
             ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
@@ -2603,8 +2688,45 @@
       saveCart(); updateCartUI(); renderCartDrawer();
     }
 
+    function setQty(id, rawQty) {
+      const item = S.cart.find(x => x.id === id);
+      if (!item) return;
+      const qty = parseInt(rawQty, 10);
+      item.qty = Number.isFinite(qty) && qty > 0 ? qty : 1;
+      item.subtotal = item.qty * item.price;
+      saveCart(); updateCartUI(); renderCartDrawer();
+    }
+
     function saveCart() { localStorage.setItem('ga_cart', JSON.stringify(S.cart)); }
     function cartTotal() { return S.cart.reduce((s, i) => s + i.subtotal, 0); }
+
+    function repriceCart(renderIfOpen = true) {
+      if (!S.cart?.length) { updateCartUI(); return; }
+      let changed = false;
+
+      S.cart = S.cart.map(item => {
+        const p = S.products.find(x => x.id === item.id);
+        if (!p) return item;
+        const qty = Math.max(1, parseInt(item.qty, 10) || 1);
+        const price = getPrice(p);
+        const subtotal = qty * price;
+        if (item.qty !== qty || item.price !== price || item.subtotal !== subtotal) changed = true;
+        return {
+          ...item,
+          nome: p.nome || item.nome,
+          foto: p.foto_url || item.foto,
+          qty,
+          price,
+          subtotal
+        };
+      });
+
+      if (changed) saveCart();
+      updateCartUI();
+      if (renderIfOpen && document.getElementById('cartDrawer')?.classList.contains('open')) {
+        renderCartDrawer();
+      }
+    }
 
     function updateCartUI() {
       const total = S.cart.reduce((s, i) => s + i.qty, 0);
@@ -2624,14 +2746,16 @@
       el.innerHTML = S.cart.map(i => `
     <div class="cart-item">
       <div class="cart-item-img">
-        ${i.foto ? `<img src="${i.foto}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${safeHttpUrl(i.foto) ? `<img src="${escAttr(safeHttpUrl(i.foto))}" onerror="this.parentElement.textContent='💧'">` : '💧'}
       </div>
       <div class="cart-item-info">
-        <div class="cart-item-nome">${i.nome}</div>
+        <div class="cart-item-nome">${escHtml(i.nome || '')}</div>
         <div class="cart-item-price">R$ ${i.price.toFixed(2).replace('.', ',')}</div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="changeQty('${i.id}',-1)">−</button>
-          <span class="qty-val">${i.qty}</span>
+          <input class="qty-input" type="number" min="1" step="1" inputmode="numeric" value="${i.qty}"
+            onclick="event.stopPropagation()" onblur="setQty('${i.id}', this.value)"
+            onkeydown="if(event.key==='Enter'){setQty('${i.id}', this.value)}">
           <button class="qty-btn" onclick="changeQty('${i.id}',1)">+</button>
         </div>
       </div>
@@ -2673,8 +2797,9 @@
     document.getElementById('btnCheckout').onclick = () => {
       if (!S.cart.length) { showToast('Carrinho vazio'); return; }
       if (!S.user) {
+        S.postLoginAction = 'checkout';
         closeCart();
-        setTimeout(openAuth, 150);
+        setTimeout(() => openAuth('checkout'), 150);
         return;
       }
       closeCart();
@@ -2783,7 +2908,7 @@
 
     function renderReview() {
       document.getElementById('reviewItems').innerHTML = S.cart.map(i =>
-        `<div class="order-item-review"><span>${i.qty}x ${i.nome}</span><span>${fmt(i.subtotal)}</span></div>`
+        `<div class="order-item-review"><span>${i.qty}x ${escHtml(i.nome || '')}</span><span>${fmt(i.subtotal)}</span></div>`
       ).join('');
       const sub = cartTotal();
       document.getElementById('reviewSubtotal').textContent = fmt(sub);
@@ -2877,7 +3002,7 @@
         if (itemsError) throw itemsError;
 
         // 3. Webhook
-        const webhookUrl = S.settings?.webhook_speedit?.url;
+        const webhookUrl = safeHttpUrl(S.settings?.webhook_speedit?.url);
         if (webhookUrl) {
           const webhookPayload = {
             event: 'order.created',
@@ -2951,13 +3076,13 @@
       document.getElementById('ordersList').innerHTML = data.map(o => `
     <div class="order-card" onclick="openOrderDetail('${o.id}')">
       <div class="order-card-header">
-        <span class="order-card-num">#${o.numero_pedido}</span>
-        <span class="status-badge status-${o.status}">${o.status}</span>
+        <span class="order-card-num">#${escHtml(o.numero_pedido || '')}</span>
+        <span class="status-badge status-${escAttr(o.status || '')}">${escHtml(o.status || '')}</span>
       </div>
       <div class="order-card-info">
         <div>${new Date(o.created_at).toLocaleString('pt-BR')}</div>
-        <div><strong>Total: ${fmt(o.total)}</strong> · ${o.metodo_pagamento || ''}</div>
-        <div>${o.endereco_cidade || ''} - ${o.endereco_estado || ''}</div>
+        <div><strong>Total: ${fmt(o.total)}</strong> · ${escHtml(o.metodo_pagamento || '')}</div>
+        <div>${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}</div>
       </div>
       <div class="order-card-arrow">›</div>
     </div>
@@ -2984,7 +3109,7 @@
       const itemsHtml = items.length
         ? items.map(i => `
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:14px">
-            <span>${i.quantidade}x ${i.produto_nome}</span>
+            <span>${i.quantidade}x ${escHtml(i.produto_nome || '')}</span>
             <strong>${fmt(i.subtotal)}</strong>
           </div>`).join('')
         : '<p style="color:#aaa;font-size:13px">Itens não disponíveis</p>';
@@ -2995,8 +3120,8 @@
       body.innerHTML = `
         <div style="padding:16px 20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <span style="font-size:20px;font-weight:800;color:var(--blue)">#${o.numero_pedido}</span>
-            <span style="background:${statusBgs[o.status] || '#f0f0f0'};color:${statusColors[o.status] || '#333'};border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700">${o.status}</span>
+            <span style="font-size:20px;font-weight:800;color:var(--blue)">#${escHtml(o.numero_pedido || '')}</span>
+            <span style="background:${statusBgs[o.status] || '#f0f0f0'};color:${statusColors[o.status] || '#333'};border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700">${escHtml(o.status || '')}</span>
           </div>
 
           <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
@@ -3008,16 +3133,16 @@
           <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">📍 Endereço de Entrega</div>
             <div style="font-size:14px;color:#333;line-height:1.7">
-              ${o.endereco_completo || '—'}<br>
-              ${o.endereco_cidade || ''} - ${o.endereco_estado || ''}<br>
-              <span style="color:#888;font-size:13px">Recebedor: ${o.recebedor_nome || '—'}</span>
-              ${o.recebedor_referencia ? `<br><span style="color:#aaa;font-size:12px">Ref: ${o.recebedor_referencia}</span>` : ''}
+              ${escHtml(o.endereco_completo || '—')}<br>
+              ${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}<br>
+              <span style="color:#888;font-size:13px">Recebedor: ${escHtml(o.recebedor_nome || '—')}</span>
+              ${o.recebedor_referencia ? `<br><span style="color:#aaa;font-size:12px">Ref: ${escHtml(o.recebedor_referencia)}</span>` : ''}
             </div>
           </div>
 
           ${o.observacoes ? `<div style="background:#fffde7;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">📝 Observações</div>
-            <div style="font-size:14px;color:#555">${o.observacoes}</div>
+            <div style="font-size:14px;color:#555">${escHtml(o.observacoes)}</div>
           </div>` : ''}
 
           <div style="background:#fff;border:2px solid #e3f2fd;border-radius:14px;padding:14px;margin-bottom:12px">
@@ -3053,6 +3178,7 @@
       toggle('btnPasskeys', isLogged);
       toggle('btnAddresses', isLogged);
       toggle('btnEditProfile', isLogged);
+      toggle('btnChangePassword', isLogged);
       toggle('btnMyOrders', isLogged);
       toggle('profileLoginPrompt', !isLogged);
 
@@ -3088,6 +3214,69 @@
       const waNum = S.settings?.geral?.whatsapp_suporte || '';
       if (waNum) window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank');
       else showToast('WhatsApp não configurado');
+    }
+
+    // ============================================================
+    // ALTERAR SENHA
+    // ============================================================
+    function openChangePassword() {
+      if (!S.user) { showToast('Faça login primeiro'); return; }
+      document.getElementById('changePwdNew').value = '';
+      document.getElementById('changePwdConfirm').value = '';
+
+      history.pushState({ modal: 'changePassword' }, '');
+      const sheet = document.getElementById('changePasswordSheet');
+      const overlay = document.getElementById('changePasswordOverlay');
+      sheet.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      sheet.style.display = 'block';
+      overlay.style.display = 'block';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        sheet.classList.add('open');
+        overlay.classList.add('open');
+      }));
+    }
+
+    function closeChangePassword(fromHistory = false) {
+      if (!fromHistory && document.getElementById('changePasswordSheet')?.classList.contains('open')) {
+        history.back();
+      }
+      const sheet = document.getElementById('changePasswordSheet');
+      const overlay = document.getElementById('changePasswordOverlay');
+      sheet.classList.remove('open');
+      overlay.classList.remove('open');
+      setTimeout(() => {
+        sheet.classList.add('hidden');
+        overlay.classList.add('hidden');
+      }, 350);
+    }
+
+    async function saveNewPassword() {
+      const pwd = document.getElementById('changePwdNew').value;
+      const pwdConfirm = document.getElementById('changePwdConfirm').value;
+      if (!pwd || !pwdConfirm) { showToast('Preencha a nova senha e confirmação'); return; }
+      if (pwd.length < 6) { showToast('Senha mínimo 6 caracteres'); return; }
+      if (pwd !== pwdConfirm) { showToast('As senhas não conferem'); return; }
+
+      const btn = document.getElementById('btnSaveNewPassword');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Salvando...';
+
+      try {
+        const client = getSupabase();
+        if (!client) throw new Error('Sem conexão');
+
+        const { error } = await client.auth.updateUser({ password: pwd });
+        if (error) throw error;
+
+        closeChangePassword();
+        showToast('✅ Senha alterada com sucesso!');
+      } catch (e) {
+        showToast('Erro: ' + (e.message || 'Tente novamente'));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Salvar Nova Senha';
+      }
     }
 
     // ============================================================
@@ -3132,6 +3321,11 @@
         sheet.classList.add('hidden');
         overlay.classList.add('hidden');
       }, 350);
+    }
+
+    function openChangePasswordFromEdit() {
+      closeEditProfile(true);
+      setTimeout(() => openChangePassword(), 180);
     }
 
     function setEditTipo(t) {
@@ -3198,6 +3392,7 @@
       if (client) {
         await client.auth.signOut();
         S.user = null; S.profile = null; S.companyPrices = {};
+        repriceCart(false);
         localStorage.removeItem('ga_pk_rt');
         renderProfile();
         showView('viewCatalog', document.querySelector('.nav-btn'));
@@ -3408,12 +3603,43 @@
       }
     }
 
+    function escHtml(v) {
+      return String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    function escAttr(v) {
+      return escHtml(v).replace(/`/g, '&#96;');
+    }
+
+    function safeHttpUrl(v) {
+      if (!v) return '';
+      try {
+        const u = new URL(String(v), location.origin);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+        return u.href;
+      } catch {
+        return '';
+      }
+    }
+
+    function openExternalLink(url) {
+      const safe = safeHttpUrl(url);
+      if (!safe) return;
+      window.open(safe, '_blank', 'noopener,noreferrer');
+    }
+
     function fmt(n) { return 'R$ ' + parseFloat(n || 0).toFixed(2).replace('.', ','); }
 
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg; t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function goHomeFromLogo() {
+      closeAllModals(true);
+      showView('viewCatalog', document.querySelector('.nav-btn'));
+      window.scrollTo(0, 0);
     }
 
     // ============================================================
@@ -3487,11 +3713,22 @@
           }
           S.user = session?.user || null;
           if (S.user) {
+            const postLoginAction = S.postLoginAction;
+            S.postLoginAction = null;
             await loadProfile();
             closeAuth();
+            if (postLoginAction === 'checkout') {
+              if (!S.cart.length) {
+                showToast('Carrinho vazio');
+              } else {
+                setTimeout(openCheckout, 150);
+              }
+            }
           } else {
+            S.postLoginAction = null;
             S.profile = null;
             S.companyPrices = {};
+            repriceCart(false);
           }
           renderProfile();
           renderProducts(); // Atualiza preços na tela se mudou o cliente
@@ -3518,6 +3755,7 @@
       closeAddressForm(fromHistory);
       closeOrderDetail(fromHistory);
       closeEditProfile(fromHistory);
+      closeChangePassword(fromHistory);
       closeConf(fromHistory);
       // Fecha modal do iPhone se aberto
       document.getElementById('iosModal').classList.add('hidden');

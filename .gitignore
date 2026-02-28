@@ -1,6 +1,7 @@
 # Sistema
 .env
 *.env
+config.js
 
 # Sistema
 .DS_Store
