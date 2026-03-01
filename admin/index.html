@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin - Globo Água</title>
+  <title>Admin - Globo Ãgua</title>
   <style>
     * {
       box-sizing: border-box;
@@ -998,9 +998,9 @@
   <div id="loginScreen">
     <div class="login-screen">
       <div class="login-box">
-        <img src="../images/logo.jpeg" alt="Globo Água">
+        <img src="../images/logo.jpeg" alt="Globo Ãgua">
         <h2>Painel Admin</h2>
-        <p>Globo Água — Acesso restrito</p>
+        <p>Globo Ãgua â€” Acesso restrito</p>
         <form onsubmit="adminLogin(); return false;" autocomplete="on">
           <input class="login-input" type="email" id="adminEmail" placeholder="E-mail"
             autocomplete="email" inputmode="email">
@@ -1022,7 +1022,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <img src="../images/logo.jpeg" alt="">
-        <div class="sidebar-logo-text"><span>Globo Água</span><small>Administração</small></div>
+        <div class="sidebar-logo-text"><span>Globo Ãgua</span><small>AdministraÃ§Ã£o</small></div>
       </div>
       <nav style="flex:1;padding:6px 0">
         <div class="nav-item active" data-section="dashboard" data-role="admin" onclick="showSection('dashboard',this)">
@@ -1053,12 +1053,12 @@
         <div class="nav-item" data-section="prices" data-role="admin" onclick="showSection('prices',this)">
           <span class="nav-item-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8l8 8z"></path><circle cx="9" cy="9" r="1.5"></circle></svg>
-          </span><span>Preços Especiais</span>
+          </span><span>PreÃ§os Especiais</span>
         </div>
         <div class="nav-item" data-section="settings" data-role="admin" onclick="showSection('settings',this)">
           <span class="nav-item-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2h.1a1 1 0 0 0 .5-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9h.1a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1v.1a1 1 0 0 0 .9.5H20a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6z"></path></svg>
-          </span><span>Configurações</span>
+          </span><span>ConfiguraÃ§Ãµes</span>
         </div>
       </nav>
       <div class="sidebar-footer">
@@ -1069,11 +1069,11 @@
     <!-- MAIN -->
     <main class="main">
       <div class="topbar">
-        <button class="topbar-menu" onclick="toggleSidebar()">☰</button>
+        <button class="topbar-menu" onclick="toggleSidebar()">â˜°</button>
         <h1 id="pageTitle">Dashboard <small style="font-size:10px;color:#aaa;font-weight:400">v9.7.2</small></h1>
         <div class="topbar-right">
           <span class="admin-name" id="adminNameDisplay"></span>
-          <span style="font-size:22px">👤</span>
+          <span style="font-size:22px">ðŸ‘¤</span>
         </div>
       </div>
 
@@ -1086,28 +1086,28 @@
               <div class="stat-card-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle><path d="M3 4h2l2.4 10h9.6l2-7H7"></path></svg>
               </div>
-              <div class="stat-card-val" id="statOrders">—</div>
+              <div class="stat-card-val" id="statOrders">â€”</div>
               <div class="stat-card-label">Pedidos hoje</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"></path><path d="M16.5 7.5c0-1.9-2-3.5-4.5-3.5S7.5 5.6 7.5 7.5 9.5 11 12 11s4.5 1.6 4.5 3.5-2 3.5-4.5 3.5-4.5-1.6-4.5-3.5"></path></svg>
               </div>
-              <div class="stat-card-val" id="statRevenue">—</div>
+              <div class="stat-card-val" id="statRevenue">â€”</div>
               <div class="stat-card-label">Receita hoje</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"></path><path d="M18 11c1.7 0 3 1.3 3 3"></path></svg>
               </div>
-              <div class="stat-card-val" id="statClients">—</div>
+              <div class="stat-card-val" id="statClients">â€”</div>
               <div class="stat-card-label">Clientes</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4z"></path><path d="M4 8v8l8 4 8-4V8"></path><path d="M12 12v8"></path></svg>
               </div>
-              <div class="stat-card-val" id="statProducts">—</div>
+              <div class="stat-card-val" id="statProducts">â€”</div>
               <div class="stat-card-label">Produtos</div>
             </div>
           </div>
@@ -1127,7 +1127,7 @@
           </div>
           <div class="table-card">
             <div class="table-header">
-              <h3>Últimos pedidos</h3>
+              <h3>Ãšltimos pedidos</h3>
             </div>
             <div class="table-wrap">
               <table>
@@ -1160,10 +1160,10 @@
                     <th>Foto</th>
                     <th>Nome</th>
                     <th>Categoria</th>
-                    <th>Preço</th>
+                    <th>PreÃ§o</th>
                     <th>Ativo</th>
                     <th>Destaque</th>
-                    <th>Ações</th>
+                    <th>AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody id="productsTable"></tbody>
@@ -1183,10 +1183,14 @@
                   <option value="">Todos</option>
                   <option value="NOVO">Novo</option>
                   <option value="CONFIRMADO">Confirmado</option>
-                  <option value="PRODUCAO">Em produção</option>
+                  <option value="PRODUCAO">Em produÃ§Ã£o</option>
                   <option value="ENTREGUE">Entregue</option>
                   <option value="CANCELADO">Cancelado</option>
                 </select>
+                <input class="form-input" type="date" id="orderDayFilter" title="Filtrar por dia"
+                  style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
+                <input class="form-input" type="month" id="orderMonthFilter" title="Filtrar por mes"
+                  style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
                 <input class="form-input" id="orderSearchInput" placeholder="Buscar por no. pedido ou nome"
                   style="width:240px;padding:7px 12px" oninput="renderAdminOrders()">
                 <button class="btn btn-ghost admin-only" onclick="exportOrdersExcel()"
@@ -1199,13 +1203,13 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Nº</th>
+                    <th>NÂº</th>
                     <th>Cliente</th>
                     <th class="col-hide-mobile">CPF/CNPJ</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th class="col-hide-mobile">Data</th>
-                    <th>Ações</th>
+                    <th>AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTable"></tbody>
@@ -1234,7 +1238,7 @@
                     <th>Tipo</th>
                     <th>Doc.</th>
                     <th class="col-hide-mobile">Cadastro</th>
-                    <th>Ações</th>
+                    <th>AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody id="clientsTable"></tbody>
@@ -1254,10 +1258,10 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Razão Social</th>
+                    <th>RazÃ£o Social</th>
                     <th>CNPJ</th>
                     <th>Contato</th>
-                    <th>Ações</th>
+                    <th>AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody id="companiesTable"></tbody>
@@ -1266,11 +1270,11 @@
           </div>
         </div>
 
-        <!-- PREÇOS -->
+        <!-- PREÃ‡OS -->
         <div id="sectionPrices" class="hidden">
           <div class="table-card">
             <div class="table-header">
-              <h3>Preços por Empresa</h3>
+              <h3>PreÃ§os por Empresa</h3>
               <select class="form-input" id="priceCompanySelect" style="width:auto;padding:7px 12px"
                 onchange="loadPriceMatrix()">
                 <option value="">Selecione empresa</option>
@@ -1282,7 +1286,7 @@
           </div>
         </div>
 
-        <!-- CONFIGURAÇÕES -->
+        <!-- CONFIGURAÃ‡Ã•ES -->
         <div id="sectionSettings" class="hidden">
           <div class="tabs">
             <div class="tab active" onclick="setSettingsTab('geral',this)">Geral</div>
@@ -1294,17 +1298,17 @@
             <div class="table-card">
               <div class="modal-body">
                 <div class="form-group"><label class="form-label">Nome da loja</label><input class="form-input"
-                    id="setNomeLoja" placeholder="Globo Água"></div>
+                    id="setNomeLoja" placeholder="Globo Ãgua"></div>
                 <div class="form-group">
-                  <label class="form-label">WhatsApp — Fale Conosco</label>
+                  <label class="form-label">WhatsApp â€” Fale Conosco</label>
                   <input class="form-input" id="setWhatsapp" placeholder="5511999999999" oninput="updateWaPreview()">
                   <small style="color:#888;font-size:12px;margin-top:5px;display:block">
-                    Formato: código do país + DDD + número. Ex: <strong>5511999999999</strong><br>
+                    Formato: cÃ³digo do paÃ­s + DDD + nÃºmero. Ex: <strong>5511999999999</strong><br>
                     Link gerado: <span id="waLinkPreview" style="color:var(--blue)">wa.me/...</span>
                   </small>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Cor primária</label>
+                  <label class="form-label">Cor primÃ¡ria</label>
                   <div id="colorPicker" style="margin: 15px 0;"></div>
                 </div>
                 <hr style="margin:20px 0;opacity:0.1">
@@ -1315,37 +1319,37 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">Texto do Banner (Acessibilidade)</label>
-                  <input class="form-input" id="setPromoBannerTexto" placeholder="Ex: Promoção de Verão">
+                  <input class="form-input" id="setPromoBannerTexto" placeholder="Ex: PromoÃ§Ã£o de VerÃ£o">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">URL da Mídia (Imagem, GIF ou Vídeo)</label>
+                  <label class="form-label">URL da MÃ­dia (Imagem, GIF ou VÃ­deo)</label>
                   <input class="form-input" id="setPromoBannerMediaUrl" placeholder="https://exemplo.com/banner.jpg">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Tipo de Mídia</label>
+                  <label class="form-label">Tipo de MÃ­dia</label>
                   <select class="form-input" id="setPromoBannerMediaType">
                     <option value="image">Imagem / GIF</option>
-                    <option value="video">Vídeo (MP4)</option>
+                    <option value="video">VÃ­deo (MP4)</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Link de Destino (Opcional)</label>
                   <input class="form-input" id="setPromoBannerLink" placeholder="https://wa.me/... ou /link-interno">
-                  <small style="color:#888;font-size:11px">Se vazio, o banner não será clicável.</small>
+                  <small style="color:#888;font-size:11px">Se vazio, o banner nÃ£o serÃ¡ clicÃ¡vel.</small>
                 </div>
                 <hr style="margin:20px 0;opacity:0.1">
                 <div class="form-group">
-                  <label class="form-label">Título do Site (SEO - aparece na aba do navegador e no Google)</label>
-                  <input class="form-input" id="setSeoTitle" placeholder="Ex: Globo Água - Delivery">
+                  <label class="form-label">TÃ­tulo do Site (SEO - aparece na aba do navegador e no Google)</label>
+                  <input class="form-input" id="setSeoTitle" placeholder="Ex: Globo Ãgua - Delivery">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Descrição do Site (SEO - resumo para o Google)</label>
+                  <label class="form-label">DescriÃ§Ã£o do Site (SEO - resumo para o Google)</label>
                   <textarea class="form-input" id="setSeoDesc" rows="2"
-                    placeholder="Ex: Delivery rápido de água mineral em sua região..."></textarea>
+                    placeholder="Ex: Delivery rÃ¡pido de Ã¡gua mineral em sua regiÃ£o..."></textarea>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Palavras-chave (SEO - separadas por vírgula)</label>
-                  <input class="form-input" id="setSeoKeywords" placeholder="Ex: água, delivery, galão 20L">
+                  <label class="form-label">Palavras-chave (SEO - separadas por vÃ­rgula)</label>
+                  <input class="form-input" id="setSeoKeywords" placeholder="Ex: Ã¡gua, delivery, galÃ£o 20L">
                 </div>
                 <button class="btn btn-primary" onclick="saveSettings('geral')">Salvar</button>
               </div>
@@ -1356,7 +1360,7 @@
               <div class="modal-body">
                 <div class="form-group"><label class="form-label">Tipo</label>
                   <select class="form-input" id="setEntregaTipo">
-                    <option value="gratis">Grátis</option>
+                    <option value="gratis">GrÃ¡tis</option>
                     <option value="fixo">Taxa fixa</option>
                   </select>
                 </div>
@@ -1389,14 +1393,14 @@
                 <div class="form-group"><label class="form-label">Modo</label>
                   <select class="form-input" id="setGwModo">
                     <option value="sandbox">Sandbox</option>
-                    <option value="production">Produção</option>
+                    <option value="production">ProduÃ§Ã£o</option>
                   </select>
                 </div>
                 <hr style="margin:20px 0;opacity:0.1">
                 <div class="form-group"><label class="form-label">Chave PIX (Copia e Cola)</label>
-                  <input class="form-input" id="setPixManual" placeholder="Chave PIX ou Código Copia e Cola">
+                  <input class="form-input" id="setPixManual" placeholder="Chave PIX ou CÃ³digo Copia e Cola">
                   <small style="color:#888;font-size:12px;margin-top:5px;display:block">
-                    Aparecerá para o cliente na finalização do pedido.
+                    AparecerÃ¡ para o cliente na finalizaÃ§Ã£o do pedido.
                   </small>
                 </div>
                 <button class="btn btn-primary" onclick="saveSettings('gateway_pagamento')">Salvar</button>
@@ -1415,25 +1419,25 @@
       <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="productModalTitle">Novo Produto</h3>
-        <button class="modal-close" onclick="closeModal('productModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('productModal')">âœ•</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="productId">
         <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="productNome"
             placeholder="Nome do produto"></div>
-        <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="productDesc"
-            placeholder="Descrição breve"></div>
+        <div class="form-group"><label class="form-label">DescriÃ§Ã£o</label><input class="form-input" id="productDesc"
+            placeholder="DescriÃ§Ã£o breve"></div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Categoria</label>
             <select class="form-input" id="productCat" onchange="updateSubcatOptions()">
-              <option value="Água">Y' Água</option>
-              <option value="Água Gaseificada">Y' Água Gaseificada</option>
-              <option value="Água Saborizada">Y' Água Saborizada</option>
+              <option value="Ãgua">Y' Ãgua</option>
+              <option value="Ãgua Gaseificada">Y' Ãgua Gaseificada</option>
+              <option value="Ãgua Saborizada">Y' Ãgua Saborizada</option>
               <option value="Refrigerantes">Refrigerantes</option>
               <option value="Sucos">Sucos</option>
-              <option value="Energéticos">s Energéticos</option>
+              <option value="EnergÃ©ticos">s EnergÃ©ticos</option>
               <option value="Bebidas">Outras Bebidas</option>
-              <option value="Galão">Y Galão / Garrafão</option>
+              <option value="GalÃ£o">Y GalÃ£o / GarrafÃ£o</option>
               <option value="Gelo">Gelo</option>
               <option value="Outros">Outros</option>
             </select>
@@ -1444,16 +1448,16 @@
           </div>
         </div>
 
-        <!-- ATALHOS DE VOLUME (visível apenas para categorias de água) -->
+        <!-- ATALHOS DE VOLUME (visÃ­vel apenas para categorias de Ã¡gua) -->
         <div id="volumeQuickPick" class="form-group" style="display:none">
           <label class="form-label">Clique para preencher o volume</label>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px" id="volumeBtns"></div>
         </div>
         <div class="form-row">
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Preço Padrão (R$) *</label><input class="form-input"
+            <div class="form-group"><label class="form-label">PreÃ§o PadrÃ£o (R$) *</label><input class="form-input"
                 type="number" id="productPreco" step="0.01" placeholder="0,00"></div>
-            <div class="form-group"><label class="form-label">Preço de Oferta (R$)</label><input class="form-input"
+            <div class="form-group"><label class="form-label">PreÃ§o de Oferta (R$)</label><input class="form-input"
                 type="number" id="productPrecoOferta" step="0.01" placeholder="0,00"></div>
           </div>
           <div class="form-group"><label class="form-label">Estoque</label><input class="form-input" type="number"
@@ -1462,7 +1466,7 @@
         <div class="form-row">
           <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
             <label class="toggle"><input type="checkbox" id="productDestaque"><span class="slider"></span></label>
-            <label class="form-label" style="margin:0">⭐ Produto em destaque</label>
+            <label class="form-label" style="margin:0">â­ Produto em destaque</label>
           </div>
           <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
             <label class="toggle"><input type="checkbox" id="productAtivo" checked><span class="slider"></span></label>
@@ -1485,7 +1489,7 @@
               <input type="file" id="fotoFile" accept="image/*" onchange="handleFileSelect(this)">
               <div class="upload-area-icon">IMG</div>
               <p>Clique ou arraste a foto aqui</p>
-              <small>JPG, PNG, WEBP até 5MB</small>
+              <small>JPG, PNG, WEBP atÃ© 5MB</small>
             </div>
           </div>
           <img id="fotoPreview" class="upload-preview hidden" alt="Preview">
@@ -1504,11 +1508,11 @@
       <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="companyModalTitle">Nova Empresa</h3>
-        <button class="modal-close" onclick="closeModal('companyModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('companyModal')">âœ•</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="companyId">
-        <div class="form-group"><label class="form-label">Razão Social *</label><input class="form-input"
+        <div class="form-group"><label class="form-label">RazÃ£o Social *</label><input class="form-input"
             id="companyRazao" placeholder="Empresa Ltda"></div>
         <div class="form-group"><label class="form-label">Nome Fantasia</label><input class="form-input"
             id="companyFantasia" placeholder="Nome fantasia"></div>
@@ -1530,7 +1534,7 @@
       <div class="modal-handle"></div>
       <div class="modal-header">
         <h3>Detalhes do Pedido</h3>
-        <button class="modal-close" onclick="closeModal('orderDetailModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('orderDetailModal')">âœ•</button>
       </div>
       <div class="modal-body" id="orderDetailBody">
         <!-- Preenchido via JS -->
@@ -1549,7 +1553,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script>
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
-    // Cliente principal: usa anon key para autenticação funcionar corretamente
+    // Cliente principal: usa anon key para autenticaÃ§Ã£o funcionar corretamente
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { storageKey: 'ga-admin-session' }
     });
@@ -1704,7 +1708,7 @@
       btn.textContent = 'Entrando...';
       btn.disabled = true;
       try {
-        // Usa sb (anon key) para autenticação
+        // Usa sb (anon key) para autenticaÃ§Ã£o
         const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
         if (error) {
           console.error('Login error:', error);
@@ -1714,7 +1718,7 @@
         const { role, profile } = await getCurrentRole(data.user.id);
         if (!role) {
           await sb.auth.signOut();
-          showToast('Acesso negado para este usuário');
+          showToast('Acesso negado para este usuÃ¡rio');
           return;
         }
         adminUser = data.user;
@@ -1727,7 +1731,7 @@
         await initApp();
       } catch (e) {
         console.error('Login exception:', e);
-        showToast('Erro de conexão. Tente novamente.');
+        showToast('Erro de conexÃ£o. Tente novamente.');
       } finally {
         btn.textContent = 'Entrar';
         btn.disabled = false;
@@ -1773,7 +1777,7 @@
       if (activeNav) activeNav.classList.add('active');
 
       currentSection = targetSection;
-      const titles = { dashboard: 'Dashboard', products: 'Produtos', orders: 'Pedidos', clients: 'Clientes', companies: 'Empresas B2B', prices: 'Preços Especiais', settings: 'Configurações' };
+      const titles = { dashboard: 'Dashboard', products: 'Produtos', orders: 'Pedidos', clients: 'Clientes', companies: 'Empresas B2B', prices: 'PreÃ§os Especiais', settings: 'ConfiguraÃ§Ãµes' };
       document.getElementById('pageTitle').textContent = titles[targetSection] || targetSection;
       syncRoute(targetSection, opts.replaceRoute);
       closeSidebar(); // Garante o fechamento no mobile
@@ -1813,7 +1817,7 @@
       document.getElementById('recentOrders').innerHTML = rows.map(o => `
     <tr>
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
-      <td>${o.cliente_nome || '—'}</td>
+      <td>${o.cliente_nome || 'â€”'}</td>
       <td><strong>R$ ${parseFloat(o.total || 0).toFixed(2).replace('.', ',')}</strong></td>
       <td><span class="badge badge-${o.status}">${o.status}</span></td>
       <td style="font-size:12px">${new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
@@ -1846,7 +1850,7 @@
       document.getElementById('productsTable').innerHTML = allProducts.map(p => `
     <tr>
       <td><div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid #eee">
-        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='ðŸ’§'">` : 'ðŸ’§'}
       </div></td>
       <td><strong>${p.nome}</strong><br><small style="color:#aaa">${p.descricao || ''}</small></td>
       <td><span style="display:block;font-weight:600">${p.categoria}</span><small style="color:#999">${p.subcategoria || '-'}</small></td>
@@ -1870,23 +1874,23 @@
     }
 
     // ============================================================
-    // SUBCATEGORIAS DINÂMICAS
+    // SUBCATEGORIAS DINÃ‚MICAS
     // ============================================================
     const SUBCAT_MAP = {
-      'Água': ['20 Litros', '10 Litros', '5 Litros', '3 Litros', '2 Litros', '1.5 Litros', '1 Litro', '510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '250 ml', '200 ml'],
-      'Água Gaseificada': ['510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '1.5 Litros', '1 Litro'],
-      'Água Saborizada': ['510 ml', '500 ml', '350 ml', '310 ml', '1.5 Litros'],
-      'Galão': ['20 Litros', '10 Litros', '5 Litros'],
+      'Ãgua': ['20 Litros', '10 Litros', '5 Litros', '3 Litros', '2 Litros', '1.5 Litros', '1 Litro', '510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '250 ml', '200 ml'],
+      'Ãgua Gaseificada': ['510 ml', '500 ml', '350 ml', '310 ml', '300 ml', '1.5 Litros', '1 Litro'],
+      'Ãgua Saborizada': ['510 ml', '500 ml', '350 ml', '310 ml', '1.5 Litros'],
+      'GalÃ£o': ['20 Litros', '10 Litros', '5 Litros'],
       'Refrigerantes': ['Lata 350ml', 'Lata 269ml', 'Long Neck 355ml', '600 ml', '1 Litro', '1.5 Litros', '2 Litros', '2.5 Litros'],
       'Sucos': ['Caixinha 200ml', 'Garrafa 300ml', 'Garrafa 500ml', '1 Litro'],
-      'Energéticos': ['Lata 250ml', 'Lata 355ml', 'Garrafa 473ml'],
+      'EnergÃ©ticos': ['Lata 250ml', 'Lata 355ml', 'Garrafa 473ml'],
       'Bebidas': ['Lata 350ml', 'Garrafa 600ml', '1 Litro', '1.5 Litros'],
       'Gelo': ['Saco 5 kg', 'Saco 2 kg', 'Saco 1 kg'],
       'Outros': []
     };
 
     // Categorias que mostram atalhos de volume
-    const WATER_CATS = ['Água', 'Água Gaseificada', 'Água Saborizada', 'Galão'];
+    const WATER_CATS = ['Ãgua', 'Ãgua Gaseificada', 'Ãgua Saborizada', 'GalÃ£o'];
 
     function updateSubcatOptions() {
       const cat = document.getElementById('productCat').value;
@@ -1918,7 +1922,7 @@
 
     function pickVolume(vol) {
       document.getElementById('productSubcat').value = vol;
-      // Destaca o botão selecionado
+      // Destaca o botÃ£o selecionado
       document.querySelectorAll('#volumeBtns button').forEach(btn => {
         const active = btn.textContent.trim() === vol;
         btn.style.background = active ? '#1976D2' : '#fff';
@@ -1973,7 +1977,7 @@
       document.getElementById('productId').value = p?.id || '';
       document.getElementById('productNome').value = p?.nome || '';
       document.getElementById('productDesc').value = p?.descricao || '';
-      document.getElementById('productCat').value = p?.categoria || 'Água';
+      document.getElementById('productCat').value = p?.categoria || 'Ãgua';
       // Atualiza subcats ANTES de setar o valor do subcat
       updateSubcatOptions();
       document.getElementById('productSubcat').value = p?.subcategoria || '';
@@ -1982,7 +1986,7 @@
       document.getElementById('productEstoque').value = p?.estoque || '999';
       document.getElementById('productDestaque').checked = p?.destaque || false;
       document.getElementById('productAtivo').checked = p?.ativo !== false;
-      // Se editando, destaca o botão do volume atual
+      // Se editando, destaca o botÃ£o do volume atual
       if (p?.subcategoria) pickVolume(p.subcategoria);
       document.getElementById('productFoto').value = p?.foto_url || '';
       uploadedFileObj = null;
@@ -2044,7 +2048,7 @@
     }
 
     async function deleteProduct(id) {
-      if (!confirm('Deseja EXCLUIR PERMANENTEMENTE este produto?\n\nEssa ação não poderá ser desfeita.')) return;
+      if (!confirm('Deseja EXCLUIR PERMANENTEMENTE este produto?\n\nEssa aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita.')) return;
 
       try {
         const { error } = await sb.from('products').delete().eq('id', id);
@@ -2052,7 +2056,7 @@
         if (error) {
           // Erro de Foreign Key (pedidos vinculados)
           if (error.code === '23503' || error.message?.includes('foreign key')) {
-            const opt = confirm('Este produto possui histórico de vendas e não pode ser removido diretamente.\n\nClique em OK para APENAS DESATIVAR (ele sumirá do app mas mantém o histórico) ou CANCELAR para tentar a EXCLUSÃO FORÇADA (apaga também os itens dos pedidos antigos para poder deletar o produto).');
+            const opt = confirm('Este produto possui histÃ³rico de vendas e nÃ£o pode ser removido diretamente.\n\nClique em OK para APENAS DESATIVAR (ele sumirÃ¡ do app mas mantÃ©m o histÃ³rico) ou CANCELAR para tentar a EXCLUSÃƒO FORÃ‡ADA (apaga tambÃ©m os itens dos pedidos antigos para poder deletar o produto).');
 
             if (opt) {
               // Apenas desativa
@@ -2061,9 +2065,9 @@
               await loadAllProducts();
               showToast('Produto desativado com sucesso.');
             } else {
-              // Tenta exclusão forçada (remove itens de pedidos primeiro)
-              if (confirm('ATENÇÃO: A exclusão forçada apagará este produto de todos os pedidos já realizados no passado. Tem certeza absoluta?')) {
-                showToast('⏳ Processando exclusão forçada...');
+              // Tenta exclusÃ£o forÃ§ada (remove itens de pedidos primeiro)
+              if (confirm('ATENÃ‡ÃƒO: A exclusÃ£o forÃ§ada apagarÃ¡ este produto de todos os pedidos jÃ¡ realizados no passado. Tem certeza absoluta?')) {
+                showToast('â³ Processando exclusÃ£o forÃ§ada...');
                 const { error: errItems } = await sb.from('order_items').delete().eq('product_id', id);
                 if (errItems) throw errItems;
 
@@ -2071,7 +2075,7 @@
                 if (errFinal) throw errFinal;
 
                 await loadAllProducts();
-                showToast('o. Produto e histórico vinculados foram excluídos!');
+                showToast('o. Produto e histÃ³rico vinculados foram excluÃ­dos!');
               }
             }
           } else {
@@ -2079,7 +2083,7 @@
           }
         } else {
           await loadAllProducts();
-          showToast('o. Produto excluído com sucesso!');
+          showToast('o. Produto excluÃ­do com sucesso!');
         }
       } catch (e) {
         console.error('deleteProduct error:', e);
@@ -2130,6 +2134,21 @@
       updateOrderStatus(orderId, el.value);
     }
 
+    function getLocalDateKey(value) {
+      if (!value) return '';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '';
+      const yyyy = String(d.getFullYear());
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function getLocalMonthKey(value) {
+      const dateKey = getLocalDateKey(value);
+      return dateKey ? dateKey.slice(0, 7) : '';
+    }
+
     async function loadAdminOrders() {
       const filter = document.getElementById('orderStatusFilter')?.value || '';
       let query = sb.from('orders').select('*').order('created_at', { ascending: false }).limit(300);
@@ -2146,20 +2165,26 @@
 
     function renderAdminOrders() {
       const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+      const dayFilter = document.getElementById('orderDayFilter')?.value || '';
+      const monthFilter = document.getElementById('orderMonthFilter')?.value || '';
       const search = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
       const list = allOrders.filter(o => {
         const statusOk = !statusFilter || o.status === statusFilter;
+        const orderDay = getLocalDateKey(o.created_at);
+        const orderMonth = getLocalMonthKey(o.created_at);
+        const dayOk = !dayFilter || orderDay === dayFilter;
+        const monthOk = !monthFilter || orderMonth === monthFilter;
         const number = String(o.numero_pedido || '').toLowerCase();
         const client = String(o.cliente_nome || '').toLowerCase();
         const searchOk = !search || number.includes(search) || client.includes(search);
-        return statusOk && searchOk;
+        return statusOk && dayOk && monthOk && searchOk;
       });
 
       document.getElementById('ordersTable').innerHTML = list.map(o => `
     <tr onclick="openOrderDetailModal('${o.id}')" style="cursor:pointer">
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
       <td>${escapeHtml(o.cliente_nome || '-')}<br><small style="color:#aaa">${escapeHtml(o.cliente_whatsapp || '')}</small></td>
-      <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? 'PJ' : 'PF'} ${o.cliente_documento || '—'}</small></td>
+      <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? 'PJ' : 'PF'} ${o.cliente_documento || 'â€”'}</small></td>
       <td><strong>${formatMoney(o.total)}</strong></td>
       <td>
         <select class="form-input status-select ${getStatusSelectClass(o.status)}" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px"
@@ -2184,7 +2209,7 @@
     }
 
     async function exportOrdersExcel() {
-      showToast('⏳ Gerando relatório detalhado...');
+      showToast('â³ Gerando relatÃ³rio detalhado...');
       try {
         // Busca pedidos com seus itens
         const { data: orders, error } = await sb
@@ -2203,30 +2228,30 @@
         orders.forEach(o => {
           const itens = o.order_items || [];
           const dataFmt = new Date(o.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-          const tipo = o.cliente_tipo === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física';
+          const tipo = o.cliente_tipo === 'PJ' ? 'Pessoa JurÃ­dica' : 'Pessoa FÃ­sica';
 
           if (itens.length === 0) {
             // Pedido sem itens registrados
             rowsDetalhe.push({
-              'Nº Pedido': o.numero_pedido,
+              'NÂº Pedido': o.numero_pedido,
               'Data/Hora': dataFmt,
               'Cliente': o.cliente_nome || '',
               'Tipo': tipo,
               'CPF/CNPJ': o.cliente_documento || '',
-              'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
+              'RazÃ£o Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
               'E-mail': o.cliente_email || '',
               'WhatsApp': o.cliente_whatsapp || '',
               'Produto': '(sem itens)',
               'Qtd': '',
-              'Preço Unit. (R$)': '',
+              'PreÃ§o Unit. (R$)': '',
               'Subtotal Item (R$)': '',
-              'Endereço': o.endereco_completo || '',
+              'EndereÃ§o': o.endereco_completo || '',
               'Cidade': o.endereco_cidade || '',
               'Estado': o.endereco_estado || '',
               'Recebedor': o.recebedor_nome || '',
               'WhatsApp Receb.': o.recebedor_whatsapp || '',
-              'Referência': o.recebedor_referencia || '',
-              'Observações': o.observacoes || '',
+              'ReferÃªncia': o.recebedor_referencia || '',
+              'ObservaÃ§Ãµes': o.observacoes || '',
               'Pagamento': o.metodo_pagamento || '',
               'Status Pag.': o.status_pagamento || '',
               'Status Pedido': o.status || '',
@@ -2235,29 +2260,29 @@
           } else {
             itens.forEach((item, idx) => {
               rowsDetalhe.push({
-                'Nº Pedido': o.numero_pedido,
+                'NÂº Pedido': o.numero_pedido,
                 'Data/Hora': dataFmt,
                 'Cliente': o.cliente_nome || '',
                 'Tipo': tipo,
                 'CPF/CNPJ': o.cliente_documento || '',
-                'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
+                'RazÃ£o Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
                 'E-mail': o.cliente_email || '',
                 'WhatsApp': o.cliente_whatsapp || '',
                 'Produto': item.produto_nome || '',
                 'Qtd': item.quantidade || 0,
-                'Preço Unit. (R$)': parseFloat(item.preco_unitario || 0).toFixed(2).replace('.', ','),
+                'PreÃ§o Unit. (R$)': parseFloat(item.preco_unitario || 0).toFixed(2).replace('.', ','),
                 'Subtotal Item (R$)': parseFloat(item.subtotal || 0).toFixed(2).replace('.', ','),
-                'Endereço': o.endereco_completo || '',
+                'EndereÃ§o': o.endereco_completo || '',
                 'Cidade': o.endereco_cidade || '',
                 'Estado': o.endereco_estado || '',
                 'Recebedor': o.recebedor_nome || '',
                 'WhatsApp Receb.': o.recebedor_whatsapp || '',
-                'Referência': o.recebedor_referencia || '',
-                'Observações': o.observacoes || '',
+                'ReferÃªncia': o.recebedor_referencia || '',
+                'ObservaÃ§Ãµes': o.observacoes || '',
                 'Pagamento': o.metodo_pagamento || '',
                 'Status Pag.': o.status_pagamento || '',
                 'Status Pedido': o.status || '',
-                // total do pedido só na primeira linha
+                // total do pedido sÃ³ na primeira linha
                 'TOTAL PEDIDO (R$)': idx === 0 ? parseFloat(o.total || 0).toFixed(2).replace('.', ',') : '',
               });
             });
@@ -2270,7 +2295,7 @@
         // Total geral
         const grandTotal = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
         rowsDetalhe.push({
-          'Nº Pedido': 'TOTAL GERAL',
+          'NÂº Pedido': 'TOTAL GERAL',
           'TOTAL PEDIDO (R$)': grandTotal.toFixed(2).replace('.', ','),
         });
 
@@ -2331,10 +2356,10 @@
 
         const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
         XLSX.writeFile(wb, `relatorio_globo_agua_${date}.xlsx`);
-        showToast('o. Relatório completo gerado!');
+        showToast('o. RelatÃ³rio completo gerado!');
       } catch (e) {
         console.error('Erro ao exportar:', e);
-        showToast('Erro ao gerar relatório: ' + (e.message || 'Tente novamente'));
+        showToast('Erro ao gerar relatÃ³rio: ' + (e.message || 'Tente novamente'));
       }
     }
 
@@ -2472,21 +2497,21 @@
 
         return `
     <tr>
-      <td><strong>${p.nome_completo || p.razao_social || '—'}</strong><br><small style="color:#aaa">${p.email || '—'}</small></td>
-      <td class="col-hide-mobile">${p.whatsapp || '—'}</td>
-      <td class="col-hide-mobile">${p.email || '—'}</td>
+      <td><strong>${p.nome_completo || p.razao_social || 'â€”'}</strong><br><small style="color:#aaa">${p.email || 'â€”'}</small></td>
+      <td class="col-hide-mobile">${p.whatsapp || 'â€”'}</td>
+      <td class="col-hide-mobile">${p.email || 'â€”'}</td>
       <td><span class="badge badge-confirmado" style="background:${isPJ ? '#1b5e20' : '#455a64'}">${p.tipo_pessoa || 'PF'}</span></td>
-      <td>${doc || '—'}</td>
+      <td>${doc || 'â€”'}</td>
       <td class="col-hide-mobile" style="font-size:12px;color:#888">${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
       <td style="white-space:nowrap">
-        <button class="btn btn-primary btn-sm" onclick="goToPrices('${doc}')" title="Definir Preços Especiais">Preço</button>
-        ${isPJ && !alreadyCompany ? `<button class="btn btn-ghost btn-sm" onclick="promoteToCompany('${p.id}')" title="Adicionar à lista de Empresas B2B">+ B2B</button>` : ''}
+        <button class="btn btn-primary btn-sm" onclick="goToPrices('${doc}')" title="Definir PreÃ§os Especiais">PreÃ§o</button>
+        ${isPJ && !alreadyCompany ? `<button class="btn btn-ghost btn-sm" onclick="promoteToCompany('${p.id}')" title="Adicionar Ã  lista de Empresas B2B">+ B2B</button>` : ''}
       </td>
     </tr>`;
       }).join('');
     }
 
-    // Atalho para ir para preços e selecionar o cliente
+    // Atalho para ir para preÃ§os e selecionar o cliente
     function goToPrices(doc) {
       if (!doc) { showToast('Cliente sem documento'); return; }
       showSection('prices', getNavItemBySection('prices'));
@@ -2498,7 +2523,7 @@
       const p = allProfiles.find(x => x.id === profileId);
       if (!p) return;
       const cnpj = (p.documento || '').replace(/\D/g, '');
-      if (!cnpj) { showToast('CNPJ não informado no perfil'); return; }
+      if (!cnpj) { showToast('CNPJ nÃ£o informado no perfil'); return; }
 
       const data = {
         razao_social: p.razao_social || p.nome_completo,
@@ -2530,7 +2555,7 @@
     <tr>
       <td><strong>${c.razao_social}</strong><br><small style="color:#aaa">${c.nome_fantasia || ''}</small></td>
       <td>${c.cnpj}</td>
-      <td>${c.contato || '—'}</td>
+      <td>${c.contato || 'â€”'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-ghost btn-sm" onclick="openCompanyModal('${c.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCompany('${c.id}')">Excluir</button>
@@ -2553,7 +2578,7 @@
       const id = document.getElementById('companyId').value;
       const razao = document.getElementById('companyRazao').value.trim();
       const cnpj = document.getElementById('companyCnpj').value.replace(/\D/g, '');
-      if (!razao || !cnpj) { showToast('Informe razão social e CNPJ'); return; }
+      if (!razao || !cnpj) { showToast('Informe razÃ£o social e CNPJ'); return; }
 
       const data = {
         razao_social: razao,
@@ -2571,10 +2596,10 @@
       if (id) await sb.from('companies').update(data).eq('id', id);
       else await sb.from('companies').insert(data);
 
-      // Se o CNPJ mudou, reflete a mudança nos preços especiais
+      // Se o CNPJ mudou, reflete a mudanÃ§a nos preÃ§os especiais
       if (id && oldCnpj && oldCnpj !== cnpj) {
         await sb.from('company_prices').update({ cnpj }).eq('cnpj', oldCnpj);
-        showToast('o. Empresa e preços sincronizados!');
+        showToast('o. Empresa e preÃ§os sincronizados!');
       } else {
         showToast('Empresa salva!');
       }
@@ -2588,14 +2613,14 @@
       if (!confirm('Excluir esta empresa?')) return;
       await sb.from('companies').delete().eq('id', id);
       await loadAllCompanies(); renderCompanies();
-      showToast('Empresa excluída');
+      showToast('Empresa excluÃ­da');
     }
 
     // ============================================================
     // PRICES
     // ============================================================
     function populatePriceCompanySelect() {
-      console.log('YZ Populando seletor de preços...');
+      console.log('YZ Populando seletor de preÃ§os...');
       const sel = document.getElementById('priceCompanySelect');
       if (!sel) return;
 
@@ -2636,12 +2661,12 @@
       const priceMap = {};
       (prices || []).forEach(p => { priceMap[p.product_id] = p.preco_especial; });
       container.innerHTML = `<div class="table-wrap price-matrix"><table>
-    <thead><tr><th>Produto</th><th>Categoria</th><th>Preço Padrão</th><th>Preço Especial</th><th></th></tr></thead>
+    <thead><tr><th>Produto</th><th>Categoria</th><th>PreÃ§o PadrÃ£o</th><th>PreÃ§o Especial</th><th></th></tr></thead>
     <tbody>${allProducts.map(p => `<tr>
       <td><strong>${p.nome}</strong></td>
       <td>${p.categoria}</td>
       <td>R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</td>
-      <td><input class="form-input" type="number" step="0.01" id="price_${p.id}" value="${priceMap[p.id] || ''}" placeholder="Padrão" style="width:110px;padding:6px 10px"></td>
+      <td><input class="form-input" type="number" step="0.01" id="price_${p.id}" value="${priceMap[p.id] || ''}" placeholder="PadrÃ£o" style="width:110px;padding:6px 10px"></td>
       <td><button class="btn btn-primary btn-sm" onclick="saveSpecialPrice('${cnpj}','${p.id}')">Salvar</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -2649,9 +2674,9 @@
 
     async function saveSpecialPrice(cnpj, productId) {
       const val = parseFloat(document.getElementById('price_' + productId).value);
-      if (isNaN(val) || val <= 0) { showToast('Valor inválido'); return; }
+      if (isNaN(val) || val <= 0) { showToast('Valor invÃ¡lido'); return; }
 
-      // Tenta encontrar o ID da empresa para manter compatibilidade, mas o vínculo principal é o CNPJ/CPF
+      // Tenta encontrar o ID da empresa para manter compatibilidade, mas o vÃ­nculo principal Ã© o CNPJ/CPF
       const company = allCompanies.find(c => c.cnpj.replace(/\D/g, '') === cnpj.replace(/\D/g, ''));
       const profile = allProfiles.find(p => (p.documento || '').replace(/\D/g, '') === cnpj.replace(/\D/g, ''));
 
@@ -2668,7 +2693,7 @@
         console.error('saveSpecialPrice error:', error);
         showToast('Erro ao salvar: ' + error.message);
       } else {
-        showToast('o. Preço salvo!');
+        showToast('o. PreÃ§o salvo!');
       }
     }
 
@@ -2762,7 +2787,7 @@
     }
 
     // ============================================================
-    // AUTO-RESTAURAR SESSÃO AO RECARREGAR
+    // AUTO-RESTAURAR SESSÃƒO AO RECARREGAR
     // ============================================================
     (async () => {
       const { data } = await sb.auth.getSession();
@@ -2787,3 +2812,4 @@
 </body>
 
 </html>
+
