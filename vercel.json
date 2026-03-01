@@ -13,6 +13,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/pedido", "destination": "/admin/index.html" },
+    { "source": "/pedido/(.*)", "destination": "/admin/index.html" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/(.*)", "destination": "/admin/index.html" }
   ]

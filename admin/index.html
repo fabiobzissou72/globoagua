@@ -1547,6 +1547,8 @@
       '/admin/dashboard': 'dashboard',
       '/admin/produtos': 'products',
       '/admin/pedidos': 'orders',
+      '/pedido': 'orders',
+      '/pedido/index.html': 'orders',
       '/admin/clientes': 'clients',
       '/admin/empresas': 'companies',
       '/admin/precos': 'prices',
@@ -1595,6 +1597,7 @@
     }
 
     function getPathFromSection(section) {
+      if (currentRole === 'operador_pedidos' && section === 'orders') return '/pedido';
       return SECTION_TO_PATH[section] || '/admin';
     }
 

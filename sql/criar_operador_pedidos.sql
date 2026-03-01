@@ -4,7 +4,8 @@
 DO $$
 DECLARE
   v_uid uuid;
-  v_email text := '11985758066@operador.local';
+  v_email text := 'globoagua@globoagua.com.br';
+  v_old_email text := '11985758066@operador.local';
   v_password text := 'GA2026';
 BEGIN
   -- Compatibilidade: cria coluna role se ainda nao existir
@@ -24,6 +25,13 @@ BEGIN
   SELECT id INTO v_uid
   FROM auth.users
   WHERE email = v_email;
+
+  -- Se ja existir usuario antigo, migra para o novo email
+  IF v_uid IS NULL THEN
+    SELECT id INTO v_uid
+    FROM auth.users
+    WHERE email = v_old_email;
+  END IF;
 
   IF v_uid IS NULL THEN
     v_uid := gen_random_uuid();
@@ -59,7 +67,11 @@ BEGIN
     );
   ELSE
     UPDATE auth.users
-       SET encrypted_password = crypt(v_password, gen_salt('bf')),
+       SET email = v_email,
+           email_change = '',
+           email_change_token_new = '',
+           email_change_token_current = '',
+           encrypted_password = crypt(v_password, gen_salt('bf')),
            email_confirmed_at = coalesce(email_confirmed_at, now()),
            updated_at = now(),
            raw_user_meta_data = jsonb_set(coalesce(raw_user_meta_data, '{}'::jsonb), '{whatsapp}', '"11985758066"'::jsonb, true)
