@@ -31,9 +31,9 @@ BEGIN
   END IF;
 
   -- Garante que tem perfil
-  INSERT INTO public.profiles (id, nome_completo, is_admin)
-  VALUES (v_uid, 'Fabio Admin', true)
-  ON CONFLICT (id) DO UPDATE SET is_admin = true;
+  INSERT INTO public.profiles (id, nome_completo, is_admin, role)
+  VALUES (v_uid, 'Fabio Admin', true, 'admin')
+  ON CONFLICT (id) DO UPDATE SET is_admin = true, role = 'admin';
 
   RAISE NOTICE 'Admin criado/atualizado com sucesso! ID: %', v_uid;
 END;
