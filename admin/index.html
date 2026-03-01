@@ -596,6 +596,42 @@
       cursor: pointer
     }
 
+    .status-select {
+      font-weight: 700;
+      border-width: 1.5px !important;
+      transition: background-color .2s, border-color .2s, color .2s;
+    }
+
+    .status-select-NOVO {
+      background: #E3F2FD;
+      border-color: #90CAF9 !important;
+      color: #0D47A1;
+    }
+
+    .status-select-CONFIRMADO {
+      background: #E8F5E9;
+      border-color: #A5D6A7 !important;
+      color: #1B5E20;
+    }
+
+    .status-select-PRODUCAO {
+      background: #FFF3E0;
+      border-color: #FFCC80 !important;
+      color: #E65100;
+    }
+
+    .status-select-ENTREGUE {
+      background: #E8F5E9;
+      border-color: #66BB6A !important;
+      color: #1B5E20;
+    }
+
+    .status-select-CANCELADO {
+      background: #FFEBEE;
+      border-color: #EF9A9A !important;
+      color: #B71C1C;
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1528,6 +1564,7 @@
     let currentSection = 'dashboard';
     let currentOrderDetailId = null;
     const ORDER_ALLOWED_STATUSES = ['NOVO', 'CONFIRMADO', 'PRODUCAO', 'ENTREGUE', 'CANCELADO'];
+    const ORDER_STATUS_SELECT_CLASSES = ORDER_ALLOWED_STATUSES.map(s => `status-select-${s}`);
     const ROLE_ALLOWED_SECTIONS = {
       admin: ['dashboard', 'products', 'orders', 'clients', 'companies', 'prices', 'settings'],
       operador_pedidos: ['orders']
@@ -2075,6 +2112,24 @@
       return allOrders.find(o => o.id === orderId);
     }
 
+    function getStatusSelectClass(status) {
+      const normalized = String(status || '').toUpperCase();
+      if (!ORDER_ALLOWED_STATUSES.includes(normalized)) return 'status-select-NOVO';
+      return `status-select-${normalized}`;
+    }
+
+    function applyStatusSelectClass(el) {
+      if (!el) return;
+      el.classList.add('status-select');
+      el.classList.remove(...ORDER_STATUS_SELECT_CLASSES);
+      el.classList.add(getStatusSelectClass(el.value));
+    }
+
+    function handleOrderStatusChange(el, orderId) {
+      applyStatusSelectClass(el);
+      updateOrderStatus(orderId, el.value);
+    }
+
     async function loadAdminOrders() {
       const filter = document.getElementById('orderStatusFilter')?.value || '';
       let query = sb.from('orders').select('*').order('created_at', { ascending: false }).limit(300);
@@ -2107,9 +2162,9 @@
       <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? 'PJ' : 'PF'} ${o.cliente_documento || '—'}</small></td>
       <td><strong>${formatMoney(o.total)}</strong></td>
       <td>
-        <select class="form-input" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px"
+        <select class="form-input status-select ${getStatusSelectClass(o.status)}" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px"
           onclick="event.stopPropagation()"
-          onchange="updateOrderStatus('${o.id}',this.value)">
+          onchange="handleOrderStatusChange(this,'${o.id}')">
           ${ORDER_ALLOWED_STATUSES.map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
         </select>
       </td>
