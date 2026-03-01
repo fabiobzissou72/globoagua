@@ -632,6 +632,169 @@
       color: #B71C1C;
     }
 
+    .orders-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .orders-mobile-list {
+      display: none;
+      padding: 10px 12px 14px
+    }
+
+    .order-mobile-card {
+      border: 1px solid #e8edf5;
+      border-radius: 12px;
+      padding: 11px;
+      margin-bottom: 10px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .05);
+      cursor: pointer
+    }
+
+    .order-mobile-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px
+    }
+
+    .order-mobile-number {
+      color: var(--blue);
+      font-size: 14px
+    }
+
+    .order-mobile-client {
+      color: #1b1b1b;
+      font-weight: 600;
+      margin-bottom: 4px
+    }
+
+    .order-mobile-contact {
+      color: #7a8190;
+      font-size: 12px;
+      margin-bottom: 8px
+    }
+
+    .order-mobile-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #4f5564;
+      font-size: 12px;
+      margin-bottom: 10px
+    }
+
+    .order-mobile-total {
+      font-size: 15px;
+      color: #183b6b
+    }
+
+    .order-mobile-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center
+    }
+
+    .order-detail-card {
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 12px
+    }
+
+    .order-detail-card h4 {
+      margin-bottom: 10px
+    }
+
+    .order-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px
+    }
+
+    .order-detail-field {
+      font-size: 13px;
+      color: #2a2a2a
+    }
+
+    .order-items-card {
+      background: #fff;
+      border: 1px solid #e6ebf2;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 12px
+    }
+
+    .order-items-head {
+      display: grid;
+      grid-template-columns: 1.8fr .5fr .9fr .9fr;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #607080;
+      text-transform: uppercase;
+      border-bottom: 2px solid #eef3f8;
+      padding-bottom: 6px
+    }
+
+    .order-item-row {
+      display: grid;
+      grid-template-columns: 1.8fr .5fr .9fr .9fr;
+      gap: 8px;
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eef2f7
+    }
+
+    .order-item-name {
+      font-weight: 600;
+      color: #17365e
+    }
+
+    .order-item-pill {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap
+    }
+
+    .order-item-pill-qtd {
+      background: #e8f0ff;
+      color: #184d9e
+    }
+
+    .order-item-pill-unit {
+      background: #fff6e9;
+      color: #a85b00
+    }
+
+    .order-item-pill-subtotal {
+      background: #eaf8ef;
+      color: #126b3a
+    }
+
+    .order-total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 14px
+    }
+
+    .order-total-row-final {
+      margin-top: 7px;
+      font-size: 16px;
+      color: var(--blue)
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -927,6 +1090,55 @@
         padding: 12px
       }
 
+      .orders-filters {
+        width: 100%;
+        gap: 6px
+      }
+
+      .orders-filters .form-input {
+        font-size: 14px;
+        min-height: 40px;
+        padding: 8px 10px !important
+      }
+
+      .orders-filters #orderStatusFilter,
+      .orders-filters #orderDayFilter,
+      .orders-filters #orderMonthFilter {
+        flex: 1 1 110px;
+        min-width: 110px
+      }
+
+      .orders-filters #orderSearchInput {
+        width: 100% !important;
+        flex: 1 1 100%
+      }
+
+      #sectionOrders .orders-table-wrap {
+        display: none
+      }
+
+      #sectionOrders .orders-mobile-list {
+        display: block
+      }
+
+      .order-item-row {
+        grid-template-columns: 1fr;
+        gap: 6px
+      }
+
+      .order-items-head {
+        display: none
+      }
+
+      .order-item-name {
+        margin-bottom: 2px
+      }
+
+      .order-mobile-actions .form-input {
+        min-height: 38px;
+        font-size: 13px
+      }
+
       .form-row {
         grid-template-columns: 1fr
       }
@@ -1177,7 +1389,7 @@
           <div class="table-card">
             <div class="table-header">
               <h3>Pedidos</h3>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <div class="orders-filters">
                 <select class="form-input" id="orderStatusFilter" style="width:auto;padding:7px 12px"
                   onchange="loadAdminOrders()">
                   <option value="">Todos</option>
@@ -1199,7 +1411,7 @@
                 </button>
               </div>
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap orders-table-wrap">
               <table>
                 <thead>
                   <tr>
@@ -1215,6 +1427,7 @@
                 <tbody id="ordersTable"></tbody>
               </table>
             </div>
+            <div id="ordersMobileList" class="orders-mobile-list"></div>
           </div>
         </div>
 
@@ -2112,6 +2325,17 @@
       return new Date(value).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
     }
 
+    function formatPaymentMethod(value) {
+      const raw = String(value || '').trim();
+      const upper = raw.toUpperCase();
+      if (!raw) return '-';
+      if (upper === 'PIX') return 'PIX';
+      if (upper.includes('DINHE')) return 'Dinheiro';
+      if (upper.includes('CART')) return 'Cartao';
+      if (upper.includes('BOLETO')) return 'Boleto';
+      return raw;
+    }
+
     function getOrderById(orderId) {
       return allOrders.find(o => o.id === orderId);
     }
@@ -2199,12 +2423,41 @@
       </td>
     </tr>`).join('');
 
+      const mobileListEl = document.getElementById('ordersMobileList');
+      if (mobileListEl) {
+        mobileListEl.innerHTML = list.map(o => `
+          <div class="order-mobile-card" onclick="openOrderDetailModal('${o.id}')">
+            <div class="order-mobile-top">
+              <strong class="order-mobile-number">#${o.numero_pedido}</strong>
+              <span class="badge badge-${o.status || 'NOVO'}">${o.status || 'NOVO'}</span>
+            </div>
+            <div class="order-mobile-client">${escapeHtml(o.cliente_nome || '-')}</div>
+            <div class="order-mobile-contact">${escapeHtml(o.cliente_whatsapp || '')}</div>
+            <div class="order-mobile-meta">
+              <span>${formatDateTime(o.created_at)}</span>
+              <strong class="order-mobile-total">${formatMoney(o.total)}</strong>
+            </div>
+            <div class="order-mobile-actions">
+              <select class="form-input status-select ${getStatusSelectClass(o.status)}"
+                onclick="event.stopPropagation()"
+                onchange="handleOrderStatusChange(this,'${o.id}')">
+                ${ORDER_ALLOWED_STATUSES.map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); openOrderDetailModal('${o.id}')">Detalhes</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
       if (!list.length) {
         document.getElementById('ordersTable').innerHTML = `
           <tr>
             <td colspan="7" style="text-align:center;color:#888;padding:18px">Nenhum pedido encontrado</td>
           </tr>
         `;
+        if (mobileListEl) {
+          mobileListEl.innerHTML = `<div style="text-align:center;color:#888;padding:10px 6px">Nenhum pedido encontrado</div>`;
+        }
       }
     }
 
@@ -2385,52 +2638,62 @@
       }
 
       const razaoSocial = o.razao_social || (o.cliente_tipo === 'PJ' ? o.cliente_nome : '');
+      const paymentMethod = formatPaymentMethod(o.metodo_pagamento);
+      const paymentStatus = escapeHtml(o.status_pagamento || '-');
       const itemsHtml = (o.order_items || []).map(i => `
-        <div style="display:grid;grid-template-columns:1.6fr .6fr .7fr .7fr;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid #f0f0f0">
-          <span>${escapeHtml(i.produto_nome || 'Produto')}</span>
-          <span>${parseInt(i.quantidade || 0, 10)}</span>
-          <span>${formatMoney(i.preco_unitario)}</span>
-          <span>${formatMoney(i.subtotal)}</span>
+        <div class="order-item-row">
+          <span class="order-item-name">${escapeHtml(i.produto_nome || 'Produto')}</span>
+          <span><span class="order-item-pill order-item-pill-qtd">${parseInt(i.quantidade || 0, 10)}</span></span>
+          <span><span class="order-item-pill order-item-pill-unit">${formatMoney(i.preco_unitario)}</span></span>
+          <span><span class="order-item-pill order-item-pill-subtotal">${formatMoney(i.subtotal)}</span></span>
         </div>
       `).join('');
 
       document.getElementById('orderDetailBody').innerHTML = `
-        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:12px">
-          <h4 style="margin-bottom:10px;color:var(--blue)">Pedido #${escapeHtml(o.numero_pedido || '')}</h4>
-          <p><strong>Data/Hora:</strong> ${formatDateTime(o.created_at)}</p>
-          <p><strong>Status:</strong> <span class="badge badge-${escapeHtml(o.status || 'NOVO')}">${escapeHtml(o.status || 'NOVO')}</span></p>
+        <div class="order-detail-card">
+          <h4 style="color:var(--blue)">Pedido #${escapeHtml(o.numero_pedido || '')}</h4>
+          <div class="order-detail-grid">
+            <p class="order-detail-field"><strong>Data/Hora:</strong> ${formatDateTime(o.created_at)}</p>
+            <p class="order-detail-field"><strong>Status:</strong> <span class="badge badge-${escapeHtml(o.status || 'NOVO')}">${escapeHtml(o.status || 'NOVO')}</span></p>
+            <p class="order-detail-field"><strong>Forma de pagamento:</strong> ${escapeHtml(paymentMethod)}</p>
+            <p class="order-detail-field"><strong>Status do pagamento:</strong> ${paymentStatus}</p>
+          </div>
         </div>
 
-        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:12px">
-          <h4 style="margin-bottom:10px">Cliente</h4>
-          <p><strong>Nome:</strong> ${escapeHtml(o.cliente_nome || '-')}</p>
-          <p><strong>WhatsApp:</strong> ${escapeHtml(o.cliente_whatsapp || '-')}</p>
-          <p><strong>Email:</strong> ${escapeHtml(o.cliente_email || '-')}</p>
-          <p><strong>Tipo:</strong> ${escapeHtml(o.cliente_tipo || 'PF')}</p>
-          <p><strong>CPF/CNPJ:</strong> ${escapeHtml(o.cliente_documento || '-')}</p>
-          <p><strong>Razao social:</strong> ${escapeHtml(razaoSocial || '-')}</p>
+        <div class="order-detail-card">
+          <h4>Cliente</h4>
+          <div class="order-detail-grid">
+            <p class="order-detail-field"><strong>Nome:</strong> ${escapeHtml(o.cliente_nome || '-')}</p>
+            <p class="order-detail-field"><strong>WhatsApp:</strong> ${escapeHtml(o.cliente_whatsapp || '-')}</p>
+            <p class="order-detail-field"><strong>Email:</strong> ${escapeHtml(o.cliente_email || '-')}</p>
+            <p class="order-detail-field"><strong>Tipo:</strong> ${escapeHtml(o.cliente_tipo || 'PF')}</p>
+            <p class="order-detail-field"><strong>CPF/CNPJ:</strong> ${escapeHtml(o.cliente_documento || '-')}</p>
+            <p class="order-detail-field"><strong>Razao social:</strong> ${escapeHtml(razaoSocial || '-')}</p>
+          </div>
         </div>
 
-        <div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:12px">
-          <h4 style="margin-bottom:10px">Entrega</h4>
-          <p><strong>Endereco:</strong> ${escapeHtml(o.endereco_completo || '-')}</p>
-          <p><strong>Cidade/UF:</strong> ${escapeHtml(o.endereco_cidade || '-')} / ${escapeHtml(o.endereco_estado || '-')}</p>
-          <p><strong>Recebedor:</strong> ${escapeHtml(o.recebedor_nome || '-')}</p>
-          <p><strong>WhatsApp recebedor:</strong> ${escapeHtml(o.recebedor_whatsapp || '-')}</p>
-          <p><strong>Referencia:</strong> ${escapeHtml(o.recebedor_referencia || '-')}</p>
-          <p><strong>Observacoes:</strong> ${escapeHtml(o.observacoes || '-')}</p>
+        <div class="order-detail-card">
+          <h4>Entrega</h4>
+          <div class="order-detail-grid">
+            <p class="order-detail-field"><strong>Endereco:</strong> ${escapeHtml(o.endereco_completo || '-')}</p>
+            <p class="order-detail-field"><strong>Cidade/UF:</strong> ${escapeHtml(o.endereco_cidade || '-')} / ${escapeHtml(o.endereco_estado || '-')}</p>
+            <p class="order-detail-field"><strong>Recebedor:</strong> ${escapeHtml(o.recebedor_nome || '-')}</p>
+            <p class="order-detail-field"><strong>WhatsApp recebedor:</strong> ${escapeHtml(o.recebedor_whatsapp || '-')}</p>
+            <p class="order-detail-field"><strong>Referencia:</strong> ${escapeHtml(o.recebedor_referencia || '-')}</p>
+            <p class="order-detail-field"><strong>Observacoes:</strong> ${escapeHtml(o.observacoes || '-')}</p>
+          </div>
         </div>
 
-        <div style="background:#fff;border:1px solid #eee;padding:15px;border-radius:12px;margin-bottom:12px">
+        <div class="order-items-card">
           <h4 style="margin-bottom:10px">Itens do pedido</h4>
-          <div style="display:grid;grid-template-columns:1.6fr .6fr .7fr .7fr;gap:8px;font-size:11px;font-weight:700;color:#666;text-transform:uppercase;border-bottom:2px solid #f0f0f0;padding-bottom:6px">
+          <div class="order-items-head">
             <span>Produto</span><span>Qtd</span><span>Unitario</span><span>Subtotal</span>
           </div>
           ${itemsHtml || '<div style="padding:8px 0;color:#888">Sem itens cadastrados</div>'}
-          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:14px">
+          <div class="order-total-row">
             <span><strong>Subtotal</strong></span><span>${formatMoney(o.subtotal)}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:16px;color:var(--blue)">
+          <div class="order-total-row order-total-row-final">
             <span><strong>Total</strong></span><span><strong>${formatMoney(o.total)}</strong></span>
           </div>
         </div>
