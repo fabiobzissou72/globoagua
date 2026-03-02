@@ -1536,8 +1536,9 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">URL da Mídia (Imagem, GIF ou Vídeo)</label>
-                  <input class="form-input" id="setPromoBannerMediaUrl" placeholder="https://exemplo.com/banner.jpg"
-                    oninput="renderPromoBannerPreview()">
+                  <textarea class="form-input" id="setPromoBannerMediaUrl" rows="3"
+                    placeholder="https://exemplo.com/banner1.jpg&#10;https://exemplo.com/banner2.jpg"
+                    oninput="renderPromoBannerPreview()"></textarea>
                   <small style="color:#888;font-size:11px">Para rotativo, informe uma URL por linha.</small>
                 </div>
                 <div class="form-group">
@@ -3078,13 +3079,28 @@
       return 'image';
     }
 
+    function parsePromoBannerMediaUrls(rawValue) {
+      return String(rawValue || '')
+        .split(/\r?\n|\|/)
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+    }
+
+    function getFirstValidPromoBannerUrl(rawValue) {
+      const urls = parsePromoBannerMediaUrls(rawValue);
+      for (const candidate of urls) {
+        if (isValidHttpUrl(candidate)) return candidate;
+      }
+      return '';
+    }
+
     function renderPromoBannerPreview() {
       const mediaUrlEl = document.getElementById('setPromoBannerMediaUrl');
       const mediaTypeEl = document.getElementById('setPromoBannerMediaType');
       const previewBox = document.getElementById('promoBannerPreviewBox');
       if (!mediaUrlEl || !mediaTypeEl || !previewBox) return;
 
-      const mediaUrl = (mediaUrlEl.value || '').trim();
+      const mediaUrl = getFirstValidPromoBannerUrl(mediaUrlEl.value || '');
       const mediaType = mediaTypeEl.value === 'video' ? 'video' : 'image';
       if (!mediaUrl || !isValidHttpUrl(mediaUrl)) {
         previewBox.innerHTML = 'Sem preview';
@@ -3158,7 +3174,11 @@
       const { data: publicData } = sb.storage.from('produtos').getPublicUrl(path);
       const mediaUrlEl = document.getElementById('setPromoBannerMediaUrl');
       const mediaTypeEl = document.getElementById('setPromoBannerMediaType');
-      if (mediaUrlEl) mediaUrlEl.value = publicData?.publicUrl || '';
+      if (mediaUrlEl) {
+        const newUrl = publicData?.publicUrl || '';
+        const existing = String(mediaUrlEl.value || '').trim();
+        mediaUrlEl.value = existing ? `${existing}\n${newUrl}` : newUrl;
+      }
       if (mediaTypeEl) mediaTypeEl.value = inferPromoMediaType(promoBannerUploadFile.type || safeExt);
 
       renderPromoBannerPreview();
