@@ -1753,7 +1753,7 @@
           <div class="profile-item-text"><strong>Alterar Senha</strong><span>Definir uma nova senha de acesso</span></div>
           <span class="profile-item-arrow">›</span>
         </div>
-        <div class="profile-item" id="btnMyOrders" onclick="showView('viewOrders',null);loadOrders()">
+        <div class="profile-item" id="btnMyOrders" onclick="showView('viewOrders',null);loadOrders(true)">
           <span class="profile-item-icon">📦</span>
           <div class="profile-item-text"><strong>Meus Pedidos</strong><span>Histórico de compras</span></div>
           <span class="profile-item-arrow">›</span>
@@ -2056,7 +2056,7 @@
         <p>Atualizações pelo WhatsApp.</p>
         <p id="successAutoBack" style="font-size:13px;color:#666;margin-top:8px"></p>
         <button class="auth-btn btn-biometric" style="margin-top:24px"
-          onclick="closeCheckout();setTimeout(() => { showView('viewOrders',null); loadOrders(); }, 150)">Ver meus
+          onclick="closeCheckout();setTimeout(() => { showView('viewOrders',null); loadOrders(true); }, 150)">Ver meus
           pedidos</button>
       </div>
     </div>
@@ -2239,6 +2239,7 @@
       promoBannerText: '',
       ordersRealtimeChannel: null,
       ordersRealtimeReconnectTimer: null,
+      ordersLoadReqSeq: 0,
       currentOrderDetailId: null,
       currentOrderDetailData: null,
       orderDetailRequestSeq: 0,
@@ -3513,32 +3514,61 @@
         S.ordersRefreshPending = true;
         return;
       }
+      const reqSeq = ++S.ordersLoadReqSeq;
+      const listEl = document.getElementById('ordersList');
+
       if (!S.user) {
-        document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Faça login para ver seus pedidos</p><button class="auth-btn btn-biometric" style="max-width:200px;margin-top:12px" onclick="openAuth()">Entrar</button></div>';
+        if (listEl) {
+          listEl.innerHTML = '<div class="loading-center"><p style="color:#aaa">Faça login para ver seus pedidos</p><button class="auth-btn btn-biometric" style="max-width:200px;margin-top:12px" onclick="openAuth()">Entrar</button></div>';
+        }
         return;
       }
-      document.getElementById('ordersList').innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
+
+      if (listEl) {
+        listEl.innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
+      }
+
       const client = getSupabase();
-      if (!client) { document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro de conexão</p></div>'; return; }
-      const { data } = await client.from('orders').select('*').eq('user_id', S.user.id).order('created_at', { ascending: false });
-      if (!data?.length) {
-        document.getElementById('ordersList').innerHTML = '<div class="loading-center">😕 Nenhum pedido ainda</div>';
+      if (!client) {
+        if (listEl) listEl.innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro de conexão</p></div>';
         return;
       }
-      document.getElementById('ordersList').innerHTML = data.map(o => `
-    <div class="order-card" onclick="openOrderDetail('${o.id}')">
-      <div class="order-card-header">
-        <span class="order-card-num">#${escHtml(o.numero_pedido || '')}</span>
-        <span class="status-badge status-${escAttr(o.status || '')}">${escHtml(o.status || '')}</span>
+
+      try {
+        const queryTask = client.from('orders').select('*').eq('user_id', S.user.id).order('created_at', { ascending: false });
+        const timeoutTask = new Promise((_, reject) => setTimeout(() => reject(new Error('orders-timeout')), 10000));
+        const { data, error } = await Promise.race([queryTask, timeoutTask]);
+
+        if (reqSeq !== S.ordersLoadReqSeq) return;
+        if (error) throw error;
+
+        if (!data?.length) {
+          if (listEl) listEl.innerHTML = '<div class="loading-center">😕 Nenhum pedido ainda</div>';
+          return;
+        }
+
+        if (!listEl) return;
+        listEl.innerHTML = data.map(o => `
+      <div class="order-card" onclick="openOrderDetail('${o.id}')">
+        <div class="order-card-header">
+          <span class="order-card-num">#${escHtml(o.numero_pedido || '')}</span>
+          <span class="status-badge status-${escAttr(o.status || '')}">${escHtml(o.status || '')}</span>
+        </div>
+        <div class="order-card-info">
+          <div>${new Date(o.created_at).toLocaleString('pt-BR')}</div>
+          <div><strong>Total: ${fmt(o.total)}</strong> · ${escHtml(o.metodo_pagamento || '')}</div>
+          <div>${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}</div>
+        </div>
+        <div class="order-card-arrow">›</div>
       </div>
-      <div class="order-card-info">
-        <div>${new Date(o.created_at).toLocaleString('pt-BR')}</div>
-        <div><strong>Total: ${fmt(o.total)}</strong> · ${escHtml(o.metodo_pagamento || '')}</div>
-        <div>${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}</div>
-      </div>
-      <div class="order-card-arrow">›</div>
-    </div>
-  `).join('');
+    `).join('');
+      } catch (err) {
+        if (reqSeq !== S.ordersLoadReqSeq) return;
+        console.error('loadOrders:', err);
+        if (listEl) {
+          listEl.innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro ao carregar pedidos</p><button class="auth-btn btn-biometric" style="max-width:220px;margin-top:10px" onclick="loadOrders(true)">Tentar novamente</button></div>';
+        }
+      }
     }
 
     function stopOrdersRealtime() {
