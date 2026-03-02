@@ -2222,6 +2222,13 @@
       currentCategory: 'Todos',
       checkoutStep: 0,
       selectedPayment: 'PIX',
+      lastCheckoutAddress: (() => {
+        try {
+          return JSON.parse(localStorage.getItem('ga_last_checkout_address') || 'null');
+        } catch (e) {
+          return null;
+        }
+      })(),
       postLoginAction: null,
       deferredPrompt: null,
       settings: {},
@@ -2390,6 +2397,10 @@
       if (S.selectedBranchId) S.selectedBranch = S.branches.find(b => b.id === S.selectedBranchId) || null;
       renderBranchSelect();
       updateBranchSummary();
+      if (S.lastCheckoutAddress) {
+        applyCheckoutAddress(S.lastCheckoutAddress);
+        if (!S.selectedBranchId && S.lastCheckoutAddress.cep) pickBranchByCep(S.lastCheckoutAddress.cep);
+      }
     }
 
     function renderBranchSelect() {
@@ -3107,6 +3118,45 @@
       setTimeout(openCheckout, 150);
     };
 
+    function readCheckoutAddressForm() {
+      return {
+        cep: (document.getElementById('addrCep')?.value || '').trim(),
+        rua: (document.getElementById('addrRua')?.value || '').trim(),
+        numero: (document.getElementById('addrNum')?.value || '').trim(),
+        complemento: (document.getElementById('addrComp')?.value || '').trim(),
+        bairro: (document.getElementById('addrBairro')?.value || '').trim(),
+        cidade: (document.getElementById('addrCidade')?.value || '').trim(),
+        estado: (document.getElementById('addrEstado')?.value || '').trim()
+      };
+    }
+
+    function persistLastCheckoutAddress(addr) {
+      const safeAddr = {
+        cep: String(addr?.cep || '').trim(),
+        rua: String(addr?.rua || '').trim(),
+        numero: String(addr?.numero || '').trim(),
+        complemento: String(addr?.complemento || '').trim(),
+        bairro: String(addr?.bairro || '').trim(),
+        cidade: String(addr?.cidade || '').trim(),
+        estado: String(addr?.estado || '').trim()
+      };
+      if (!safeAddr.rua || !safeAddr.cidade) return;
+      S.lastCheckoutAddress = safeAddr;
+      localStorage.setItem('ga_last_checkout_address', JSON.stringify(safeAddr));
+    }
+
+    function applyCheckoutAddress(addr) {
+      if (!addr) return false;
+      document.getElementById('addrCep').value = addr.cep || '';
+      document.getElementById('addrRua').value = addr.rua || '';
+      document.getElementById('addrNum').value = addr.numero || '';
+      document.getElementById('addrComp').value = addr.complemento || '';
+      document.getElementById('addrBairro').value = addr.bairro || '';
+      document.getElementById('addrCidade').value = addr.cidade || '';
+      document.getElementById('addrEstado').value = addr.estado || '';
+      return true;
+    }
+
     // ============================================================
     // CHECKOUT
     // ============================================================
@@ -3128,6 +3178,10 @@
 
       renderBranchSelect();
       updateBranchSummary();
+      if (S.lastCheckoutAddress) {
+        applyCheckoutAddress(S.lastCheckoutAddress);
+        if (!S.selectedBranchId && S.lastCheckoutAddress.cep) pickBranchByCep(S.lastCheckoutAddress.cep);
+      }
 
       // Busca endereço salvo em background
       if (S.user) {
@@ -3141,13 +3195,8 @@
             .maybeSingle();
 
           if (addr && S.checkoutStep === 0) { // Só preenche se ainda estiver no passo 0
-            document.getElementById('addrCep').value = addr.cep || '';
-            document.getElementById('addrRua').value = addr.rua || '';
-            document.getElementById('addrNum').value = addr.numero || '';
-            document.getElementById('addrComp').value = addr.complemento || '';
-            document.getElementById('addrBairro').value = addr.bairro || '';
-            document.getElementById('addrCidade').value = addr.cidade || '';
-            document.getElementById('addrEstado').value = addr.estado || '';
+            applyCheckoutAddress(addr);
+            persistLastCheckoutAddress(addr);
             if (!S.selectedBranchId && addr.cep) pickBranchByCep(addr.cep);
           }
         } catch (e) {
@@ -3264,6 +3313,7 @@
         const addrNum = document.getElementById('addrNum').value;
         const addrCidade = document.getElementById('addrCidade').value;
         const addrEstado = document.getElementById('addrEstado').value;
+        persistLastCheckoutAddress(readCheckoutAddressForm());
 
         const addr = [
           addrRua,
@@ -4302,3 +4352,4 @@
 </body>
 
 </html>
+
