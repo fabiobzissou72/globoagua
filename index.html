@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -10,10 +10,10 @@
   <meta name="theme-color" content="#1976D2">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Globo Água">
+  <meta name="apple-mobile-web-app-title" content="Globo Ãgua">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="images/logo.jpeg">
-  <title>Globo Água</title>
+  <title>Globo Ãgua</title>
   <style>
     * {
       box-sizing: border-box;
@@ -1680,8 +1680,8 @@
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo" id="btnGoHomeLogo" onclick="goHomeFromLogo()">
-      <img src="images/logo.jpeg" alt="Globo Água">
-      <span>Globo Água</span>
+      <img src="images/logo.jpeg" alt="Globo Ãgua">
+      <span>Globo Ãgua</span>
     </div>
     <div class="topbar-actions">
       <button class="btn-icon" id="btnCart">
@@ -1705,17 +1705,17 @@
   <div class="install-banner hidden" id="installBanner">
     <img src="images/mascote.jpeg" alt="">
     <div class="install-banner-text">
-      <strong>Instale o Globo Água</strong>
-      <small>Acesso rápido, funciona offline</small>
+      <strong>Instale o Globo Ãgua</strong>
+      <small>Acesso rÃ¡pido, funciona offline</small>
     </div>
     <button class="install-banner-btn" id="btnInstall">Instalar</button>
-    <button class="install-close" id="btnCloseBanner">✕</button>
+    <button class="install-close" id="btnCloseBanner">âœ•</button>
   </div>
 
-  <!-- VIEW: CATÁLOGO -->
+  <!-- VIEW: CATÃLOGO -->
   <div class="view active" id="viewCatalog">
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="🔍 Buscar produtos...">
+      <input type="text" id="searchInput" placeholder="ðŸ” Buscar produtos...">
     </div>
     <div id="promoBannerArea" class="hidden"></div>
     <div class="cats" id="catsRow"></div>
@@ -1737,76 +1737,76 @@
   <!-- VIEW: PERFIL -->
   <div class="view" id="viewProfile">
     <div style="background:var(--blue);padding:30px 16px 50px;color:#fff;text-align:center">
-      <div class="profile-avatar" id="profileAvatar">👤</div>
+      <div class="profile-avatar" id="profileAvatar">ðŸ‘¤</div>
       <h2 id="profileName" style="font-size:18px;margin-bottom:4px">Visitante</h2>
       <p id="profileEmail" style="font-size:13px;opacity:.85"></p>
     </div>
     <div style="margin-top:-24px">
       <div class="profile-card">
         <div class="profile-item" id="btnEditProfile" onclick="openEditProfile()">
-          <span class="profile-item-icon">✏️</span>
+          <span class="profile-item-icon">âœï¸</span>
           <div class="profile-item-text"><strong>Editar Perfil</strong><span>Alterar nome, WhatsApp e dados</span></div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-arrow">â€º</span>
         </div>
         <div class="profile-item" id="btnChangePassword" onclick="openChangePassword()">
-          <span class="profile-item-icon">🔒</span>
+          <span class="profile-item-icon">ðŸ”’</span>
           <div class="profile-item-text"><strong>Alterar Senha</strong><span>Definir uma nova senha de acesso</span></div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-arrow">â€º</span>
         </div>
         <div class="profile-item" id="btnMyOrders" onclick="showView('viewOrders',null);loadOrders()">
-          <span class="profile-item-icon">📦</span>
-          <div class="profile-item-text"><strong>Meus Pedidos</strong><span>Histórico de compras</span></div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-icon">ðŸ“¦</span>
+          <div class="profile-item-text"><strong>Meus Pedidos</strong><span>HistÃ³rico de compras</span></div>
+          <span class="profile-item-arrow">â€º</span>
         </div>
         <div class="profile-item" id="btnAddresses" onclick="showView('viewAddresses',null);loadAddresses()">
-          <span class="profile-item-icon">📍</span>
-          <div class="profile-item-text"><strong>Meus Endereços</strong><span>Gerenciar endereços de entrega</span>
+          <span class="profile-item-icon">ðŸ“</span>
+          <div class="profile-item-text"><strong>Meus EndereÃ§os</strong><span>Gerenciar endereÃ§os de entrega</span>
           </div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-arrow">â€º</span>
         </div>
 
       </div>
       <div class="profile-card">
         <div class="profile-item" id="btnWhatsapp">
-          <span class="profile-item-icon">💬</span>
+          <span class="profile-item-icon">ðŸ’¬</span>
           <div class="profile-item-text"><strong>Fale Conosco</strong><span>Atendimento via WhatsApp</span></div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-arrow">â€º</span>
         </div>
         <div class="profile-item" id="btnInstallGuide">
-          <span class="profile-item-icon">📲</span>
-          <div class="profile-item-text"><strong>Instalar no iPhone</strong><span>Como adicionar à tela inicial</span>
+          <span class="profile-item-icon">ðŸ“²</span>
+          <div class="profile-item-text"><strong>Instalar no iPhone</strong><span>Como adicionar Ã  tela inicial</span>
           </div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-arrow">â€º</span>
         </div>
       </div>
       <div class="profile-card">
         <div class="profile-item" id="btnClearCache" onclick="clearAppCache()">
-          <span class="profile-item-icon">🧹</span>
-          <div class="profile-item-text"><strong>Limpar Cache</strong><span>Forçar atualização do app</span></div>
-          <span class="profile-item-arrow">›</span>
+          <span class="profile-item-icon">ðŸ§¹</span>
+          <div class="profile-item-text"><strong>Limpar Cache</strong><span>ForÃ§ar atualizaÃ§Ã£o do app</span></div>
+          <span class="profile-item-arrow">â€º</span>
         </div>
         <div class="profile-item" id="btnLogout" style="color:#e53935">
-          <span class="profile-item-icon">🚪</span>
-          <div class="profile-item-text"><strong style="color:#e53935">Sair</strong><span>Encerrar sessão</span></div>
+          <span class="profile-item-icon">ðŸšª</span>
+          <div class="profile-item-text"><strong style="color:#e53935">Sair</strong><span>Encerrar sessÃ£o</span></div>
         </div>
       </div>
       <div id="profileLoginPrompt" class="hidden" style="padding:24px;text-align:center">
-        <p style="color:#666;margin-bottom:16px">Faça login para acessar seu perfil</p>
+        <p style="color:#666;margin-bottom:16px">FaÃ§a login para acessar seu perfil</p>
         <button class="auth-btn btn-biometric" style="max-width:280px;margin:0 auto" onclick="openAuth()">Entrar /
           Cadastrar</button>
       </div>
     </div>
   </div>
 
-  <!-- VIEW: ENDEREÇOS -->
+  <!-- VIEW: ENDEREÃ‡OS -->
   <div class="view" id="viewAddresses">
     <div class="checkout-topbar">
-      <button onclick="showView('viewProfile', null);renderProfile()">←</button>
-      <h2>Meus Endereços</h2>
+      <button onclick="showView('viewProfile', null);renderProfile()">â†</button>
+      <h2>Meus EndereÃ§os</h2>
     </div>
     <div style="padding:16px">
       <div id="addressesList"></div>
-      <button class="auth-btn" style="margin-top:20px" onclick="openAddressForm()">+ Adicionar Endereço</button>
+      <button class="auth-btn" style="margin-top:20px" onclick="openAddressForm()">+ Adicionar EndereÃ§o</button>
     </div>
   </div>
 
@@ -1814,7 +1814,7 @@
   <div class="auth-overlay hidden" id="addrOverlay" onclick="closeAddressForm()"></div>
   <div class="auth-sheet hidden" id="addrSheet">
     <div class="auth-header">
-      <h3>Novo Endereço</h3>
+      <h3>Novo EndereÃ§o</h3>
     </div>
     <div class="auth-body" style="padding:0 20px 20px">
       <div class="form-group">
@@ -1825,7 +1825,7 @@
       <div class="form-row">
         <div class="form-group" style="flex:2"><label class="form-label">Rua</label><input class="form-input"
             id="newAddrRua" placeholder="Rua..."></div>
-        <div class="form-group" style="flex:1"><label class="form-label">Nº</label><input class="form-input"
+        <div class="form-group" style="flex:1"><label class="form-label">NÂº</label><input class="form-input"
             id="newAddrNum" placeholder="123"></div>
       </div>
       <div class="form-group"><label class="form-label">Complemento</label><input class="form-input" id="newAddrComp"
@@ -1839,24 +1839,24 @@
             id="newAddrEstado" placeholder="SP" maxlength="2"></div>
       </div>
       <button class="auth-btn" id="btnSaveAddress" style="margin-top:20px" onclick="saveAddress()">Salvar
-        Endereço</button>
+        EndereÃ§o</button>
     </div>
   </div>
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="showView('viewCatalog',this)">
-      <span class="nav-icon">🏠</span><span class="nav-label">Início</span>
+      <span class="nav-icon">ðŸ </span><span class="nav-label">InÃ­cio</span>
     </button>
     <button class="nav-btn"
       onclick="showView('viewCatalog',this);setTimeout(()=>document.getElementById('searchInput').focus(),100)">
-      <span class="nav-icon">🔍</span><span class="nav-label">Catálogo</span>
+      <span class="nav-icon">ðŸ”</span><span class="nav-label">CatÃ¡logo</span>
     </button>
     <button class="nav-btn" onclick="abrirWhatsAppNav()">
-      <span class="nav-icon">💬</span><span class="nav-label">Contato</span>
+      <span class="nav-icon">ðŸ’¬</span><span class="nav-label">Contato</span>
     </button>
     <button class="nav-btn" onclick="showView('viewProfile',this);renderProfile()">
-      <span class="nav-icon">👤</span><span class="nav-label">Perfil</span>
+      <span class="nav-icon">ðŸ‘¤</span><span class="nav-label">Perfil</span>
     </button>
   </nav>
 
@@ -1867,8 +1867,8 @@
   <div class="cart-drawer" id="cartDrawer">
     <div class="drawer-handle"></div>
     <div class="drawer-header">
-      <h3>🛒 Meu Carrinho</h3>
-      <button class="drawer-close" onclick="closeCart()">✕</button>
+      <h3>ðŸ›’ Meu Carrinho</h3>
+      <button class="drawer-close" onclick="closeCart()">âœ•</button>
     </div>
     <div class="cart-items" id="cartItems"></div>
     <div class="cart-footer">
@@ -1876,7 +1876,7 @@
         <span class="cart-total-label">Total</span>
         <span class="cart-total-val" id="cartTotal">R$ 0,00</span>
       </div>
-      <button class="btn-checkout" id="btnCheckout">Finalizar Pedido →</button>
+      <button class="btn-checkout" id="btnCheckout">Finalizar Pedido â†’</button>
     </div>
   </div>
 
@@ -1886,12 +1886,12 @@
   <!-- AUTH SHEET -->
   <div class="auth-sheet" id="authSheet">
     <div class="auth-header">
-      <img src="images/logo.jpeg" alt="Globo Água">
-      <h2>Globo Água</h2>
+      <img src="images/logo.jpeg" alt="Globo Ãgua">
+      <h2>Globo Ãgua</h2>
       <p>Entre para finalizar seu pedido</p>
     </div>
     <div class="auth-body">
-      <!-- Botão Biometria Removido -->
+      <!-- BotÃ£o Biometria Removido -->
       <div class="auth-tabs">
         <div class="auth-tab active" onclick="setAuthTab('login',this)">Entrar</div>
         <div class="auth-tab" onclick="setAuthTab('register',this)">Cadastrar</div>
@@ -1901,7 +1901,7 @@
         <div class="pwd-wrap">
           <input class="auth-input" type="password" id="loginPwd" placeholder="Senha"
             style="margin-bottom:0;padding-right:44px">
-          <button type="button" class="pwd-eye" onclick="togglePwd('loginPwd',this)" tabindex="-1">👁</button>
+          <button type="button" class="pwd-eye" onclick="togglePwd('loginPwd',this)" tabindex="-1">ðŸ‘</button>
         </div>
         <div style="text-align:right;margin-bottom:10px">
           <button type="button" class="link-btn" onclick="forgotPassword()">Esqueci minha senha</button>
@@ -1913,16 +1913,16 @@
         <input class="auth-input" type="text" id="regNome" placeholder="Nome completo">
         <input class="auth-input" type="tel" id="regWhats" placeholder="WhatsApp (11999999999)">
         <div class="tipo-toggle">
-          <button class="tipo-btn active" id="tipoPF" onclick="setTipo('PF')">Pessoa Física</button>
-          <button class="tipo-btn" id="tipoPJ" onclick="setTipo('PJ')">Pessoa Jurídica</button>
+          <button class="tipo-btn active" id="tipoPF" onclick="setTipo('PF')">Pessoa FÃ­sica</button>
+          <button class="tipo-btn" id="tipoPJ" onclick="setTipo('PJ')">Pessoa JurÃ­dica</button>
         </div>
         <input class="auth-input" type="text" id="regDoc" placeholder="CPF">
-        <input class="auth-input" id="regRazao" placeholder="Razão Social" style="display:none">
+        <input class="auth-input" id="regRazao" placeholder="RazÃ£o Social" style="display:none">
         <input class="auth-input" type="email" id="regEmail" placeholder="E-mail">
         <div class="pwd-wrap">
-          <input class="auth-input" type="password" id="regPwd" placeholder="Senha (mín. 6 caracteres)"
+          <input class="auth-input" type="password" id="regPwd" placeholder="Senha (mÃ­n. 6 caracteres)"
             style="margin-bottom:0;padding-right:44px">
-          <button type="button" class="pwd-eye" onclick="togglePwd('regPwd',this)" tabindex="-1">👁</button>
+          <button type="button" class="pwd-eye" onclick="togglePwd('regPwd',this)" tabindex="-1">ðŸ‘</button>
         </div>
         <button class="auth-btn btn-biometric" onclick="registerUser()">Criar conta</button>
       </div>
@@ -1932,8 +1932,8 @@
   <!-- CHECKOUT -->
   <div class="checkout-sheet" id="checkoutSheet">
     <div class="checkout-topbar">
-      <button onclick="closeCheckout()">←</button>
-      <h2 id="checkoutTitle">Endereço</h2>
+      <button onclick="closeCheckout()">â†</button>
+      <h2 id="checkoutTitle">EndereÃ§o</h2>
     </div>
     <div class="steps">
       <div class="step active" id="step0"></div>
@@ -1943,7 +1943,7 @@
     </div>
     <div class="step-label" id="stepLabel">Passo 1 de 4</div>
 
-    <!-- STEP 0: ENDEREÇO -->
+    <!-- STEP 0: ENDEREÃ‡O -->
     <div id="checkoutStep0">
       <div class="checkout-card">
         <h3>Filial de atendimento</h3>
@@ -1960,7 +1960,7 @@
         <div id="branchSummary" style="font-size:13px;color:#555"></div>
       </div>
       <div class="checkout-card">
-        <h3>📍 Endereço de entrega</h3>
+        <h3>ðŸ“ EndereÃ§o de entrega</h3>
         <div class="form-group">
           <label class="form-label">CEP</label>
           <input class="form-input" id="addrCep" placeholder="00000-000" maxlength="9" oninput="maskCep(this)"
@@ -1969,7 +1969,7 @@
         <div class="form-row">
           <div class="form-group"><label class="form-label">Rua</label><input class="form-input" id="addrRua"
               placeholder="Rua..."></div>
-          <div class="form-group"><label class="form-label">Número</label><input class="form-input" id="addrNum"
+          <div class="form-group"><label class="form-label">NÃºmero</label><input class="form-input" id="addrNum"
               placeholder="123"></div>
         </div>
         <div class="form-group"><label class="form-label">Complemento</label><input class="form-input" id="addrComp"
@@ -1984,16 +1984,16 @@
         </div>
       </div>
       <div class="checkout-card">
-        <h3>👤 Quem vai receber?</h3>
+        <h3>ðŸ‘¤ Quem vai receber?</h3>
         <div class="form-group"><label class="form-label">Nome do recebedor</label><input class="form-input"
             id="recNome" placeholder="Nome completo"></div>
         <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-input" id="recWhats"
             placeholder="11999999999"></div>
-        <div class="form-group"><label class="form-label">Referência (opcional)</label><input class="form-input"
+        <div class="form-group"><label class="form-label">ReferÃªncia (opcional)</label><input class="form-input"
             id="recRef" placeholder="Perto do mercado..."></div>
       </div>
       <div class="checkout-card">
-        <h3>📝 Observações</h3>
+        <h3>ðŸ“ ObservaÃ§Ãµes</h3>
         <div class="form-group">
           <textarea class="form-input" id="orderObs" placeholder="Ex: Deixar com o porteiro, ligar antes de entregar..."
             rows="3" style="resize:none"></textarea>
@@ -2001,17 +2001,17 @@
       </div>
     </div>
 
-    <!-- STEP 1: REVISÃO -->
+    <!-- STEP 1: REVISÃƒO -->
     <div id="checkoutStep1" class="hidden">
       <div class="checkout-card">
-        <h3>📋 Revisar pedido</h3>
+        <h3>ðŸ“‹ Revisar pedido</h3>
         <div id="reviewItems"></div>
         <div class="order-total-row"><span>Subtotal</span><span id="reviewSubtotal"></span></div>
-        <div class="order-total-row"><span>Entrega</span><span id="reviewTaxa">Grátis</span></div>
+        <div class="order-total-row"><span>Entrega</span><span id="reviewTaxa">GrÃ¡tis</span></div>
         <div class="order-total-row grand"><span>Total</span><span id="reviewTotal"></span></div>
       </div>
       <div class="checkout-card">
-        <h3>📍 Entregar em</h3>
+        <h3>ðŸ“ Entregar em</h3>
         <p id="reviewAddr" style="font-size:14px;color:#555;line-height:1.7"></p>
         <p id="reviewRec" style="font-size:13px;color:#888;margin-top:6px"></p>
       </div>
@@ -2020,17 +2020,17 @@
     <!-- STEP 2: PAGAMENTO -->
     <div id="checkoutStep2" class="hidden">
       <div class="checkout-card">
-        <h3>💳 Forma de pagamento</h3>
+        <h3>ðŸ’³ Forma de pagamento</h3>
         <div class="payment-option selected" id="payPix" onclick="selectPayment('PIX')">
-          <span class="payment-option-icon">📱</span>
-          <div class="payment-option-text"><strong>PIX</strong><span>Aprovação imediata</span></div>
+          <span class="payment-option-icon">ðŸ“±</span>
+          <div class="payment-option-text"><strong>PIX</strong><span>AprovaÃ§Ã£o imediata</span></div>
         </div>
         <div class="payment-option" id="payCard" onclick="selectPayment('CARTAO')">
-          <span class="payment-option-icon">💳</span>
-          <div class="payment-option-text"><strong>Cartão</strong><span>Na entrega</span></div>
+          <span class="payment-option-icon">ðŸ’³</span>
+          <div class="payment-option-text"><strong>CartÃ£o</strong><span>Na entrega</span></div>
         </div>
         <div class="payment-option" id="payDinheiro" onclick="selectPayment('DINHEIRO')">
-          <span class="payment-option-icon">💵</span>
+          <span class="payment-option-icon">ðŸ’µ</span>
           <div class="payment-option-text"><strong>Dinheiro</strong><span>Na entrega</span></div>
         </div>
       </div>
@@ -2039,9 +2039,9 @@
     <!-- STEP 3: SUCESSO -->
     <div id="checkoutStep3" class="hidden">
       <div class="success-screen">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">âœ…</div>
         <h2>Pedido realizado!</h2>
-        <p>Recebemos seu pedido e logo mais ele sairá para entrega.</p>
+        <p>Recebemos seu pedido e logo mais ele sairÃ¡ para entrega.</p>
         <div id="pixManualArea" class="hidden"
           style="background:#f0f7ff;padding:20px;border-radius:16px;margin:20px 12px;border:1px dashed var(--blue)">
           <p style="font-size:14px;color:#555;margin-bottom:12px">Pague via PIX Copia e Cola:</p>
@@ -2053,14 +2053,14 @@
           </div>
         </div>
         <div class="order-number" id="successOrderNum">#GA123456</div>
-        <p>Atualizações pelo WhatsApp.</p>
+        <p>AtualizaÃ§Ãµes pelo WhatsApp.</p>
         <button class="auth-btn btn-biometric" style="margin-top:24px"
           onclick="closeCheckout();setTimeout(() => { showView('viewOrders',null); loadOrders(); }, 150)">Ver meus
           pedidos</button>
       </div>
     </div>
 
-    <button class="btn-next" id="btnNext" onclick="nextStep()">Continuar →</button>
+    <button class="btn-next" id="btnNext" onclick="nextStep()">Continuar â†’</button>
   </div>
 
   <!-- PRODUCT DETAIL MODAL -->
@@ -2074,7 +2074,7 @@
         style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f0f0f0">
         <h3 style="font-size:17px;font-weight:700">Detalhes do Pedido</h3>
         <button onclick="closeOrderDetail()"
-          style="background:none;border:none;font-size:24px;color:#999;cursor:pointer">✕</button>
+          style="background:none;border:none;font-size:24px;color:#999;cursor:pointer">âœ•</button>
       </div>
       <div id="orderDetailBody"></div>
     </div>
@@ -2084,19 +2084,19 @@
   <div class="auth-overlay hidden" id="editProfileOverlay" onclick="closeEditProfile()"></div>
   <div class="auth-sheet hidden" id="editProfileSheet">
     <div class="auth-header">
-      <h2>✏️ Editar Perfil</h2>
-      <p>Atualize suas informações pessoais</p>
+      <h2>âœï¸ Editar Perfil</h2>
+      <p>Atualize suas informaÃ§Ãµes pessoais</p>
     </div>
     <div class="auth-body">
       <input class="auth-input" type="text" id="editNome" placeholder="Nome completo">
       <input class="auth-input" type="tel" id="editWhats" placeholder="WhatsApp (11999999999)">
       <div class="tipo-toggle">
-        <button class="tipo-btn active" id="editTipoPF" onclick="setEditTipo('PF')">Pessoa Física</button>
-        <button class="tipo-btn" id="editTipoPJ" onclick="setEditTipo('PJ')">Pessoa Jurídica</button>
+        <button class="tipo-btn active" id="editTipoPF" onclick="setEditTipo('PF')">Pessoa FÃ­sica</button>
+        <button class="tipo-btn" id="editTipoPJ" onclick="setEditTipo('PJ')">Pessoa JurÃ­dica</button>
       </div>
       <input class="auth-input" type="text" id="editDoc" placeholder="CPF">
-      <input class="auth-input" id="editRazao" placeholder="Razão Social" style="display:none">
-      <button class="auth-btn btn-biometric" id="btnSaveProfile" onclick="saveProfile()">Salvar Alterações</button>
+      <input class="auth-input" id="editRazao" placeholder="RazÃ£o Social" style="display:none">
+      <button class="auth-btn btn-biometric" id="btnSaveProfile" onclick="saveProfile()">Salvar AlteraÃ§Ãµes</button>
       <button class="auth-btn btn-email-login" onclick="openChangePasswordFromEdit()">Alterar Senha</button>
       <button class="auth-btn btn-email-login" onclick="closeEditProfile()" style="margin-top:4px">Cancelar</button>
     </div>
@@ -2106,11 +2106,11 @@
   <div class="auth-overlay hidden" id="changePasswordOverlay" onclick="closeChangePassword()"></div>
   <div class="auth-sheet hidden" id="changePasswordSheet">
     <div class="auth-header">
-      <h2>🔒 Alterar Senha</h2>
+      <h2>ðŸ”’ Alterar Senha</h2>
       <p>Digite sua nova senha de acesso</p>
     </div>
     <div class="auth-body">
-      <input class="auth-input" type="password" id="changePwdNew" placeholder="Nova senha (mín. 6 caracteres)"
+      <input class="auth-input" type="password" id="changePwdNew" placeholder="Nova senha (mÃ­n. 6 caracteres)"
         autocomplete="new-password">
       <input class="auth-input" type="password" id="changePwdConfirm" placeholder="Confirmar nova senha"
         autocomplete="new-password">
@@ -2123,25 +2123,25 @@
   <!-- IOS INSTALL MODAL -->
   <div class="ios-modal hidden" id="iosModal">
     <div class="ios-modal-box">
-      <h3>📲 Instalar no iPhone</h3>
+      <h3>ðŸ“² Instalar no iPhone</h3>
       <div class="ios-step">
         <div class="ios-step-num">1</div>
-        <div class="ios-step-text"><strong>Abra no Safari</strong><span>Este app só pode ser instalado pelo
+        <div class="ios-step-text"><strong>Abra no Safari</strong><span>Este app sÃ³ pode ser instalado pelo
             Safari</span></div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">2</div>
-        <div class="ios-step-text"><strong>Toque em Compartilhar ⬆️</strong><span>Botão na barra inferior do
+        <div class="ios-step-text"><strong>Toque em Compartilhar â¬†ï¸</strong><span>BotÃ£o na barra inferior do
             Safari</span></div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">3</div>
-        <div class="ios-step-text"><strong>Adicionar à Tela de Início</strong><span>Role a lista e toque nessa
-            opção</span></div>
+        <div class="ios-step-text"><strong>Adicionar Ã  Tela de InÃ­cio</strong><span>Role a lista e toque nessa
+            opÃ§Ã£o</span></div>
       </div>
       <div class="ios-step">
         <div class="ios-step-num">4</div>
-        <div class="ios-step-text"><strong>Toque em "Adicionar" ✅</strong><span>O app aparecerá na sua tela
+        <div class="ios-step-text"><strong>Toque em "Adicionar" âœ…</strong><span>O app aparecerÃ¡ na sua tela
             inicial</span></div>
       </div>
       <button class="btn-close-ios"
@@ -2151,27 +2151,27 @@
 
   <div class="checkout-sheet" id="confSheet">
     <div class="checkout-topbar">
-      <button onclick="closeConf()">×</button>
+      <button onclick="closeConf()">Ã—</button>
       <h2>Conta Ativada</h2>
     </div>
     <div class="success-screen" style="padding:40px 20px">
-      <div class="success-icon">🎉</div>
+      <div class="success-icon">ðŸŽ‰</div>
       <h2 style="margin-top:20px">Tudo pronto!</h2>
-      <p style="color:#555;margin-bottom:30px">Sua conta foi ativada com sucesso. Você já pode fazer seus pedidos!</p>
+      <p style="color:#555;margin-bottom:30px">Sua conta foi ativada com sucesso. VocÃª jÃ¡ pode fazer seus pedidos!</p>
 
       <div style="background:#e3f2fd;padding:20px;border-radius:16px;margin-bottom:30px">
-        <p style="font-size:14px;color:var(--blue-dark);font-weight:600">📱 Dica para comodidade:</p>
-        <p style="font-size:13px;color:#555">Se você já tem o aplicativo Globo Água instalado, pode fechar esta aba e
-          usá-lo agora mesmo!</p>
+        <p style="font-size:14px;color:var(--blue-dark);font-weight:600">ðŸ“± Dica para comodidade:</p>
+        <p style="font-size:13px;color:#555">Se vocÃª jÃ¡ tem o aplicativo Globo Ãgua instalado, pode fechar esta aba e
+          usÃ¡-lo agora mesmo!</p>
       </div>
 
-      <button class="auth-btn btn-biometric" onclick="closeConf();location.href='/'">Ir para o início</button>
+      <button class="auth-btn btn-biometric" onclick="closeConf();location.href='/'">Ir para o inÃ­cio</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Configurações embutidas para maior estabilidade no PWA/Android
+    // ConfiguraÃ§Ãµes embutidas para maior estabilidade no PWA/Android
     window.APP_CONFIG = {
       SUPABASE_URL: 'https://juzvcmahhdqwzjrjisdo.supabase.co',
       SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1enZjbWFoaGRxd3pqcmppc2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MzU4MTEsImV4cCI6MjA4NzUxMTgxMX0.PWLW4DCDNPKaTY3FpwseI4_WVL9fOIGcUpVrm-FcgHU'
@@ -2184,7 +2184,7 @@
       if (sb) return sb;
       if (typeof supabase !== 'undefined') {
         try {
-          // Configuração otimizada para evitar deadlocks em PWAs mobile
+          // ConfiguraÃ§Ã£o otimizada para evitar deadlocks em PWAs mobile
           sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
               persistSession: true,
@@ -2192,7 +2192,7 @@
               detectSessionInUrl: true,
               storageKey: 'ga_auth_session',
               storage: window.localStorage,
-              // Fix crítico para PWA/Android: desabilita o LockManager que trava em WebViews
+              // Fix crÃ­tico para PWA/Android: desabilita o LockManager que trava em WebViews
               // O LockManager da Web API causa deadlock no Chrome mobile/PWA
               lock: async (name, acquireTimeout, fn) => fn()
             }
@@ -2205,7 +2205,7 @@
       return null;
     }
 
-    // Inicialização imediata se disponível
+    // InicializaÃ§Ã£o imediata se disponÃ­vel
     getSupabase();
 
     // ============================================================
@@ -2253,7 +2253,7 @@
       const { data } = await client.from('settings').select('key,value').in('key', publicKeys);
       (data || []).forEach(s => { S.settings[s.key] = s.value; });
 
-      // Defesa em profundidade: remove campos sensíveis caso existam por engano no DB.
+      // Defesa em profundidade: remove campos sensÃ­veis caso existam por engano no DB.
       if (S.settings.gateway_pagamento && typeof S.settings.gateway_pagamento === 'object') {
         delete S.settings.gateway_pagamento.access_token;
         delete S.settings.gateway_pagamento.secret;
@@ -2298,7 +2298,7 @@
         // Aplica o nome da loja se existir
         if (g.nome_loja) {
           document.querySelectorAll('.topbar-logo span').forEach(el => el.textContent = g.nome_loja);
-          // O fallback para document.title se não houver SEO title
+          // O fallback para document.title se nÃ£o houver SEO title
           if (!g.seo_title) document.title = g.nome_loja;
         }
       }
@@ -2306,7 +2306,7 @@
       renderProducts();
     }
 
-    // Inicialização
+    // InicializaÃ§Ã£o
     loadSettings();
 
 
@@ -2342,10 +2342,10 @@
       }, 2500);
     }
 
-    // Registro do Service Worker com atualização forçada
+    // Registro do Service Worker com atualizaÃ§Ã£o forÃ§ada
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then(reg => {
-        // Força o novo SW a assumir imediatamente sem esperar fechar abas
+        // ForÃ§a o novo SW a assumir imediatamente sem esperar fechar abas
         if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
         reg.addEventListener('updatefound', () => {
           const newSW = reg.installing;
@@ -2422,7 +2422,7 @@
       }
       const strat = strategy || S.branchStrategy || 'manual';
       const strategyLabel = strat === 'gps' ? 'GPS' : strat === 'coverage' ? 'CEP/cobertura' : 'manual';
-      el.innerHTML = `<strong>${escHtml(branch.nome || '')}</strong><br><span style=\"color:#777\">Taxa: ${fmt(branch.taxa_entrega || 0)} · Prazo: ${parseInt(branch.prazo_min || 30, 10)} min · Origem: ${strategyLabel}</span>`;
+      el.innerHTML = `<strong>${escHtml(branch.nome || '')}</strong><br><span style=\"color:#777\">Taxa: ${fmt(branch.taxa_entrega || 0)} Â· Prazo: ${parseInt(branch.prazo_min || 30, 10)} min Â· Origem: ${strategyLabel}</span>`;
     }
 
     async function persistBranchSelection(branchId, strategy = 'manual') {
@@ -2512,8 +2512,8 @@
     }
 
     async function registerPasskey() {
-      showToast('⚠️ NFC/USB não detectado ou indisponível no navegador');
-      console.warn('Implementação de WebAuthn necessária para NFC/USB');
+      showToast('âš ï¸ NFC/USB nÃ£o detectado ou indisponÃ­vel no navegador');
+      console.warn('ImplementaÃ§Ã£o de WebAuthn necessÃ¡ria para NFC/USB');
     }
 
     async function loginPasskey() {
@@ -2522,14 +2522,14 @@
       showToast('Aguardando NFC/USB...');
     }
 
-    // Clique no botão de Usuário / Perfil
+    // Clique no botÃ£o de UsuÃ¡rio / Perfil
     document.getElementById('btnUser').onclick = function () {
       if (S.user) {
         // Se logado, vai direto para o perfil
         showView('viewProfile', this);
         renderProfile();
       } else {
-        // Se não logado, abre tela de login
+        // Se nÃ£o logado, abre tela de login
         openAuth();
       }
     };
@@ -2538,15 +2538,15 @@
       if (origin !== 'checkout') {
         S.postLoginAction = null;
       }
-      console.log('🔓 openAuth() chamado');
+      console.log('ðŸ”“ openAuth() chamado');
       const sheet = document.getElementById('authSheet');
       const overlay = document.getElementById('authOverlay');
       if (!sheet || !overlay) {
-        console.error('❌ authSheet ou authOverlay não encontrado!');
+        console.error('âŒ authSheet ou authOverlay nÃ£o encontrado!');
         return;
       }
       history.pushState({ modal: 'auth' }, '');
-      // Força display antes de animar (fix PWA)
+      // ForÃ§a display antes de animar (fix PWA)
       sheet.style.display = 'block';
       overlay.style.display = 'block';
       // requestAnimationFrame garante que o browser processe o display antes de adicionar a class
@@ -2563,7 +2563,7 @@
       if (!fromHistory && document.getElementById('authSheet')?.classList.contains('open')) {
         history.back();
       }
-      console.log('🔒 closeAuth() chamado');
+      console.log('ðŸ”’ closeAuth() chamado');
       const sheet = document.getElementById('authSheet');
       const overlay = document.getElementById('authOverlay');
       if (sheet) sheet.classList.remove('open');
@@ -2598,7 +2598,7 @@
       const inp = document.getElementById(inputId);
       const show = inp.type === 'password';
       inp.type = show ? 'text' : 'password';
-      btn.textContent = show ? '🙈' : '👁';
+      btn.textContent = show ? 'ðŸ™ˆ' : 'ðŸ‘';
       btn.style.opacity = show ? '1' : '.5';
     }
 
@@ -2606,12 +2606,12 @@
       const email = document.getElementById('loginEmail').value.trim();
       if (!email) { showToast('Digite seu e-mail primeiro'); return; }
       const client = getSupabase();
-      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      if (!client) { showToast('Erro de conexÃ£o. Tente novamente.'); return; }
       const { error } = await client.auth.resetPasswordForEmail(email, {
         redirectTo: location.origin + '/?resetPwd=1'
       });
       if (error) { showToast('Erro: ' + error.message); return; }
-      showToast('✅ E-mail de redefinição enviado!');
+      showToast('âœ… E-mail de redefiniÃ§Ã£o enviado!');
     }
 
     let currentTipo = 'PF';
@@ -2628,10 +2628,10 @@
       const pwd = document.getElementById('loginPwd').value;
       if (!email || !pwd) { showToast('Preencha e-mail e senha'); return; }
       const client = getSupabase();
-      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      if (!client) { showToast('Erro de conexÃ£o. Tente novamente.'); return; }
       const { error } = await client.auth.signInWithPassword({ email, password: pwd });
-      if (error) { showToast('E-mail ou senha inválidos'); return; }
-      closeAuth(); showToast('✅ Bem-vindo!');
+      if (error) { showToast('E-mail ou senha invÃ¡lidos'); return; }
+      closeAuth(); showToast('âœ… Bem-vindo!');
     }
 
     async function registerUser() {
@@ -2642,9 +2642,9 @@
       const pwd = document.getElementById('regPwd').value;
       const razao = document.getElementById('regRazao').value.trim();
       if (!nome || !email || !pwd) { showToast('Preencha nome, e-mail e senha'); return; }
-      if (pwd.length < 6) { showToast('Senha mínimo 6 caracteres'); return; }
+      if (pwd.length < 6) { showToast('Senha mÃ­nimo 6 caracteres'); return; }
       const client = getSupabase();
-      if (!client) { showToast('Erro de conexão. Tente novamente.'); return; }
+      if (!client) { showToast('Erro de conexÃ£o. Tente novamente.'); return; }
       const { error } = await client.auth.signUp({
         email, password: pwd,
         options: {
@@ -2684,11 +2684,11 @@
         }
       } catch (e) {
         console.error('Erro ao carregar produtos:', e);
-        // Não limpa o grid se já tivermos produtos do cache
+        // NÃ£o limpa o grid se jÃ¡ tivermos produtos do cache
         if (!S.products || S.products.length === 0) {
           document.getElementById('productsGrid').innerHTML =
             `<div class="loading-center" style="grid-column:1/-1;flex-direction:column;gap:8px">
-          <span style="font-size:32px">⚠️</span>
+          <span style="font-size:32px">âš ï¸</span>
           <strong>Houve um problema ao carregar</strong>
           <small style="color:#aaa;text-align:center">Verifique sua internet</small>
           <button onclick="loadProducts()" style="margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:14px">Tentar novamente</button>
@@ -2707,7 +2707,7 @@
       const safeName = escHtml(p.nome || '');
       const safeCat = escHtml(p.categoria || '');
       const safeSubcat = escHtml(p.subcategoria || '');
-      const safeDesc = escHtml(p.descricao || 'Sem descrição cadastrada.');
+      const safeDesc = escHtml(p.descricao || 'Sem descriÃ§Ã£o cadastrada.');
 
       history.pushState({ modal: 'pdetail' }, '');
       const overlay = document.getElementById('pdetailOverlay');
@@ -2715,19 +2715,19 @@
         <div class="pdetail-sheet" onclick="event.stopPropagation()">
           <div class="pdetail-modal-header">
             <span style="font-weight:700">Detalhes do Produto</span>
-            <button class="pdetail-modal-close" onclick="closePDetail()">✕</button>
+            <button class="pdetail-modal-close" onclick="closePDetail()">âœ•</button>
           </div>
           <div class="pdetail-img">
-            ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+            ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='ðŸ’§'">` : 'ðŸ’§'}
           </div>
           <div class="pdetail-body">
-            <div class="pdetail-cat">${safeCat}${safeSubcat ? ' • ' + safeSubcat : ''}</div>
+            <div class="pdetail-cat">${safeCat}${safeSubcat ? ' â€¢ ' + safeSubcat : ''}</div>
             <div class="pdetail-name">${safeName}</div>
             <div class="pdetail-desc">${safeDesc}</div>
           </div>
           <div class="pdetail-footer">
             <div style="display:flex;flex-direction:column">
-              <div style="font-size:11px;color:#999;margin-bottom:2px">Preço</div>
+              <div style="font-size:11px;color:#999;margin-bottom:2px">PreÃ§o</div>
               ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
               <div class="pdetail-price" style="color:${isB2B ? 'var(--green)' : 'var(--blue)'}">R$ ${price.toFixed(2).replace('.', ',')}</div>
             </div>
@@ -2851,7 +2851,7 @@
 
       document.getElementById('sectionTitle').textContent = S.currentCategory === 'Todos' ? 'Todos os produtos' : S.currentCategory;
 
-      // Banner Promocional (Mídia: Imagem/GIF/Vídeo)
+      // Banner Promocional (MÃ­dia: Imagem/GIF/VÃ­deo)
       const promoArea = document.getElementById('promoBannerArea');
       const g = S.settings?.geral || {};
       const active = g.banner_promocional_ativo;
@@ -2887,7 +2887,7 @@
               <div class="promo-banner" ${onlyLink ? `data-link="${escAttr(onlyLink)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
                 <div style="font-size:24px">PROMO</div>
                 <div class="install-banner-text">
-                  <strong>Promoção Ativa!</strong>
+                  <strong>PromoÃ§Ã£o Ativa!</strong>
                   <small>${promoText}</small>
                 </div>
                 <div class="install-banner-btn">Aproveitar</div>
@@ -2914,12 +2914,12 @@
             </div>
           `;
         } else {
-          // Fallback para o banner de texto antigo se não houver mídia
+          // Fallback para o banner de texto antigo se nÃ£o houver mÃ­dia
           promoArea.innerHTML = `
             <div class="promo-banner" ${link ? `data-link="${escAttr(link)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
-              <div style="font-size:24px">📢</div>
+              <div style="font-size:24px">ðŸ“¢</div>
               <div class="install-banner-text">
-                <strong>Promoção Ativa!</strong>
+                <strong>PromoÃ§Ã£o Ativa!</strong>
                 <small>${promoText}</small>
               </div>
               <div class="install-banner-btn">Aproveitar</div>
@@ -2933,7 +2933,7 @@
 
       const grid = document.getElementById('productsGrid');
       if (!list.length) {
-        grid.innerHTML = '<div class="loading-center" style="grid-column:1/-1">😕 Nenhum produto encontrado</div>';
+        grid.innerHTML = '<div class="loading-center" style="grid-column:1/-1">ðŸ˜• Nenhum produto encontrado</div>';
         return;
       }
       grid.innerHTML = list.map(p => {
@@ -2948,16 +2948,16 @@
 
         return `<div class="product-card" onclick="openPDetail('${p.id}')">
       <div class="product-img">
-        ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${safeImg ? `<img src="${escAttr(safeImg)}" alt="${escAttr(p.nome || '')}" onerror="this.parentElement.textContent='ðŸ’§'">` : 'ðŸ’§'}
       </div>
       <div class="product-info">
-        ${p.destaque ? '<span class="badge-destaque">⭐ Destaque</span>' : ''}
+        ${p.destaque ? '<span class="badge-destaque">â­ Destaque</span>' : ''}
         <div class="product-nome">${safeNome}</div>
-        <div class="product-cat">${safeCategoria}${safeSubcategoria ? ' • ' + safeSubcategoria : ''}</div>
+        <div class="product-cat">${safeCategoria}${safeSubcategoria ? ' â€¢ ' + safeSubcategoria : ''}</div>
         <div class="product-price-row">
           <div style="display:flex;flex-direction:column">
             ${hasOffer ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px">R$ ${parseFloat(p.preco_padrao).toFixed(2).replace('.', ',')}</span>` : ''}
-            <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? '🏷️ ' : ''}R$ ${finalPrice.toFixed(2).replace('.', ',')}</span>
+            <span class="product-price${isB2B ? ' b2b' : ''}">${isB2B ? 'ðŸ·ï¸ ' : ''}R$ ${finalPrice.toFixed(2).replace('.', ',')}</span>
           </div>
           <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>
         </div>
@@ -2972,10 +2972,10 @@
     // CART
     // ============================================================
     function addToCart(productId) {
-      console.log('🛒 Tentando adicionar ao carrinho:', productId);
+      console.log('ðŸ›’ Tentando adicionar ao carrinho:', productId);
       const p = S.products.find(x => x.id === productId);
       if (!p) {
-        console.error('❌ Produto não encontrado:', productId, S.products);
+        console.error('âŒ Produto nÃ£o encontrado:', productId, S.products);
         showToast('Erro ao adicionar produto');
         return;
       }
@@ -2988,7 +2988,7 @@
         S.cart.push({ id: p.id, nome: p.nome, foto: p.foto_url, price, qty: 1, subtotal: price });
       }
       saveCart(); updateCartUI();
-      showToast(`${p.nome} adicionado! 🛒`);
+      showToast(`${p.nome} adicionado! ðŸ›’`);
     }
 
     function changeQty(id, delta) {
@@ -3051,20 +3051,20 @@
     function renderCartDrawer() {
       const el = document.getElementById('cartItems');
       if (!S.cart.length) {
-        el.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Carrinho vazio</p></div>';
+        el.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">ðŸ›’</div><p>Carrinho vazio</p></div>';
         document.getElementById('cartTotal').textContent = 'R$ 0,00';
         return;
       }
       el.innerHTML = S.cart.map(i => `
     <div class="cart-item">
       <div class="cart-item-img">
-        ${safeHttpUrl(i.foto) ? `<img src="${escAttr(safeHttpUrl(i.foto))}" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${safeHttpUrl(i.foto) ? `<img src="${escAttr(safeHttpUrl(i.foto))}" onerror="this.parentElement.textContent='ðŸ’§'">` : 'ðŸ’§'}
       </div>
       <div class="cart-item-info">
         <div class="cart-item-nome">${escHtml(i.nome || '')}</div>
         <div class="cart-item-price">R$ ${i.price.toFixed(2).replace('.', ',')}</div>
         <div class="cart-item-qty">
-          <button class="qty-btn" onclick="changeQty('${i.id}',-1)">−</button>
+          <button class="qty-btn" onclick="changeQty('${i.id}',-1)">âˆ’</button>
           <input class="qty-input" type="number" min="1" step="1" inputmode="numeric" value="${i.qty}"
             onclick="event.stopPropagation()" onblur="setQty('${i.id}', this.value)"
             onkeydown="if(event.key==='Enter'){setQty('${i.id}', this.value)}">
@@ -3078,7 +3078,7 @@
     }
 
     document.getElementById('btnCart').onclick = () => {
-      console.log('🛒 Abrindo carrinho...');
+      console.log('ðŸ›’ Abrindo carrinho...');
       renderCartDrawer();
       const drawer = document.getElementById('cartDrawer');
       const ovl = document.getElementById('overlay');
@@ -3169,7 +3169,7 @@
       updateCheckoutStep();
       document.getElementById('checkoutSheet').classList.add('open');
 
-      // Preenche nome/whats do perfil básico (que já temos em memória)
+      // Preenche nome/whats do perfil bÃ¡sico (que jÃ¡ temos em memÃ³ria)
       if (S.profile) {
         document.getElementById('recNome').value = S.profile.nome_completo || '';
         document.getElementById('recWhats').value = S.profile.whatsapp || '';
@@ -3183,24 +3183,24 @@
         if (!S.selectedBranchId && S.lastCheckoutAddress.cep) pickBranchByCep(S.lastCheckoutAddress.cep);
       }
 
-      // Busca endereço salvo em background
+      // Busca endereÃ§o salvo em background
       if (S.user) {
         try {
           const _sb = getSupabase();
-          if (!_sb) return; // Não trava se não houver conexão
+          if (!_sb) return; // NÃ£o trava se nÃ£o houver conexÃ£o
           const { data: addr } = await _sb.from('user_addresses')
             .select('*')
             .eq('user_id', S.user.id)
             .eq('is_default', true)
             .maybeSingle();
 
-          if (addr && S.checkoutStep === 0) { // Só preenche se ainda estiver no passo 0
+          if (addr && S.checkoutStep === 0) { // SÃ³ preenche se ainda estiver no passo 0
             applyCheckoutAddress(addr);
             persistLastCheckoutAddress(addr);
             if (!S.selectedBranchId && addr.cep) pickBranchByCep(addr.cep);
           }
         } catch (e) {
-          console.warn('Erro ao carregar endereço padrão (background):', e);
+          console.warn('Erro ao carregar endereÃ§o padrÃ£o (background):', e);
         }
       }
     }
@@ -3220,11 +3220,12 @@
       [0, 1, 2, 3].forEach(i => {
         document.getElementById('step' + i).className = 'step' + (i < s ? ' done' : i === s ? ' active' : '');
       });
-      const titles = ['Endereço', 'Revisar', 'Pagamento', 'Confirmação'];
+      const titles = ['EndereÃ§o', 'Revisar', 'Pagamento', 'ConfirmaÃ§Ã£o'];
       document.getElementById('checkoutTitle').textContent = titles[s];
       document.getElementById('stepLabel').textContent = `Passo ${s + 1} de 4`;
       document.getElementById('btnNext').classList.toggle('hidden', s === 3);
-      document.getElementById('btnNext').textContent = s === 2 ? 'Finalizar Pedido' : 'Continuar →';
+      document.getElementById('btnNext').textContent = s === 2 ? 'Finalizar Pedido' : 'Continuar â†’';
+      if (s !== 3) document.getElementById('btnNext').disabled = false;
       if (s === 1) renderReview();
 
       // Exibe PIX se for o caso
@@ -3244,7 +3245,7 @@
       const input = document.getElementById('pixKeyOutput');
       input.select();
       input.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(input.value).then(() => showToast('Chave PIX copiada! ✅'));
+      navigator.clipboard.writeText(input.value).then(() => showToast('Chave PIX copiada! âœ…'));
     }
 
     function nextStep() {
@@ -3253,7 +3254,7 @@
           showToast('Selecione uma filial para continuar'); return;
         }
         if (!document.getElementById('addrRua').value || !document.getElementById('addrCidade').value) {
-          showToast('Preencha o endereço completo'); return;
+          showToast('Preencha o endereÃ§o completo'); return;
         }
         if (!document.getElementById('recNome').value) {
           showToast('Informe o nome do recebedor'); return;
@@ -3271,7 +3272,7 @@
       const sub = cartTotal();
       const taxa = parseFloat(S.selectedBranch?.taxa_entrega || 0);
       document.getElementById('reviewSubtotal').textContent = fmt(sub);
-      document.getElementById('reviewTaxa').textContent = taxa > 0 ? fmt(taxa) : 'Grátis';
+      document.getElementById('reviewTaxa').textContent = taxa > 0 ? fmt(taxa) : 'GrÃ¡tis';
       document.getElementById('reviewTotal').textContent = fmt(sub + taxa);
       const addr = [document.getElementById('addrRua').value, document.getElementById('addrNum').value, document.getElementById('addrComp').value, document.getElementById('addrBairro').value, document.getElementById('addrCidade').value + ' - ' + document.getElementById('addrEstado').value, 'CEP: ' + document.getElementById('addrCep').value].filter(Boolean).join(', ');
       document.getElementById('reviewAddr').textContent = addr;
@@ -3295,7 +3296,7 @@
         btn.disabled = true;
 
         if (!S.user) {
-          showToast('Usuário não identificado. Faça login novamente.');
+          showToast('UsuÃ¡rio nÃ£o identificado. FaÃ§a login novamente.');
           throw new Error('User not logged in');
         }
         if (!S.selectedBranchId) {
@@ -3308,7 +3309,7 @@
         const taxaEntrega = parseFloat(S.selectedBranch?.taxa_entrega || 0);
         const totalFinal = sub + taxaEntrega;
 
-        // Coleta dados do formulário de endereço
+        // Coleta dados do formulÃ¡rio de endereÃ§o
         const addrRua = document.getElementById('addrRua').value;
         const addrNum = document.getElementById('addrNum').value;
         const addrCidade = document.getElementById('addrCidade').value;
@@ -3336,7 +3337,7 @@
           endereco_completo: addr,
           endereco_cidade: addrCidade,
           endereco_estado: addrEstado,
-          recebedor_nome: document.getElementById('recNome').value || 'Não informado',
+          recebedor_nome: document.getElementById('recNome').value || 'NÃ£o informado',
           recebedor_whatsapp: document.getElementById('recWhats').value || '',
           recebedor_referencia: document.getElementById('recRef').value || '',
           observacoes: obs,
@@ -3350,7 +3351,7 @@
         };
 
         const fClient = getSupabase();
-        if (!fClient) throw new Error('Sem conexão com servidor');
+        if (!fClient) throw new Error('Sem conexÃ£o com servidor');
 
         const { data: order, error: orderError } = await fClient.from('orders').insert(payload).select().single();
 
@@ -3398,9 +3399,9 @@
         updateCheckoutStep();
 
       } catch (err) {
-        console.error('❌ Erro crítico ao finalizar pedido:', err);
-        showToast('Erro: ' + (err.message || 'Verifique sua conexão'));
-        // IMPORTANTE: reseta o botão para o usuário tentar novamente se falhar
+        console.error('âŒ Erro crÃ­tico ao finalizar pedido:', err);
+        showToast('Erro: ' + (err.message || 'Verifique sua conexÃ£o'));
+      } finally {
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
@@ -3416,7 +3417,7 @@
       try {
         const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         const d = await r.json();
-        if (d.erro) { showToast('CEP não encontrado'); return; }
+        if (d.erro) { showToast('CEP nÃ£o encontrado'); return; }
         document.getElementById('addrRua').value = d.logradouro || '';
         document.getElementById('addrBairro').value = d.bairro || '';
         document.getElementById('addrCidade').value = d.localidade || '';
@@ -3431,15 +3432,15 @@
     // ============================================================
     async function loadOrders() {
       if (!S.user) {
-        document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Faça login para ver seus pedidos</p><button class="auth-btn btn-biometric" style="max-width:200px;margin-top:12px" onclick="openAuth()">Entrar</button></div>';
+        document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">FaÃ§a login para ver seus pedidos</p><button class="auth-btn btn-biometric" style="max-width:200px;margin-top:12px" onclick="openAuth()">Entrar</button></div>';
         return;
       }
       document.getElementById('ordersList').innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
       const client = getSupabase();
-      if (!client) { document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro de conexão</p></div>'; return; }
+      if (!client) { document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Erro de conexÃ£o</p></div>'; return; }
       const { data } = await client.from('orders').select('*').eq('user_id', S.user.id).order('created_at', { ascending: false });
       if (!data?.length) {
-        document.getElementById('ordersList').innerHTML = '<div class="loading-center">😕 Nenhum pedido ainda</div>';
+        document.getElementById('ordersList').innerHTML = '<div class="loading-center">ðŸ˜• Nenhum pedido ainda</div>';
         return;
       }
       document.getElementById('ordersList').innerHTML = data.map(o => `
@@ -3450,10 +3451,10 @@
       </div>
       <div class="order-card-info">
         <div>${new Date(o.created_at).toLocaleString('pt-BR')}</div>
-        <div><strong>Total: ${fmt(o.total)}</strong> · ${escHtml(o.metodo_pagamento || '')}</div>
+        <div><strong>Total: ${fmt(o.total)}</strong> Â· ${escHtml(o.metodo_pagamento || '')}</div>
         <div>${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}</div>
       </div>
-      <div class="order-card-arrow">›</div>
+      <div class="order-card-arrow">â€º</div>
     </div>
   `).join('');
     }
@@ -3620,7 +3621,7 @@
         S.orderDetailWatchdogTimer = null;
       }
       if (error || !o) {
-        body.innerHTML = '<div class="loading-center">😕 Erro ao carregar detalhes</div>';
+        body.innerHTML = '<div class="loading-center">ðŸ˜• Erro ao carregar detalhes</div>';
         return;
       }
       S.currentOrderDetailData = o;
@@ -3633,7 +3634,7 @@
             <span>${i.quantidade}x ${escHtml(i.produto_nome || '')}</span>
             <strong>${fmt(i.subtotal)}</strong>
           </div>`).join('')
-        : '<p style="color:#aaa;font-size:13px">Itens não disponíveis</p>';
+        : '<p style="color:#aaa;font-size:13px">Itens nÃ£o disponÃ­veis</p>';
 
       const statusColors = { NOVO: '#1565C0', CONFIRMADO: '#2E7D32', PRODUCAO: '#E65100', EM_ROTA: '#283593', ENTREGUE: '#1B5E20', CANCELADO: '#B71C1C' };
       const statusBgs = { NOVO: '#E3F2FD', CONFIRMADO: '#E8F5E9', PRODUCAO: '#FFF3E0', EM_ROTA: '#E8EAF6', ENTREGUE: '#E8F5E9', CANCELADO: '#FFEBEE' };
@@ -3646,28 +3647,28 @@
           </div>
 
           <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">🕐 Data & Pagamento</div>
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">ðŸ• Data & Pagamento</div>
             <div style="font-size:14px;color:#333">${new Date(o.created_at).toLocaleString('pt-BR')}</div>
-            <div style="font-size:14px;color:#555;margin-top:4px">💳 ${o.metodo_pagamento || '—'}</div>
+            <div style="font-size:14px;color:#555;margin-top:4px">ðŸ’³ ${o.metodo_pagamento || 'â€”'}</div>
           </div>
 
           <div style="background:#f8faff;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">📍 Endereço de Entrega</div>
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:8px">ðŸ“ EndereÃ§o de Entrega</div>
             <div style="font-size:14px;color:#333;line-height:1.7">
-              ${escHtml(o.endereco_completo || '—')}<br>
+              ${escHtml(o.endereco_completo || 'â€”')}<br>
               ${escHtml(o.endereco_cidade || '')} - ${escHtml(o.endereco_estado || '')}<br>
-              <span style="color:#888;font-size:13px">Recebedor: ${escHtml(o.recebedor_nome || '—')}</span>
+              <span style="color:#888;font-size:13px">Recebedor: ${escHtml(o.recebedor_nome || 'â€”')}</span>
               ${o.recebedor_referencia ? `<br><span style="color:#aaa;font-size:12px">Ref: ${escHtml(o.recebedor_referencia)}</span>` : ''}
             </div>
           </div>
 
           ${normalizedObservations !== '-' ? `<div style="background:#fffde7;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">📝 Observações</div>
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">ðŸ“ ObservaÃ§Ãµes</div>
             <div style="font-size:14px;color:#555">${escHtml(normalizedObservations)}</div>
           </div>` : ''}
 
           <div style="background:#fff;border:2px solid #e3f2fd;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:10px">🛒 Itens do Pedido</div>
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:10px">ðŸ›’ Itens do Pedido</div>
             ${itemsHtml}
             <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:12px;font-size:16px;color:var(--blue);padding-top:10px;border-top:2px solid #e3f2fd">
               <span>TOTAL</span>
@@ -3725,7 +3726,7 @@
         waBtn.onclick = () => {
           const waNum = S.settings?.geral?.whatsapp_suporte || '';
           if (waNum) window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank');
-          else showToast('WhatsApp não configurado');
+          else showToast('WhatsApp nÃ£o configurado');
         };
       }
 
@@ -3735,12 +3736,12 @@
 
       if (isLogged) {
         const meta = S.user.user_metadata || {};
-        const userName = S.profile?.nome_completo || meta.nome_completo || 'Usuário';
+        const userName = S.profile?.nome_completo || meta.nome_completo || 'UsuÃ¡rio';
         if (avatar) avatar.textContent = userName.charAt(0).toUpperCase();
         if (name) name.textContent = userName;
         if (email) email.textContent = S.user.email;
       } else {
-        if (avatar) avatar.textContent = '👤';
+        if (avatar) avatar.textContent = 'ðŸ‘¤';
         if (name) name.textContent = 'Visitante';
         if (email) email.textContent = '';
       }
@@ -3750,14 +3751,14 @@
     function abrirWhatsAppNav() {
       const waNum = S.settings?.geral?.whatsapp_suporte || '';
       if (waNum) window.open('https://wa.me/' + waNum.replace(/\D/g, ''), '_blank');
-      else showToast('WhatsApp não configurado');
+      else showToast('WhatsApp nÃ£o configurado');
     }
 
     // ============================================================
     // ALTERAR SENHA
     // ============================================================
     function openChangePassword() {
-      if (!S.user) { showToast('Faça login primeiro'); return; }
+      if (!S.user) { showToast('FaÃ§a login primeiro'); return; }
       document.getElementById('changePwdNew').value = '';
       document.getElementById('changePwdConfirm').value = '';
 
@@ -3791,9 +3792,9 @@
     async function saveNewPassword() {
       const pwd = document.getElementById('changePwdNew').value;
       const pwdConfirm = document.getElementById('changePwdConfirm').value;
-      if (!pwd || !pwdConfirm) { showToast('Preencha a nova senha e confirmação'); return; }
-      if (pwd.length < 6) { showToast('Senha mínimo 6 caracteres'); return; }
-      if (pwd !== pwdConfirm) { showToast('As senhas não conferem'); return; }
+      if (!pwd || !pwdConfirm) { showToast('Preencha a nova senha e confirmaÃ§Ã£o'); return; }
+      if (pwd.length < 6) { showToast('Senha mÃ­nimo 6 caracteres'); return; }
+      if (pwd !== pwdConfirm) { showToast('As senhas nÃ£o conferem'); return; }
 
       const btn = document.getElementById('btnSaveNewPassword');
       btn.disabled = true;
@@ -3801,13 +3802,13 @@
 
       try {
         const client = getSupabase();
-        if (!client) throw new Error('Sem conexão');
+        if (!client) throw new Error('Sem conexÃ£o');
 
         const { error } = await client.auth.updateUser({ password: pwd });
         if (error) throw error;
 
         closeChangePassword();
-        showToast('✅ Senha alterada com sucesso!');
+        showToast('âœ… Senha alterada com sucesso!');
       } catch (e) {
         showToast('Erro: ' + (e.message || 'Tente novamente'));
       } finally {
@@ -3822,7 +3823,7 @@
     let editTipo = 'PF';
 
     function openEditProfile() {
-      if (!S.user) { showToast('Faça login primeiro'); return; }
+      if (!S.user) { showToast('FaÃ§a login primeiro'); return; }
       const meta = S.user.user_metadata || {};
       const p = S.profile || {};
       document.getElementById('editNome').value = p.nome_completo || meta.nome_completo || '';
@@ -3886,7 +3887,7 @@
 
       try {
         const client = getSupabase();
-        if (!client) throw new Error('Sem conexão');
+        if (!client) throw new Error('Sem conexÃ£o');
 
         // Atualiza metadados do auth
         const { error: authErr } = await client.auth.updateUser({
@@ -3915,12 +3916,12 @@
 
         closeEditProfile();
         renderProfile();
-        showToast('✅ Perfil atualizado!');
+        showToast('âœ… Perfil atualizado!');
       } catch (e) {
         showToast('Erro: ' + (e.message || 'Tente novamente'));
       } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Salvar Alterações';
+        btn.innerHTML = 'Salvar AlteraÃ§Ãµes';
       }
     }
 
@@ -3934,7 +3935,7 @@
         localStorage.removeItem('ga_pk_rt');
         renderProfile();
         showView('viewCatalog', document.querySelector('.nav-btn'));
-        showToast('Sessão encerrada');
+        showToast('SessÃ£o encerrada');
       }
     };
 
@@ -3942,7 +3943,7 @@
     document.getElementById('btnClearCache').onclick = () => clearAppCache();
 
     async function clearAppCache() {
-      if (!confirm('Deseja fazer uma limpeza profunda? Isso recarregará o app e limpará todos os dados.')) return;
+      if (!confirm('Deseja fazer uma limpeza profunda? Isso recarregarÃ¡ o app e limparÃ¡ todos os dados.')) return;
       showToast('Iniciando limpeza profunda...');
 
       // 1. Limpa Service Workers
@@ -3992,7 +3993,7 @@
       try {
         const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         const d = await r.json();
-        if (d.erro) { showToast('CEP não encontrado'); return; }
+        if (d.erro) { showToast('CEP nÃ£o encontrado'); return; }
         document.getElementById('newAddrRua').value = d.logradouro || '';
         document.getElementById('newAddrBairro').value = d.bairro || '';
         document.getElementById('newAddrCidade').value = d.localidade || '';
@@ -4007,7 +4008,7 @@
       const { data } = await client.from('user_addresses').select('*').eq('user_id', S.user.id).order('is_default', { ascending: false });
       const list = document.getElementById('addressesList');
       if (!data?.length) {
-        list.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Nenhum endereço cadastrado</div>';
+        list.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Nenhum endereÃ§o cadastrado</div>';
         return;
       }
       list.innerHTML = data.map(a => `
@@ -4015,12 +4016,12 @@
           <div style="padding:16px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
               <strong style="font-size:14px">${a.rua}, ${a.numero}</strong>
-              ${a.is_default ? '<span style="font-size:10px;background:#e3f2fd;color:var(--blue);padding:2px 6px;border-radius:4px">PADRÃO</span>' : ''}
+              ${a.is_default ? '<span style="font-size:10px;background:#e3f2fd;color:var(--blue);padding:2px 6px;border-radius:4px">PADRÃƒO</span>' : ''}
             </div>
             <div style="font-size:13px;color:#666;margin-top:4px">${a.bairro} - ${a.cidade}/${a.estado}</div>
             <div style="font-size:12px;color:#999;margin-top:2px">CEP: ${a.cep}</div>
             <div style="display:flex;gap:12px;margin-top:12px border-top:1px solid #f0f0f0;padding-top:12px">
-              ${!a.is_default ? `<button onclick="setDefaultAddress('${a.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;padding:0">Usar como padrão</button>` : ''}
+              ${!a.is_default ? `<button onclick="setDefaultAddress('${a.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;padding:0">Usar como padrÃ£o</button>` : ''}
               <button onclick="deleteAddress('${a.id}')" style="background:none;border:none;color:#e53935;font-size:12px;font-weight:700;padding:0">Excluir</button>
             </div>
           </div>
@@ -4030,10 +4031,10 @@
 
     async function saveAddress() {
       const btn = document.getElementById('btnSaveAddress');
-      const originalText = btn ? btn.textContent : 'Salvar Endereço';
+      const originalText = btn ? btn.textContent : 'Salvar EndereÃ§o';
 
       if (!S.user) {
-        showToast('❌ Você precisa estar logado');
+        showToast('âŒ VocÃª precisa estar logado');
         return;
       }
 
@@ -4042,7 +4043,7 @@
       const numero = document.getElementById('newAddrNum').value.trim();
 
       if (!cep || !rua || !numero) {
-        showToast('Preencha CEP, Rua e Número ⚠️');
+        showToast('Preencha CEP, Rua e NÃºmero âš ï¸');
         return;
       }
 
@@ -4051,9 +4052,9 @@
         btn.innerHTML = '<div class="spinner"></div> Salvando...';
 
         const client = getSupabase();
-        if (!client) throw new Error('Sem conexão com servidor');
+        if (!client) throw new Error('Sem conexÃ£o com servidor');
 
-        // Verifica se já tem endereços (para definir is_default no primeiro)
+        // Verifica se jÃ¡ tem endereÃ§os (para definir is_default no primeiro)
         const { data: existing } = await client.from('user_addresses').select('id').eq('user_id', S.user.id);
         const isFirst = !existing || existing.length === 0;
 
@@ -4066,19 +4067,19 @@
           bairro: document.getElementById('newAddrBairro').value.trim() || '',
           cidade: document.getElementById('newAddrCidade').value.trim() || '',
           estado: document.getElementById('newAddrEstado').value.trim() || '',
-          is_default: isFirst // Primeiro endereço vira padrão automaticamente
+          is_default: isFirst // Primeiro endereÃ§o vira padrÃ£o automaticamente
         };
 
-        console.log('📡 Salvando endereço...', addr);
+        console.log('ðŸ“¡ Salvando endereÃ§o...', addr);
         const { data, error } = await client.from('user_addresses').insert(addr).select();
 
         if (error) {
-          console.error('❌ Erro Supabase ao salvar endereço:', error);
+          console.error('âŒ Erro Supabase ao salvar endereÃ§o:', error);
           throw error;
         }
 
-        console.log('✅ Endereço salvo:', data);
-        showToast('✅ Endereço salvo!');
+        console.log('âœ… EndereÃ§o salvo:', data);
+        showToast('âœ… EndereÃ§o salvo!');
 
         // Limpa campos
         ['newAddrCep', 'newAddrRua', 'newAddrNum', 'newAddrComp', 'newAddrBairro', 'newAddrCidade', 'newAddrEstado'].forEach(id => {
@@ -4089,8 +4090,8 @@
         closeAddressForm();
         await loadAddresses();
       } catch (err) {
-        console.error('❌ Erro crítico no saveAddress:', err);
-        showToast('Erro ao salvar: ' + (err.message || 'Verifique sua conexão'));
+        console.error('âŒ Erro crÃ­tico no saveAddress:', err);
+        showToast('Erro ao salvar: ' + (err.message || 'Verifique sua conexÃ£o'));
         btn.disabled = false;
         btn.textContent = originalText;
       }
@@ -4101,15 +4102,15 @@
       await client.from('user_addresses').update({ is_default: false }).eq('user_id', S.user.id);
       await client.from('user_addresses').update({ is_default: true }).eq('id', id);
       loadAddresses();
-      showToast('Endereço padrão atualizado');
+      showToast('EndereÃ§o padrÃ£o atualizado');
     }
 
     async function deleteAddress(id) {
-      if (!confirm('Excluir este endereço?')) return;
+      if (!confirm('Excluir este endereÃ§o?')) return;
       const client = getSupabase();
       await client.from('user_addresses').delete().eq('id', id);
       loadAddresses();
-      showToast('Endereço excluído');
+      showToast('EndereÃ§o excluÃ­do');
     }
     document.getElementById('btnInstallGuide').onclick = () => {
       document.getElementById('iosModal').classList.remove('hidden');
@@ -4119,7 +4120,7 @@
     // UTILS
     // ============================================================
     function showView(id, btn) {
-      console.log('📌 Mudando para view:', id);
+      console.log('ðŸ“Œ Mudando para view:', id);
       // Remove active de todas as views
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
@@ -4129,12 +4130,12 @@
         window.scrollTo(0, 0); // Volta ao topo na troca de tela
       }
 
-      // Atualiza botões da navegação inferior
+      // Atualiza botÃµes da navegaÃ§Ã£o inferior
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       if (btn) {
         btn.classList.add('active');
       } else {
-        // Fallback: se não passou o botão, tenta achar pelo ID da view
+        // Fallback: se nÃ£o passou o botÃ£o, tenta achar pelo ID da view
         if (id === 'viewCatalog') document.querySelector('.nav-btn:nth-child(1)')?.classList.add('active');
         if (id === 'viewOrders') document.querySelector('.nav-btn:nth-child(2)')?.classList.add('active');
         if (id === 'viewProfile') document.querySelector('.nav-btn:nth-child(3)')?.classList.add('active');
@@ -4203,32 +4204,32 @@
     // INIT
     // ============================================================
     async function init() {
-      console.log('🚀 Iniciando Globo Água...', { productsCount: S.products.length });
+      console.log('ðŸš€ Iniciando Globo Ãgua...', { productsCount: S.products.length });
 
-      // 1. Renderiza IMEDIATAMENTE o que temos (emergência ou cache)
+      // 1. Renderiza IMEDIATAMENTE o que temos (emergÃªncia ou cache)
       try {
         if (S.products && S.products.length > 0) {
-          console.log('📦 Renderizando produtos iniciais...');
+          console.log('ðŸ“¦ Renderizando produtos iniciais...');
           const cats = ['Todos', ...new Set(S.products.map(p => p.categoria))];
           renderCats(cats);
           renderProducts();
         } else {
-          console.warn('⚠️ Nenhum produto encontrado no script ou cache.');
+          console.warn('âš ï¸ Nenhum produto encontrado no script ou cache.');
         }
       } catch (e) {
-        console.error('❌ Erro na renderização inicial:', e);
+        console.error('âŒ Erro na renderizaÃ§Ã£o inicial:', e);
       }
 
       updateCartUI();
       renderProfile();
 
-      // Garante que o botão Entrar/Cadastrar sempre funciona no PWA
+      // Garante que o botÃ£o Entrar/Cadastrar sempre funciona no PWA
       const loginPromptBtn = document.querySelector('#profileLoginPrompt button');
       if (loginPromptBtn) {
         loginPromptBtn.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          console.log('👆 Botão Entrar/Cadastrar clicado');
+          console.log('ðŸ‘† BotÃ£o Entrar/Cadastrar clicado');
           openAuth();
         });
       }
@@ -4242,16 +4243,16 @@
 
       const client = getSupabase();
       if (client) {
-        console.log('🔗 Conectado ao servidor. Atualizando dados...');
+        console.log('ðŸ”— Conectado ao servidor. Atualizando dados...');
         loadSettings();
         loadProducts();
         loadBranches();
 
-        // STEP 1: Recupera sessão salva PRIMEIRO (evita desloge ao recarregar)
+        // STEP 1: Recupera sessÃ£o salva PRIMEIRO (evita desloge ao recarregar)
         try {
           const { data: sessionData } = await client.auth.getSession();
           if (sessionData?.session) {
-            console.log('🔑 Sessão restaurada:', sessionData.session.user.email);
+            console.log('ðŸ”‘ SessÃ£o restaurada:', sessionData.session.user.email);
             S.user = sessionData.session.user;
             await loadProfile();
             setupOrdersRealtime();
@@ -4263,13 +4264,13 @@
             updateCartUI();
           }
         } catch (e) {
-          console.warn('⚠️ Erro ao recuperar sessão:', e);
+          console.warn('âš ï¸ Erro ao recuperar sessÃ£o:', e);
         }
 
-        // STEP 2: Escuta mudanças futuras de auth (login/logout)
+        // STEP 2: Escuta mudanÃ§as futuras de auth (login/logout)
         client.auth.onAuthStateChange(async (event, session) => {
-          console.log('🔑 Auth Change:', event, session?.user?.email);
-          // Ignora o INITIAL_SESSION pois já tratamos acima
+          console.log('ðŸ”‘ Auth Change:', event, session?.user?.email);
+          // Ignora o INITIAL_SESSION pois jÃ¡ tratamos acima
           if (event === 'INITIAL_SESSION') return;
           if (event === 'SIGNED_IN' && location.hash.includes('access_token')) {
             openConf();
@@ -4300,12 +4301,12 @@
             repriceCart(false);
           }
           renderProfile();
-          renderProducts(); // Atualiza preços na tela se mudou o cliente
+          renderProducts(); // Atualiza preÃ§os na tela se mudou o cliente
           updateCartUI();
         });
 
       } else {
-        console.warn('⚠️ Servidor offline. Usando modo offline.');
+        console.warn('âš ï¸ Servidor offline. Usando modo offline.');
       }
     }
 
@@ -4346,7 +4347,7 @@
       document.getElementById('iosModal').classList.add('hidden');
     }
 
-    // Execução
+    // ExecuÃ§Ã£o
     init();
   </script>
 </body>
