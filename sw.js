@@ -1,7 +1,7 @@
+﻿// ============================================================
+// GLOBO AGUA - Service Worker
 // ============================================================
-// GLOBO ÁGUA - Service Worker
-// ============================================================
-const CACHE_NAME = 'globo-agua-v9.10';
+const CACHE_NAME = 'globo-agua-v9.11';
 
 const STATIC_ASSETS = [
   'manifest.json',
@@ -9,51 +9,48 @@ const STATIC_ASSETS = [
   'images/mascote.jpeg'
 ];
 
+function offlineHtmlResponse() {
+  return new Response(
+    '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Agua<br><small style="color:#666">Sem conexao. Verifique sua internet.</small></h2></body></html>',
+    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
+}
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return Promise.allSettled(
-        STATIC_ASSETS.map(url =>
-          cache.add(new Request(url, { cache: 'reload' })).catch(() => { })
-        )
-      );
-    })
+    caches.open(CACHE_NAME).then((cache) => Promise.allSettled(
+      STATIC_ASSETS.map((url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => {}))
+    ))
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    )
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
   );
   self.clients.claim();
 });
 
-// Mensagens vindas do app
+// Messages from app
 self.addEventListener('message', (event) => {
   if (event.data === 'CLEAR_CACHE') {
     event.waitUntil(
       caches.keys()
-        .then(keys => Promise.all(keys.map(k => caches.delete(k))))
-        .then(() => caches.open(CACHE_NAME).then(cache => {
-          return Promise.allSettled(
-            STATIC_ASSETS.map(url =>
-              cache.add(new Request(url, { cache: 'reload' })).catch(() => { })
-            )
-          );
-        }))
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() => caches.open(CACHE_NAME))
+        .then((cache) => Promise.allSettled(
+          STATIC_ASSETS.map((url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => {}))
+        ))
     );
   }
+
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// Estratégia: NETWORK-FIRST (tenta rede, usa cache só se offline)
+// Strategy: NETWORK-FIRST (network first, cache only when offline)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
@@ -62,17 +59,15 @@ self.addEventListener('fetch', (event) => {
   if (request.url.includes('googleapis.com')) return;
   if (request.url.includes('viacep.com.br')) return;
 
-  // Para o HTML principal: SEMPRE da rede, nunca do cache (garante atualizações chegarem no PWA)
-  const isHtml = request.url.endsWith('/') || request.url.endsWith('index.html') || request.headers.get('accept')?.includes('text/html');
+  // For HTML pages: always network first to deliver updates immediately in PWA
+  const isHtml = request.url.endsWith('/')
+    || request.url.endsWith('index.html')
+    || request.headers.get('accept')?.includes('text/html');
+
   if (isHtml) {
     event.respondWith(
       fetch(request, { cache: 'no-store' }).catch(() =>
-        caches.match(request).then(cached =>
-          cached || new Response(
-            '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Água<br><small style="color:#666">Sem conexão. Verifique sua internet.</small></body></html>',
-            { headers: { 'Content-Type': 'text/html' } }
-          )
-        )
+        caches.match(request).then((cached) => cached || offlineHtmlResponse())
       )
     );
     return;
@@ -80,21 +75,14 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     fetch(request)
-      .then(response => {
+      .then((response) => {
         if (response && response.ok && response.status === 200) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
       })
-      .catch(() =>
-        caches.match(request).then(cached =>
-          cached || new Response(
-            '<!DOCTYPE html><html><body><h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#1976D2">Globo Água<br><small style="color:#666">Sem conexão. Verifique sua internet.</small></body></html>',
-            { headers: { 'Content-Type': 'text/html' } }
-          )
-        )
-      )
+      .catch(() => caches.match(request).then((cached) => cached || offlineHtmlResponse()))
   );
 });
 
@@ -102,7 +90,7 @@ self.addEventListener('push', (event) => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Globo Água', {
+    self.registration.showNotification(data.title || 'Globo Agua', {
       body: data.body || '',
       icon: '/images/logo.jpeg',
       badge: '/images/logo.jpeg',
@@ -113,7 +101,5 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data || '/')
-  );
+  event.waitUntil(clients.openWindow(event.notification.data || '/'));
 });
