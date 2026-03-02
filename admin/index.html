@@ -2102,6 +2102,8 @@
     let stealthRefreshTimer = null;
     let realtimeChannel = null;
     let realtimeReconnectTimer = null;
+    let suspendOrdersAutoRefreshUntil = 0;
+    let ordersRefreshDeferred = false;
     let queueDirty = false;
     let orderFiltersInitialized = false;
     let closingFiltersInitialized = false;
@@ -4164,12 +4166,12 @@
       if (realtimeChannel) return;
       realtimeChannel = sb.channel('orders-live-sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          if (currentSection === 'orders') loadAdminOrders();
+          if (currentSection === 'orders') refreshOrdersSectionSafe();
           if (currentSection === 'dashboard' && currentRole === 'admin') loadDashboard();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'order_assignments' }, () => {
-          if (currentSection === 'orders') loadAdminOrders();
-          if (currentRole === 'entregador') loadDriverQueue();
+          if (currentSection === 'orders') refreshOrdersSectionSafe();
+          if (currentRole === 'entregador') refreshOrdersSectionSafe();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
           if (canManageOrderDispatch()) loadDrivers().then(() => {
@@ -4187,11 +4189,7 @@
                 realtimeChannel = null;
               }
               setupRealtimeSync();
-              if (currentRole === 'entregador') {
-                loadDriverQueue();
-              } else {
-                loadAdminOrders();
-              }
+              refreshOrdersSectionSafe();
             }, 1500);
           }
         });
@@ -4495,16 +4493,34 @@
       location.reload();
     }
 
+    function pauseOrdersAutoRefresh(ms = 12000) {
+      const timeoutMs = Number(ms) > 0 ? Number(ms) : 12000;
+      suspendOrdersAutoRefreshUntil = Date.now() + timeoutMs;
+    }
+
+    function isOrdersAutoRefreshPaused() {
+      return currentSection === 'orders' && Date.now() < suspendOrdersAutoRefreshUntil;
+    }
+
+    async function refreshOrdersSectionSafe() {
+      if (isOrdersAutoRefreshPaused()) {
+        ordersRefreshDeferred = true;
+        return;
+      }
+      ordersRefreshDeferred = false;
+      if (currentRole === 'entregador') {
+        await loadDriverQueue();
+      } else {
+        await loadAdminOrders();
+      }
+    }
+
     function startStealthRefreshLoop() {
       if (stealthRefreshTimer) return;
       stealthRefreshTimer = setInterval(async () => {
         const modalOpen = !document.getElementById('orderDetailModal').classList.contains('hidden');
         if (document.hidden || !adminUser || modalOpen || currentSection !== 'orders') return;
-        if (currentRole === 'entregador') {
-          await loadDriverQueue();
-        } else {
-          await loadAdminOrders();
-        }
+        await refreshOrdersSectionSafe();
       }, 6000);
     }
 
@@ -4529,11 +4545,11 @@
     async function refreshActiveSectionNow() {
       if (!adminUser) return;
       if (currentRole === 'entregador') {
-        await loadDriverQueue();
+        await refreshOrdersSectionSafe();
         return;
       }
       if (currentSection === 'orders') {
-        await loadAdminOrders();
+        await refreshOrdersSectionSafe();
         return;
       }
       if (currentSection === 'dashboard' && currentRole === 'admin') {
@@ -4547,6 +4563,22 @@
 
     window.addEventListener('focus', () => {
       refreshActiveSectionNow();
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('#sectionOrders select, #sectionOrders input, #sectionOrders button, #ordersMobileList select')) {
+        pauseOrdersAutoRefresh(12000);
+      }
+    }, true);
+
+    document.addEventListener('focusin', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('#sectionOrders select, #sectionOrders input, #ordersMobileList select')) {
+        pauseOrdersAutoRefresh(12000);
+      }
     });
 
     // ============================================================
