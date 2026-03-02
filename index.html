@@ -83,6 +83,34 @@
       color: #fff;
     }
 
+    .promo-banner-rotator {
+      position: relative;
+    }
+
+    .promo-banner-dots {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      display: flex;
+      gap: 6px;
+      z-index: 4;
+    }
+
+    .promo-banner-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.55);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .promo-banner-dot.active {
+      background: #fff;
+      transform: scale(1.15);
+    }
+
     .topbar {
       background: var(--blue);
       color: #fff;
@@ -2173,7 +2201,11 @@
       selectedPayment: 'PIX',
       postLoginAction: null,
       deferredPrompt: null,
-      settings: {}
+      settings: {},
+      promoBannerEntries: [],
+      promoBannerIndex: 0,
+      promoBannerTimer: null,
+      promoBannerText: ''
     };
 
     async function loadSettings() {
@@ -2568,6 +2600,83 @@
       renderProducts();
     }
 
+    function parseBannerList(raw) {
+      if (!raw) return [];
+      if (Array.isArray(raw)) {
+        return raw.map(v => String(v || '').trim()).filter(Boolean);
+      }
+
+      const text = String(raw || '').trim();
+      if (!text) return [];
+
+      if (text.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            return parsed.map(v => String(v || '').trim()).filter(Boolean);
+          }
+        } catch (_) { }
+      }
+
+      return text
+        .split(/\r?\n|\|/)
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+    }
+
+    function resolveBannerType(mediaUrl, typeHint, fallbackType) {
+      const hint = String(typeHint || '').toLowerCase();
+      if (hint === 'video' || hint === 'image') return hint;
+
+      const clean = String(mediaUrl || '').split('?')[0].toLowerCase();
+      if (/\.(mp4|webm|mov|m4v)$/.test(clean)) return 'video';
+      if (/\.(jpg|jpeg|png|gif|webp|avif|svg)$/.test(clean)) return 'image';
+
+      return fallbackType === 'video' ? 'video' : 'image';
+    }
+
+    function clearPromoBannerRotation() {
+      if (S.promoBannerTimer) {
+        clearInterval(S.promoBannerTimer);
+        S.promoBannerTimer = null;
+      }
+    }
+
+    function setPromoBannerIndex(nextIndex) {
+      if (!Array.isArray(S.promoBannerEntries) || !S.promoBannerEntries.length) return;
+      const len = S.promoBannerEntries.length;
+      S.promoBannerIndex = ((nextIndex % len) + len) % len;
+      drawPromoBanner();
+    }
+
+    function drawPromoBanner() {
+      const promoArea = document.getElementById('promoBannerArea');
+      if (!promoArea || !S.promoBannerEntries.length) return;
+
+      const len = S.promoBannerEntries.length;
+      if (S.promoBannerIndex >= len) S.promoBannerIndex = 0;
+      const current = S.promoBannerEntries[S.promoBannerIndex];
+      if (!current) return;
+
+      const mediaHtml = current.type === 'video'
+        ? `<video src="${escAttr(current.media)}" autoplay loop muted playsinline></video>`
+        : `<img src="${escAttr(current.media)}" alt="${escAttr(S.promoBannerText || '')}">`;
+
+      const dotsHtml = len > 1
+        ? `<div class="promo-banner-dots">${S.promoBannerEntries.map((_, idx) =>
+          `<button class="promo-banner-dot${idx === S.promoBannerIndex ? ' active' : ''}" onclick="event.stopPropagation(); setPromoBannerIndex(${idx})" aria-label="Banner ${idx + 1}"></button>`
+        ).join('')}</div>`
+        : '';
+
+      promoArea.innerHTML = `
+        <div class="promo-banner-media promo-banner-rotator" ${current.link ? `data-link="${escAttr(current.link)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
+          ${mediaHtml}
+          ${S.promoBannerText ? `<div class="promo-banner-overlay"><strong>${S.promoBannerText}</strong></div>` : ''}
+          ${dotsHtml}
+        </div>
+      `;
+    }
+
     function renderProducts() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const list = S.products.filter(p => {
@@ -2582,11 +2691,50 @@
       const promoArea = document.getElementById('promoBannerArea');
       const g = S.settings?.geral || {};
       const active = g.banner_promocional_ativo;
-      const media = safeHttpUrl(g.banner_promocional_media_url);
-      const link = safeHttpUrl(g.banner_promocional_link);
       const promoText = escHtml(g.banner_promocional_texto || '');
+      const mediaList = parseBannerList(g.banner_promocional_media_url).map(safeHttpUrl).filter(Boolean);
+      const linkList = parseBannerList(g.banner_promocional_link).map(safeHttpUrl).filter(Boolean);
+      const typeList = parseBannerList(g.banner_promocional_media_type).map(v => String(v || '').toLowerCase());
+      const fallbackType = String(g.banner_promocional_media_type || '').toLowerCase() === 'video' ? 'video' : 'image';
 
-      if (active && (media || g.banner_promocional_texto)) {
+      if (true) {
+        clearPromoBannerRotation();
+        S.promoBannerEntries = mediaList.map((mediaItem, idx) => ({
+          media: mediaItem,
+          link: linkList[idx] || linkList[0] || '',
+          type: resolveBannerType(mediaItem, typeList[idx] || typeList[0], fallbackType)
+        }));
+        S.promoBannerText = promoText;
+
+        if (active && (S.promoBannerEntries.length || promoText)) {
+          if (S.promoBannerEntries.length) {
+            if (S.promoBannerIndex >= S.promoBannerEntries.length) S.promoBannerIndex = 0;
+            drawPromoBanner();
+
+            if (S.promoBannerEntries.length > 1) {
+              S.promoBannerTimer = setInterval(() => {
+                S.promoBannerIndex = (S.promoBannerIndex + 1) % S.promoBannerEntries.length;
+                drawPromoBanner();
+              }, 5000);
+            }
+          } else {
+            const onlyLink = linkList[0] || '';
+            promoArea.innerHTML = `
+              <div class="promo-banner" ${onlyLink ? `data-link="${escAttr(onlyLink)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
+                <div style="font-size:24px">PROMO</div>
+                <div class="install-banner-text">
+                  <strong>PromoÃ§Ã£o Ativa!</strong>
+                  <small>${promoText}</small>
+                </div>
+                <div class="install-banner-btn">Aproveitar</div>
+              </div>
+            `;
+          }
+          promoArea.classList.remove('hidden');
+        } else {
+          promoArea.classList.add('hidden');
+        }
+      } else if (false) {
         let content = '';
         if (media) {
           if (g.banner_promocional_media_type === 'video') {
