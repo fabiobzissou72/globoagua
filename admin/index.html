@@ -2662,6 +2662,11 @@
       const razaoSocial = o.razao_social || (o.cliente_tipo === 'PJ' ? o.cliente_nome : '');
       const paymentMethod = formatPaymentMethod(o.metodo_pagamento);
       const paymentStatus = escapeHtml(o.status_pagamento || '-');
+      const clientWhatsRaw = String(o.cliente_whatsapp || '').trim();
+      const clientWhatsDigits = clientWhatsRaw.replace(/\D/g, '');
+      const clientWhatsHtml = clientWhatsDigits
+        ? `<a href="https://wa.me/${clientWhatsDigits}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);font-weight:600;text-decoration:none">${escapeHtml(clientWhatsRaw)}</a>`
+        : '-';
       const itemsHtml = (o.order_items || []).map(i => `
         <div class="order-item-row">
           <span class="order-item-name">${escapeHtml(i.produto_nome || 'Produto')}</span>
@@ -2686,7 +2691,7 @@
           <h4>Cliente</h4>
           <div class="order-detail-grid">
             <p class="order-detail-field"><strong>Nome:</strong> ${escapeHtml(o.cliente_nome || '-')}</p>
-            <p class="order-detail-field"><strong>WhatsApp:</strong> ${escapeHtml(o.cliente_whatsapp || '-')}</p>
+            <p class="order-detail-field"><strong>WhatsApp:</strong> ${clientWhatsHtml}</p>
             <p class="order-detail-field"><strong>Email:</strong> ${escapeHtml(o.cliente_email || '-')}</p>
             <p class="order-detail-field"><strong>Tipo:</strong> ${escapeHtml(o.cliente_tipo || 'PF')}</p>
             <p class="order-detail-field"><strong>CPF/CNPJ:</strong> ${escapeHtml(o.cliente_documento || '-')}</p>
