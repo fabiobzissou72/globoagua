@@ -2245,7 +2245,10 @@
       orderDetailWatchdogTimer: null,
       stealthRefreshTimer: null,
       ignoreNextPopstateCloseAll: false,
-      checkoutAutoReturnTimer: null
+      checkoutAutoReturnTimer: null,
+      checkoutOpen: false,
+      checkoutNextLock: false,
+      ordersRefreshPending: false
     };
 
     async function loadSettings() {
@@ -3159,11 +3162,23 @@
       return true;
     }
 
+    function isCheckoutOpen() {
+      return !!document.getElementById('checkoutSheet')?.classList.contains('open');
+    }
+
+    async function flushPendingOrdersRefresh() {
+      if (!S.ordersRefreshPending || !S.user || isCheckoutOpen()) return;
+      S.ordersRefreshPending = false;
+      await loadOrders(true);
+    }
+
     // ============================================================
     // CHECKOUT
     // ============================================================
     async function openCheckout() {
       clearCheckoutAutoReturnTimer();
+      S.checkoutOpen = true;
+      S.checkoutNextLock = false;
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
       const autoBackLabel = document.getElementById('successAutoBack');
@@ -3233,12 +3248,15 @@
         history.back();
       }
       document.getElementById('checkoutSheet').classList.remove('open');
+      S.checkoutOpen = false;
+      S.checkoutNextLock = false;
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
       const autoBackLabel = document.getElementById('successAutoBack');
       if (autoBackLabel) autoBackLabel.textContent = '';
       selectPayment('PIX');
       updateCheckoutStep();
+      setTimeout(() => { flushPendingOrdersRefresh(); }, 150);
     }
 
     function updateCheckoutStep() {
@@ -3278,27 +3296,49 @@
     }
 
     async function nextStep() {
+      if (S.checkoutNextLock) return;
+      S.checkoutNextLock = true;
+      const btn = document.getElementById('btnNext');
       if (S.checkoutStep === 0) {
         if (!S.selectedBranchId) {
           const currentCep = (document.getElementById('addrCep')?.value || '').replace(/\D/g, '');
-          if (currentCep.length === 8) await pickBranchByCep(currentCep);
+          if (currentCep.length === 8) {
+            try {
+              await Promise.race([
+                pickBranchByCep(currentCep),
+                new Promise(resolve => setTimeout(resolve, 2500))
+              ]);
+            } catch (_) { }
+          }
         }
         if (!S.selectedBranchId && S.profile?.branch_id) {
           setSelectedBranch(S.profile.branch_id, 'profile');
         }
         if (!S.selectedBranchId) {
-          showToast('Selecione uma filial para continuar'); return;
+          showToast('Selecione uma filial para continuar');
+          S.checkoutNextLock = false;
+          return;
         }
         if (!document.getElementById('addrRua').value || !document.getElementById('addrCidade').value) {
-          showToast('Preencha o endereço completo'); return;
+          showToast('Preencha o endereço completo');
+          S.checkoutNextLock = false;
+          return;
         }
         if (!document.getElementById('recNome').value) {
-          showToast('Informe o nome do recebedor'); return;
+          showToast('Informe o nome do recebedor');
+          S.checkoutNextLock = false;
+          return;
         }
       }
-      if (S.checkoutStep === 2) { placeOrder(); return; }
+      if (S.checkoutStep === 2) {
+        S.checkoutNextLock = false;
+        placeOrder();
+        return;
+      }
       S.checkoutStep++;
       updateCheckoutStep();
+      S.checkoutNextLock = false;
+      if (btn && S.checkoutStep !== 3) btn.disabled = false;
     }
 
     function renderReview() {
@@ -3439,6 +3479,7 @@
         console.error('❌ Erro crítico ao finalizar pedido:', err);
         showToast('Erro: ' + (err.message || 'Verifique sua conexão'));
       } finally {
+        S.checkoutNextLock = false;
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
@@ -3467,7 +3508,11 @@
     // ============================================================
     // ORDERS
     // ============================================================
-    async function loadOrders() {
+    async function loadOrders(force = false) {
+      if (!force && isCheckoutOpen()) {
+        S.ordersRefreshPending = true;
+        return;
+      }
       if (!S.user) {
         document.getElementById('ordersList').innerHTML = '<div class="loading-center"><p style="color:#aaa">Faça login para ver seus pedidos</p><button class="auth-btn btn-biometric" style="max-width:200px;margin-top:12px" onclick="openAuth()">Entrar</button></div>';
         return;
@@ -3519,7 +3564,11 @@
           table: 'orders',
           filter: `user_id=eq.${S.user.id}`
         }, () => {
-          loadOrders();
+          if (isCheckoutOpen()) {
+            S.ordersRefreshPending = true;
+            return;
+          }
+          loadOrders(true);
           if (S.currentOrderDetailId) openOrderDetail(S.currentOrderDetailId);
         })
         .subscribe((status) => {
@@ -3529,7 +3578,11 @@
             S.ordersRealtimeReconnectTimer = setTimeout(() => {
               if (!S.user) return;
               setupOrdersRealtime();
-              loadOrders();
+              if (isCheckoutOpen()) {
+                S.ordersRefreshPending = true;
+                return;
+              }
+              loadOrders(true);
             }, 1500);
           }
         });
@@ -4226,8 +4279,8 @@
       if (S.stealthRefreshTimer) return;
       S.stealthRefreshTimer = setInterval(() => {
         const isOrderModalOpen = !!document.getElementById('orderDetailOverlay')?.classList.contains('open');
-        if (document.hidden || isOrderModalOpen || !S.user) return;
-        loadOrders();
+        if (document.hidden || isOrderModalOpen || isCheckoutOpen() || !S.user) return;
+        loadOrders(true);
       }, 8000);
     }
 
@@ -4351,12 +4404,21 @@
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && S.user) {
-        loadOrders();
+        if (isCheckoutOpen()) {
+          S.ordersRefreshPending = true;
+          return;
+        }
+        loadOrders(true);
       }
     });
 
     window.addEventListener('focus', () => {
-      if (S.user) loadOrders();
+      if (!S.user) return;
+      if (isCheckoutOpen()) {
+        S.ordersRefreshPending = true;
+        return;
+      }
+      loadOrders(true);
     });
 
     // ============================================================
