@@ -2054,6 +2054,7 @@
         </div>
         <div class="order-number" id="successOrderNum">#GA123456</div>
         <p>Atualizações pelo WhatsApp.</p>
+        <p id="successAutoBack" style="font-size:13px;color:#666;margin-top:8px"></p>
         <button class="auth-btn btn-biometric" style="margin-top:24px"
           onclick="closeCheckout();setTimeout(() => { showView('viewOrders',null); loadOrders(); }, 150)">Ver meus
           pedidos</button>
@@ -2243,7 +2244,8 @@
       orderDetailRequestSeq: 0,
       orderDetailWatchdogTimer: null,
       stealthRefreshTimer: null,
-      ignoreNextPopstateCloseAll: false
+      ignoreNextPopstateCloseAll: false,
+      checkoutAutoReturnTimer: null
     };
 
     async function loadSettings() {
@@ -3161,8 +3163,11 @@
     // CHECKOUT
     // ============================================================
     async function openCheckout() {
+      clearCheckoutAutoReturnTimer();
       S.checkoutStep = 0;
       S.selectedPayment = 'PIX';
+      const autoBackLabel = document.getElementById('successAutoBack');
+      if (autoBackLabel) autoBackLabel.textContent = '';
 
       history.pushState({ modal: 'checkout' }, '');
       // Abre o modal IMEDIATAMENTE antes de qualquer busca no banco
@@ -3205,11 +3210,35 @@
       }
     }
 
+    function clearCheckoutAutoReturnTimer() {
+      if (!S.checkoutAutoReturnTimer) return;
+      clearTimeout(S.checkoutAutoReturnTimer);
+      S.checkoutAutoReturnTimer = null;
+    }
+
+    function scheduleCheckoutAutoReturn() {
+      clearCheckoutAutoReturnTimer();
+      const autoBackLabel = document.getElementById('successAutoBack');
+      if (autoBackLabel) autoBackLabel.textContent = 'Voltando para o início em 3 segundos...';
+      S.checkoutAutoReturnTimer = setTimeout(() => {
+        S.checkoutAutoReturnTimer = null;
+        closeCheckout();
+        setTimeout(() => showView('viewCatalog', document.querySelector('.nav-btn')), 120);
+      }, 3000);
+    }
+
     function closeCheckout(fromHistory = false) {
+      clearCheckoutAutoReturnTimer();
       if (!fromHistory && document.getElementById('checkoutSheet')?.classList.contains('open')) {
         history.back();
       }
       document.getElementById('checkoutSheet').classList.remove('open');
+      S.checkoutStep = 0;
+      S.selectedPayment = 'PIX';
+      const autoBackLabel = document.getElementById('successAutoBack');
+      if (autoBackLabel) autoBackLabel.textContent = '';
+      selectPayment('PIX');
+      updateCheckoutStep();
     }
 
     function updateCheckoutStep() {
@@ -3248,8 +3277,15 @@
       navigator.clipboard.writeText(input.value).then(() => showToast('Chave PIX copiada! ✅'));
     }
 
-    function nextStep() {
+    async function nextStep() {
       if (S.checkoutStep === 0) {
+        if (!S.selectedBranchId) {
+          const currentCep = (document.getElementById('addrCep')?.value || '').replace(/\D/g, '');
+          if (currentCep.length === 8) await pickBranchByCep(currentCep);
+        }
+        if (!S.selectedBranchId && S.profile?.branch_id) {
+          setSelectedBranch(S.profile.branch_id, 'profile');
+        }
         if (!S.selectedBranchId) {
           showToast('Selecione uma filial para continuar'); return;
         }
@@ -3397,6 +3433,7 @@
         document.getElementById('successOrderNum').textContent = '#' + num;
         S.checkoutStep = 3;
         updateCheckoutStep();
+        scheduleCheckoutAutoReturn();
 
       } catch (err) {
         console.error('❌ Erro crítico ao finalizar pedido:', err);
