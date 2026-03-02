@@ -157,6 +157,7 @@
     let draggingId = null;
     let queueDirty = false;
     let rt = null;
+    let rtReconnectTimer = null;
     let currentOrderModalId = null;
     let currentOrderModalAddress = '';
     let orderModalRequestSeq = 0;
@@ -165,6 +166,7 @@
     let knownQueueOrderIds = new Set();
     let queueInitialized = false;
     let alertsEnabled = true;
+    let driverAudioCtx = null;
 
     function esc(v) {
       return String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -211,7 +213,24 @@
         const modalOpen = !document.getElementById('orderModal').classList.contains('hidden');
         if (document.hidden || !driverUser || modalOpen) return;
         await loadQueue();
-      }, 45000);
+      }, 5000);
+    }
+    function ensureDriverAudioContext() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        if (!driverAudioCtx) driverAudioCtx = new Ctx();
+        return driverAudioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+    function unlockDriverAudio() {
+      const ctx = ensureDriverAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
     }
     function loadAlertPreference() {
       try {
@@ -248,9 +267,9 @@
     }
     function playNewOrderSound() {
       try {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return;
-        const ctx = new Ctx();
+        const ctx = ensureDriverAudioContext();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') return;
         const beep = (startAt, freq, duration) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -400,6 +419,11 @@
     async function logoutDriver() {
       if (driverUser) await sb.from('profiles').update({ driver_online: false }).eq('id', driverUser.id);
       if (rt) sb.removeChannel(rt);
+      rt = null;
+      if (rtReconnectTimer) {
+        clearTimeout(rtReconnectTimer);
+        rtReconnectTimer = null;
+      }
       queueInitialized = false;
       knownQueueOrderIds.clear();
       await sb.auth.signOut();
@@ -747,8 +771,32 @@
         .channel('driver-live-' + driverUser.id)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'order_assignments', filter: `driver_id=eq.${driverUser.id}` }, () => loadQueue())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `driver_id=eq.${driverUser.id}` }, () => loadQueue())
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') return;
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            if (rtReconnectTimer) clearTimeout(rtReconnectTimer);
+            rtReconnectTimer = setTimeout(() => {
+              if (rt) {
+                try { sb.removeChannel(rt); } catch (e) {}
+                rt = null;
+              }
+              setupRealtime();
+              loadQueue();
+            }, 1200);
+          }
+        });
     }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && driverUser) loadQueue();
+    });
+
+    window.addEventListener('focus', () => {
+      if (driverUser) loadQueue();
+    });
+
+    window.addEventListener('pointerdown', unlockDriverAudio, { passive: true });
+    window.addEventListener('keydown', unlockDriverAudio);
 
     (async () => {
       loadAlertPreference();

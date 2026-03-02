@@ -2230,6 +2230,7 @@
       promoBannerTimer: null,
       promoBannerText: '',
       ordersRealtimeChannel: null,
+      ordersRealtimeReconnectTimer: null,
       currentOrderDetailId: null,
       currentOrderDetailData: null,
       orderDetailRequestSeq: 0,
@@ -3412,6 +3413,10 @@
       if (!client || !S.ordersRealtimeChannel) return;
       client.removeChannel(S.ordersRealtimeChannel);
       S.ordersRealtimeChannel = null;
+      if (S.ordersRealtimeReconnectTimer) {
+        clearTimeout(S.ordersRealtimeReconnectTimer);
+        S.ordersRealtimeReconnectTimer = null;
+      }
     }
 
     function setupOrdersRealtime() {
@@ -3429,7 +3434,17 @@
           loadOrders();
           if (S.currentOrderDetailId) openOrderDetail(S.currentOrderDetailId);
         })
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') return;
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            if (S.ordersRealtimeReconnectTimer) clearTimeout(S.ordersRealtimeReconnectTimer);
+            S.ordersRealtimeReconnectTimer = setTimeout(() => {
+              if (!S.user) return;
+              setupOrdersRealtime();
+              loadOrders();
+            }, 1500);
+          }
+        });
     }
 
     function getFinanceEmailForOrder(order) {
@@ -4125,7 +4140,7 @@
         const isOrderModalOpen = !!document.getElementById('orderDetailOverlay')?.classList.contains('open');
         if (document.hidden || isOrderModalOpen || !S.user) return;
         loadOrders();
-      }, 45000);
+      }, 8000);
     }
 
     function goHomeFromLogo() {
@@ -4245,6 +4260,16 @@
     }
 
     startStealthRefreshLoop();
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && S.user) {
+        loadOrders();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      if (S.user) loadOrders();
+    });
 
     // ============================================================
     // NAVIGATION & HISTORY

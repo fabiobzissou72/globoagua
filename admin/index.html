@@ -2101,6 +2101,7 @@
     let orderDetailWatchdogTimer = null;
     let stealthRefreshTimer = null;
     let realtimeChannel = null;
+    let realtimeReconnectTimer = null;
     let queueDirty = false;
     let orderFiltersInitialized = false;
     let closingFiltersInitialized = false;
@@ -4176,7 +4177,24 @@
             populateDriverFilter();
           });
         })
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') return;
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            if (realtimeReconnectTimer) clearTimeout(realtimeReconnectTimer);
+            realtimeReconnectTimer = setTimeout(() => {
+              if (realtimeChannel) {
+                try { sb.removeChannel(realtimeChannel); } catch (e) {}
+                realtimeChannel = null;
+              }
+              setupRealtimeSync();
+              if (currentRole === 'entregador') {
+                loadDriverQueue();
+              } else {
+                loadAdminOrders();
+              }
+            }, 1500);
+          }
+        });
     }
 
     // ============================================================
@@ -4487,7 +4505,7 @@
         } else {
           await loadAdminOrders();
         }
-      }, 45000);
+      }, 6000);
     }
 
     function closeModal(id) {
@@ -4507,6 +4525,29 @@
       t.textContent = msg; t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
     }
+
+    async function refreshActiveSectionNow() {
+      if (!adminUser) return;
+      if (currentRole === 'entregador') {
+        await loadDriverQueue();
+        return;
+      }
+      if (currentSection === 'orders') {
+        await loadAdminOrders();
+        return;
+      }
+      if (currentSection === 'dashboard' && currentRole === 'admin') {
+        await loadDashboard();
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshActiveSectionNow();
+    });
+
+    window.addEventListener('focus', () => {
+      refreshActiveSectionNow();
+    });
 
     // ============================================================
     // AUTO-RESTAURAR SESSÃO AO RECARREGAR
