@@ -1167,6 +1167,11 @@
       color: #E65100
     }
 
+    .status-EM_ROTA {
+      background: #E8EAF6;
+      color: #283593
+    }
+
     .status-ENTREGUE {
       background: #E8F5E9;
       color: #1B5E20
@@ -1941,6 +1946,20 @@
     <!-- STEP 0: ENDEREÇO -->
     <div id="checkoutStep0">
       <div class="checkout-card">
+        <h3>Filial de atendimento</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:10px">A filial define taxa e prazo de entrega.</p>
+        <div class="form-group">
+          <button class="auth-btn btn-biometric" type="button" style="margin:0" onclick="detectBranchByGeo()">Usar localizacao</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Escolher manualmente</label>
+          <select class="form-input" id="branchSelect" onchange="selectBranchManual(this.value)">
+            <option value="">Selecione uma filial</option>
+          </select>
+        </div>
+        <div id="branchSummary" style="font-size:13px;color:#555"></div>
+      </div>
+      <div class="checkout-card">
         <h3>📍 Endereço de entrega</h3>
         <div class="form-group">
           <label class="form-label">CEP</label>
@@ -2196,6 +2215,10 @@
       cart: JSON.parse(localStorage.getItem('ga_cart') || '[]'),
       products: JSON.parse(localStorage.getItem('ga_products_cache') || '[]'),
       companyPrices: {},
+      branches: [],
+      selectedBranchId: localStorage.getItem('ga_branch_id') || '',
+      selectedBranch: null,
+      branchStrategy: 'manual',
       currentCategory: 'Todos',
       checkoutStep: 0,
       selectedPayment: 'PIX',
@@ -2205,7 +2228,14 @@
       promoBannerEntries: [],
       promoBannerIndex: 0,
       promoBannerTimer: null,
-      promoBannerText: ''
+      promoBannerText: '',
+      ordersRealtimeChannel: null,
+      currentOrderDetailId: null,
+      currentOrderDetailData: null,
+      orderDetailRequestSeq: 0,
+      orderDetailWatchdogTimer: null,
+      stealthRefreshTimer: null,
+      ignoreNextPopstateCloseAll: false
     };
 
     async function loadSettings() {
@@ -2325,10 +2355,15 @@
       if (!client || !S.user) return;
       const { data } = await client.from('profiles').select('*').eq('id', S.user.id).single();
       S.profile = data;
+      if (S.profile?.branch_id) {
+        S.selectedBranchId = S.profile.branch_id;
+        localStorage.setItem('ga_branch_id', S.selectedBranchId);
+      }
       S.companyPrices = {};
       if (data?.tipo_pessoa === 'PJ' && data?.documento) {
         await loadCompanyPrices(data.documento.replace(/\D/g, ''));
       }
+      await loadBranches();
       repriceCart(false);
       renderProducts();
     }
@@ -2339,6 +2374,123 @@
       const { data } = await client.from('company_prices').select('product_id,preco_especial').eq('cnpj', cnpj);
       S.companyPrices = {};
       (data || []).forEach(r => { S.companyPrices[r.product_id] = parseFloat(r.preco_especial); });
+    }
+
+    async function loadBranches() {
+      const client = getSupabase();
+      if (!client) return;
+      const { data, error } = await client.from('branches').select('*').eq('ativo', true).order('nome');
+      if (error) {
+        console.warn('Erro ao carregar filiais:', error);
+        return;
+      }
+      S.branches = data || [];
+      if (!S.selectedBranchId && S.profile?.branch_id) S.selectedBranchId = S.profile.branch_id;
+      if (S.selectedBranchId) S.selectedBranch = S.branches.find(b => b.id === S.selectedBranchId) || null;
+      renderBranchSelect();
+      updateBranchSummary();
+    }
+
+    function renderBranchSelect() {
+      const sel = document.getElementById('branchSelect');
+      if (!sel) return;
+      const current = S.selectedBranchId || '';
+      sel.innerHTML = '<option value=\"\">Selecione uma filial</option>' +
+        S.branches.map(b => `<option value=\"${b.id}\">${escHtml(b.nome || b.codigo || b.id)}</option>`).join('');
+      if (current) sel.value = current;
+    }
+
+    function updateBranchSummary(strategy = null) {
+      const el = document.getElementById('branchSummary');
+      if (!el) return;
+      const branch = S.selectedBranch;
+      if (!branch) {
+        el.innerHTML = '<span style=\"color:#b71c1c\">Nenhuma filial selecionada</span>';
+        return;
+      }
+      const strat = strategy || S.branchStrategy || 'manual';
+      const strategyLabel = strat === 'gps' ? 'GPS' : strat === 'coverage' ? 'CEP/cobertura' : 'manual';
+      el.innerHTML = `<strong>${escHtml(branch.nome || '')}</strong><br><span style=\"color:#777\">Taxa: ${fmt(branch.taxa_entrega || 0)} · Prazo: ${parseInt(branch.prazo_min || 30, 10)} min · Origem: ${strategyLabel}</span>`;
+    }
+
+    async function persistBranchSelection(branchId, strategy = 'manual') {
+      const client = getSupabase();
+      if (!client || !S.user || !branchId) return;
+      const rpc = await client.rpc('save_customer_branch', { p_branch_id: branchId });
+      if (rpc.error) {
+        await client.from('profiles').update({ branch_id: branchId }).eq('id', S.user.id);
+      }
+      if (!S.profile) S.profile = {};
+      S.profile.branch_id = branchId;
+      S.branchStrategy = strategy;
+    }
+
+    function setSelectedBranch(branchId, strategy = 'manual') {
+      S.selectedBranchId = branchId || '';
+      S.selectedBranch = S.branches.find(b => b.id === branchId) || null;
+      localStorage.setItem('ga_branch_id', S.selectedBranchId || '');
+      renderBranchSelect();
+      updateBranchSummary(strategy);
+      renderReview();
+    }
+
+    async function selectBranchManual(branchId) {
+      if (!branchId) {
+        setSelectedBranch('', 'manual');
+        return;
+      }
+      setSelectedBranch(branchId, 'manual');
+      await persistBranchSelection(branchId, 'manual');
+    }
+
+    async function pickBranchByCep(cep) {
+      const cleanCep = String(cep || '').replace(/\D/g, '');
+      if (cleanCep.length !== 8) return;
+      const client = getSupabase();
+      if (!client || !S.user) return;
+      const { data, error } = await client.rpc('pick_branch_for_customer', { p_cep: cleanCep });
+      if (error || !data?.length) return;
+      const branchId = data[0].branch_id;
+      if (!branchId) return;
+      setSelectedBranch(branchId, data[0].strategy || 'coverage');
+      await persistBranchSelection(branchId, data[0].strategy || 'coverage');
+    }
+
+    async function detectBranchByGeo() {
+      if (!navigator.geolocation) {
+        showToast('Geolocalizacao indisponivel no navegador');
+        return;
+      }
+      if (!S.user) {
+        showToast('Faca login para detectar filial automaticamente');
+        return;
+      }
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      }).catch(err => {
+        console.warn('GPS negado/falhou:', err);
+        showToast('Nao foi possivel usar o GPS. Informe o CEP.');
+        return null;
+      });
+      if (!position) return;
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const cep = document.getElementById('addrCep')?.value || '';
+      const client = getSupabase();
+      if (!client) return;
+      const { data, error } = await client.rpc('pick_branch_for_customer', { p_lat: lat, p_lon: lon, p_cep: cep });
+      if (error || !data?.length) {
+        showToast('Nao foi possivel identificar a filial automaticamente');
+        return;
+      }
+      const branchId = data[0].branch_id;
+      setSelectedBranch(branchId, data[0].strategy || 'gps');
+      await persistBranchSelection(branchId, data[0].strategy || 'gps');
+      showToast('Filial selecionada automaticamente');
     }
 
     function updateBiometricBtn() {
@@ -2723,7 +2875,7 @@
               <div class="promo-banner" ${onlyLink ? `data-link="${escAttr(onlyLink)}" onclick="openExternalLink(this.dataset.link)"` : ''}>
                 <div style="font-size:24px">PROMO</div>
                 <div class="install-banner-text">
-                  <strong>PromoÃ§Ã£o Ativa!</strong>
+                  <strong>Promoção Ativa!</strong>
                   <small>${promoText}</small>
                 </div>
                 <div class="install-banner-btn">Aproveitar</div>
@@ -2970,7 +3122,11 @@
       if (S.profile) {
         document.getElementById('recNome').value = S.profile.nome_completo || '';
         document.getElementById('recWhats').value = S.profile.whatsapp || '';
+        if (!S.selectedBranchId && S.profile.branch_id) setSelectedBranch(S.profile.branch_id, 'profile');
       }
+
+      renderBranchSelect();
+      updateBranchSummary();
 
       // Busca endereço salvo em background
       if (S.user) {
@@ -2991,6 +3147,7 @@
             document.getElementById('addrBairro').value = addr.bairro || '';
             document.getElementById('addrCidade').value = addr.cidade || '';
             document.getElementById('addrEstado').value = addr.estado || '';
+            if (!S.selectedBranchId && addr.cep) pickBranchByCep(addr.cep);
           }
         } catch (e) {
           console.warn('Erro ao carregar endereço padrão (background):', e);
@@ -3042,6 +3199,9 @@
 
     function nextStep() {
       if (S.checkoutStep === 0) {
+        if (!S.selectedBranchId) {
+          showToast('Selecione uma filial para continuar'); return;
+        }
         if (!document.getElementById('addrRua').value || !document.getElementById('addrCidade').value) {
           showToast('Preencha o endereço completo'); return;
         }
@@ -3059,11 +3219,13 @@
         `<div class="order-item-review"><span>${i.qty}x ${escHtml(i.nome || '')}</span><span>${fmt(i.subtotal)}</span></div>`
       ).join('');
       const sub = cartTotal();
+      const taxa = parseFloat(S.selectedBranch?.taxa_entrega || 0);
       document.getElementById('reviewSubtotal').textContent = fmt(sub);
-      document.getElementById('reviewTotal').textContent = fmt(sub);
+      document.getElementById('reviewTaxa').textContent = taxa > 0 ? fmt(taxa) : 'Grátis';
+      document.getElementById('reviewTotal').textContent = fmt(sub + taxa);
       const addr = [document.getElementById('addrRua').value, document.getElementById('addrNum').value, document.getElementById('addrComp').value, document.getElementById('addrBairro').value, document.getElementById('addrCidade').value + ' - ' + document.getElementById('addrEstado').value, 'CEP: ' + document.getElementById('addrCep').value].filter(Boolean).join(', ');
       document.getElementById('reviewAddr').textContent = addr;
-      document.getElementById('reviewRec').textContent = `Recebedor: ${document.getElementById('recNome').value} | ${document.getElementById('recWhats').value}`;
+      document.getElementById('reviewRec').textContent = `Recebedor: ${document.getElementById('recNome').value} | ${document.getElementById('recWhats').value} | Filial: ${S.selectedBranch?.nome || '-'}`;
     }
 
     function selectPayment(m) {
@@ -3086,9 +3248,15 @@
           showToast('Usuário não identificado. Faça login novamente.');
           throw new Error('User not logged in');
         }
+        if (!S.selectedBranchId) {
+          showToast('Selecione uma filial antes de finalizar');
+          throw new Error('Branch not selected');
+        }
 
         const num = 'GA' + Date.now().toString().slice(-6);
         const sub = cartTotal();
+        const taxaEntrega = parseFloat(S.selectedBranch?.taxa_entrega || 0);
+        const totalFinal = sub + taxaEntrega;
 
         // Coleta dados do formulário de endereço
         const addrRua = document.getElementById('addrRua').value;
@@ -3122,8 +3290,9 @@
           recebedor_referencia: document.getElementById('recRef').value || '',
           observacoes: obs,
           subtotal: sub,
-          taxa_entrega: 0,
-          total: sub,
+          taxa_entrega: taxaEntrega,
+          total: totalFinal,
+          branch_id: S.selectedBranchId || S.profile?.branch_id || null,
           metodo_pagamento: S.selectedPayment || 'PIX',
           status: 'NOVO',
           status_pagamento: 'PENDENTE'
@@ -3201,6 +3370,7 @@
         document.getElementById('addrBairro').value = d.bairro || '';
         document.getElementById('addrCidade').value = d.localidade || '';
         document.getElementById('addrEstado').value = d.uf || '';
+        pickBranchByCep(cep);
         document.getElementById('addrNum').focus();
       } catch (e) { }
     }
@@ -3237,23 +3407,161 @@
   `).join('');
     }
 
+    function stopOrdersRealtime() {
+      const client = getSupabase();
+      if (!client || !S.ordersRealtimeChannel) return;
+      client.removeChannel(S.ordersRealtimeChannel);
+      S.ordersRealtimeChannel = null;
+    }
+
+    function setupOrdersRealtime() {
+      const client = getSupabase();
+      if (!client || !S.user) return;
+      stopOrdersRealtime();
+      S.ordersRealtimeChannel = client
+        .channel('orders-client-' + S.user.id)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${S.user.id}`
+        }, () => {
+          loadOrders();
+          if (S.currentOrderDetailId) openOrderDetail(S.currentOrderDetailId);
+        })
+        .subscribe();
+    }
+
+    function getFinanceEmailForOrder(order) {
+      const fromProfile = String(S.profile?.email_financeiro || '').trim();
+      const fromOrder = String(order?.email_financeiro || '').trim();
+      const fromLocal = String(localStorage.getItem('ga_finance_email') || '').trim();
+      return fromProfile || fromOrder || fromLocal || '';
+    }
+
+    function ensureFinanceEmail(order) {
+      let email = getFinanceEmailForOrder(order);
+      if (!email) {
+        const informed = prompt('Informe o e-mail do financeiro para envio deste pedido:');
+        email = String(informed || '').trim();
+      }
+      if (!email) return '';
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!isValid) {
+        showToast('E-mail do financeiro inv\u00e1lido');
+        return '';
+      }
+      localStorage.setItem('ga_finance_email', email);
+      return email;
+    }
+
+    function normalizeFinanceObservations(rawValue) {
+      const text = String(rawValue || '').trim();
+      if (!text) return '-';
+
+      return text
+        .replace(/\bRrecebido\b/gi, 'Recebido')
+        .replace(/\bRecebido\s+P\b/gi, 'Recebido por')
+        .replace(/\bRecebido\s+Por\b/gi, 'Recebido por')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    function buildFinanceMailto(order) {
+      const to = ensureFinanceEmail(order);
+      if (!to) return '';
+
+      const orderNumber = order?.numero_pedido || '-';
+      const orderDate = order?.created_at ? new Date(order.created_at).toLocaleString('pt-BR') : '-';
+      const branchName = S.branches.find(b => b.id === order?.branch_id)?.nome || '-';
+      const items = Array.isArray(order?.order_items) ? order.order_items : [];
+      const itemsLines = items.length
+        ? items.map(i => `- ${i.quantidade || 0}x ${i.produto_nome || 'Produto'} = ${fmt(i.subtotal || 0)}`).join('\n')
+        : '- Sem itens detalhados';
+      const normalizedObservations = normalizeFinanceObservations(order?.observacoes);
+
+      const subject = `Pedido #${orderNumber} para financeiro - Globo \u00c1gua`;
+      const body = [
+        'Prezado(a) financeiro(a),',
+        '',
+        'Segue pedido para lan\u00e7amento.',
+        '',
+        'FORNECEDOR',
+        'GLOBAGUA COMERCIO LTDA - ME',
+        'CNPJ: 04.762.356/0001-13',
+        '',
+        'DADOS DO PEDIDO',
+        `Pedido: #${orderNumber}`,
+        `Data/Hora: ${orderDate}`,
+        `Status: ${order?.status || '-'}`,
+        `Cliente: ${order?.cliente_nome || '-'}`,
+        `Documento: ${order?.cliente_documento || '-'}`,
+        `Telefone: ${order?.cliente_whatsapp || '-'}`,
+        `Endere\u00e7o: ${order?.endereco_completo || '-'}`,
+        `Cidade/UF: ${order?.endereco_cidade || '-'} / ${order?.endereco_estado || '-'}`,
+        `Filial: ${branchName}`,
+        `Pagamento: ${order?.metodo_pagamento || '-'}`,
+        `Subtotal: ${fmt(order?.subtotal || 0)}`,
+        `Taxa de entrega: ${fmt(order?.taxa_entrega || 0)}`,
+        `Total: ${fmt(order?.total || 0)}`,
+        '',
+        'ITENS',
+        itemsLines,
+        '',
+        `Observa\u00e7\u00f5es: ${normalizedObservations}`,
+        '',
+        'Enviado por: Sistema Globo \u00c1gua'
+      ].join('\n');
+
+      return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function sendOrderToFinance() {
+      const order = S.currentOrderDetailData;
+      if (!order) {
+        showToast('Pedido nao carregado');
+        return;
+      }
+      const mailto = buildFinanceMailto(order);
+      if (!mailto) return;
+      window.location.href = mailto;
+    }
+
     async function openOrderDetail(orderId) {
       const client = getSupabase();
       if (!client) return;
+      const reqSeq = (S.orderDetailRequestSeq || 0) + 1;
+      S.orderDetailRequestSeq = reqSeq;
+      S.currentOrderDetailId = orderId;
+      S.currentOrderDetailData = null;
 
       history.pushState({ modal: 'orderDetail' }, '');
       const overlay = document.getElementById('orderDetailOverlay');
       const body = document.getElementById('orderDetailBody');
       body.innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
       overlay.classList.add('open');
+      if (S.orderDetailWatchdogTimer) clearTimeout(S.orderDetailWatchdogTimer);
+      S.orderDetailWatchdogTimer = setTimeout(() => {
+        if (reqSeq !== S.orderDetailRequestSeq) return;
+        if (!overlay.classList.contains('open')) return;
+        if (!body.querySelector('.spinner')) return;
+        safeHiddenHardRefresh('order-detail-timeout');
+      }, 8000);
 
       const { data: o, error } = await client.from('orders').select('*, order_items(*)').eq('id', orderId).single();
+      if (reqSeq !== S.orderDetailRequestSeq) return;
+      if (S.orderDetailWatchdogTimer) {
+        clearTimeout(S.orderDetailWatchdogTimer);
+        S.orderDetailWatchdogTimer = null;
+      }
       if (error || !o) {
         body.innerHTML = '<div class="loading-center">😕 Erro ao carregar detalhes</div>';
         return;
       }
+      S.currentOrderDetailData = o;
 
       const items = (o.order_items || []);
+      const normalizedObservations = normalizeFinanceObservations(o.observacoes);
       const itemsHtml = items.length
         ? items.map(i => `
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:14px">
@@ -3262,8 +3570,8 @@
           </div>`).join('')
         : '<p style="color:#aaa;font-size:13px">Itens não disponíveis</p>';
 
-      const statusColors = { NOVO: '#1565C0', CONFIRMADO: '#2E7D32', PRODUCAO: '#E65100', ENTREGUE: '#1B5E20', CANCELADO: '#B71C1C' };
-      const statusBgs = { NOVO: '#E3F2FD', CONFIRMADO: '#E8F5E9', PRODUCAO: '#FFF3E0', ENTREGUE: '#E8F5E9', CANCELADO: '#FFEBEE' };
+      const statusColors = { NOVO: '#1565C0', CONFIRMADO: '#2E7D32', PRODUCAO: '#E65100', EM_ROTA: '#283593', ENTREGUE: '#1B5E20', CANCELADO: '#B71C1C' };
+      const statusBgs = { NOVO: '#E3F2FD', CONFIRMADO: '#E8F5E9', PRODUCAO: '#FFF3E0', EM_ROTA: '#E8EAF6', ENTREGUE: '#E8F5E9', CANCELADO: '#FFEBEE' };
 
       body.innerHTML = `
         <div style="padding:16px 20px">
@@ -3288,9 +3596,9 @@
             </div>
           </div>
 
-          ${o.observacoes ? `<div style="background:#fffde7;border-radius:14px;padding:14px;margin-bottom:12px">
+          ${normalizedObservations !== '-' ? `<div style="background:#fffde7;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">📝 Observações</div>
-            <div style="font-size:14px;color:#555">${escHtml(o.observacoes)}</div>
+            <div style="font-size:14px;color:#555">${escHtml(normalizedObservations)}</div>
           </div>` : ''}
 
           <div style="background:#fff;border:2px solid #e3f2fd;border-radius:14px;padding:14px;margin-bottom:12px">
@@ -3301,15 +3609,31 @@
               <span>${fmt(o.total)}</span>
             </div>
           </div>
+          <button onclick="sendOrderToFinance()"
+            style="width:100%;border:none;border-radius:12px;background:var(--blue);color:#fff;font-weight:700;padding:14px 16px;cursor:pointer">
+            Enviar ao Financeiro
+          </button>
         </div>
       `;
     }
 
     function closeOrderDetail(fromHistory = false) {
-      if (!fromHistory && document.getElementById('orderDetailOverlay')?.classList.contains('open')) {
-        history.back();
+      const overlay = document.getElementById('orderDetailOverlay');
+      const isOpen = overlay?.classList.contains('open');
+      S.orderDetailRequestSeq = (S.orderDetailRequestSeq || 0) + 1;
+      if (S.orderDetailWatchdogTimer) {
+        clearTimeout(S.orderDetailWatchdogTimer);
+        S.orderDetailWatchdogTimer = null;
       }
-      document.getElementById('orderDetailOverlay').classList.remove('open');
+      S.currentOrderDetailId = null;
+      S.currentOrderDetailData = null;
+      if (overlay) overlay.classList.remove('open');
+
+      if (!fromHistory && isOpen && history.state?.modal === 'orderDetail') {
+        S.ignoreNextPopstateCloseAll = true;
+        history.back();
+        setTimeout(() => { S.ignoreNextPopstateCloseAll = false; }, 500);
+      }
     }
 
     // ============================================================
@@ -3540,6 +3864,7 @@
       if (client) {
         await client.auth.signOut();
         S.user = null; S.profile = null; S.companyPrices = {};
+        stopOrdersRealtime();
         repriceCart(false);
         localStorage.removeItem('ga_pk_rt');
         renderProfile();
@@ -3784,6 +4109,25 @@
       setTimeout(() => t.classList.remove('show'), 2500);
     }
 
+    function safeHiddenHardRefresh(tag) {
+      const key = 'ga_hidden_f5_client_at';
+      const now = Date.now();
+      const last = Number(sessionStorage.getItem(key) || 0);
+      if (now - last < 120000) return;
+      sessionStorage.setItem(key, String(now));
+      console.warn('[AutoRefresh cliente]', tag || 'hard-refresh');
+      location.reload();
+    }
+
+    function startStealthRefreshLoop() {
+      if (S.stealthRefreshTimer) return;
+      S.stealthRefreshTimer = setInterval(() => {
+        const isOrderModalOpen = !!document.getElementById('orderDetailOverlay')?.classList.contains('open');
+        if (document.hidden || isOrderModalOpen || !S.user) return;
+        loadOrders();
+      }, 45000);
+    }
+
     function goHomeFromLogo() {
       closeAllModals(true);
       showView('viewCatalog', document.querySelector('.nav-btn'));
@@ -3836,6 +4180,7 @@
         console.log('🔗 Conectado ao servidor. Atualizando dados...');
         loadSettings();
         loadProducts();
+        loadBranches();
 
         // STEP 1: Recupera sessão salva PRIMEIRO (evita desloge ao recarregar)
         try {
@@ -3844,6 +4189,11 @@
             console.log('🔑 Sessão restaurada:', sessionData.session.user.email);
             S.user = sessionData.session.user;
             await loadProfile();
+            setupOrdersRealtime();
+            if (!S.selectedBranchId && !sessionStorage.getItem('ga_geo_prompted')) {
+              sessionStorage.setItem('ga_geo_prompted', '1');
+              setTimeout(() => detectBranchByGeo(), 400);
+            }
             renderProfile();
             updateCartUI();
           }
@@ -3864,6 +4214,11 @@
             const postLoginAction = S.postLoginAction;
             S.postLoginAction = null;
             await loadProfile();
+            setupOrdersRealtime();
+            if (!S.selectedBranchId && !sessionStorage.getItem('ga_geo_prompted')) {
+              sessionStorage.setItem('ga_geo_prompted', '1');
+              setTimeout(() => detectBranchByGeo(), 400);
+            }
             closeAuth();
             if (postLoginAction === 'checkout') {
               if (!S.cart.length) {
@@ -3876,6 +4231,7 @@
             S.postLoginAction = null;
             S.profile = null;
             S.companyPrices = {};
+            stopOrdersRealtime();
             repriceCart(false);
           }
           renderProfile();
@@ -3888,10 +4244,16 @@
       }
     }
 
+    startStealthRefreshLoop();
+
     // ============================================================
     // NAVIGATION & HISTORY
     // ============================================================
     window.addEventListener('popstate', function (event) {
+      if (S.ignoreNextPopstateCloseAll) {
+        S.ignoreNextPopstateCloseAll = false;
+        return;
+      }
       closeAllModals(true);
     });
 

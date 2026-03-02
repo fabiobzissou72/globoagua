@@ -1,0 +1,774 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Entregador - Globo Agua</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f3f6fb; color: #1d2430; }
+    .hidden { display: none !important; }
+    .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: linear-gradient(145deg,#1976D2,#0d47a1); }
+    .login-box { width: 100%; max-width: 380px; background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 15px 40px rgba(0,0,0,.25); }
+    .login-box h1 { font-size: 22px; margin-bottom: 4px; }
+    .login-box p { color: #667085; font-size: 13px; margin-bottom: 16px; }
+    .form-input { width: 100%; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; font-size: 15px; margin-bottom: 10px; outline: none; }
+    .form-input:focus { border-color: #1976D2; }
+    .btn { width: 100%; border: none; border-radius: 12px; padding: 12px 14px; background: #1976D2; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .btn-secondary { width: 100%; border: none; border-radius: 10px; padding: 10px 12px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid #e6ebf3; padding: 14px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .topbar h2 { font-size: 18px; }
+    .topbar small { color: #7d8898; font-size: 12px; display: block; }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .content { padding: 12px; }
+    .password-card { background:#fff; border:1px solid #e3eaf4; border-radius:14px; padding:12px; margin-bottom:10px; box-shadow: 0 2px 6px rgba(17,24,39,.05); }
+    .password-card h3 { font-size:14px; margin-bottom:6px; }
+    .password-card p { color:#5f6f86; font-size:12px; margin-bottom:8px; }
+    .queue-note { color: #5f6f86; font-size: 13px; margin-bottom: 8px; }
+    .card { background: #fff; border: 1px solid #e3eaf4; border-radius: 14px; padding: 10px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 6px rgba(17,24,39,.05); }
+    .drag { font-size: 20px; color: #7a8598; cursor: grab; user-select: none; }
+    .info { flex: 1; min-width: 0; }
+    .line { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .num { color: #1976D2; font-weight: 800; }
+    .priority { border-radius: 999px; font-size: 11px; font-weight: 700; padding: 3px 8px; }
+    .p-NORMAL { background: #eceff1; color: #455a64; }
+    .p-ALTA { background: #fff3e0; color: #e65100; }
+    .p-URGENTE { background: #ffebee; color: #b71c1c; }
+    .client { font-size: 14px; margin-top: 2px; }
+    .addr { font-size: 12px; color: #6b7280; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actions { display: flex; flex-direction: column; gap: 6px; }
+    .btn-sm { border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn-move { background: #eef2f7; color: #334155; }
+    .btn-move:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-route { background: #eef2ff; color: #283593; }
+    .btn-ok { background: #e8f5e9; color: #1b5e20; }
+    .status-now { font-size: 11px; color: #64748b; text-align: center; font-weight: 700; }
+    .status-picker { border: 1px solid #d5ddeb; border-radius: 8px; padding: 7px 8px; font-size: 12px; font-weight: 700; color: #1f2937; background: #fff; }
+    .bottom-actions { position: sticky; bottom: 0; background: #f3f6fb; padding: 10px 12px 14px; border-top: 1px solid #e6ebf3; }
+    .toast { position: fixed; right: 16px; bottom: 16px; background: #111827; color: #fff; border-radius: 10px; padding: 10px 14px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 50; }
+    .toast.show { opacity: 1; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; z-index: 30; padding: 14px; }
+    .modal { width: 100%; max-width: 420px; background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(2,6,23,.2); padding: 14px; }
+    .modal h3 { font-size: 18px; margin-bottom: 6px; }
+    .modal p { color: #5f6f86; font-size: 13px; margin-bottom: 10px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .modal-actions .btn { width: auto; flex: 1; }
+    .order-meta { font-size: 13px; color: #475569; margin-bottom: 6px; }
+    .order-payment { border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; padding: 8px; margin-bottom: 8px; }
+    .order-pay-line { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #334155; margin-bottom: 4px; }
+    .order-pay-line.total { border-top: 1px dashed #d5ddeb; margin-top: 6px; padding-top: 6px; font-size: 13px; font-weight: 800; }
+    .order-pay-line.charge { background: #fff7ed; border-radius: 8px; padding: 6px 8px; font-size: 13px; font-weight: 800; color: #9a3412; margin-top: 4px; }
+    .order-items { max-height: 160px; overflow: auto; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; background: #f8fafc; margin-bottom: 8px; }
+    .order-item-head { display: grid; grid-template-columns: 1fr 48px 74px 80px; gap: 8px; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 6px; }
+    .order-item-row { display: grid; grid-template-columns: 1fr 48px 74px 80px; gap: 8px; font-size: 12px; color: #334155; margin-bottom: 4px; align-items: center; }
+    .order-item-empty { font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="login-wrap">
+    <div class="login-box">
+      <h1>Area do Entregador</h1>
+      <p>Entre com celular e senha</p>
+      <input id="phoneInput" class="form-input" placeholder="Celular (11999999999)" inputmode="numeric">
+      <input id="passwordInput" class="form-input" placeholder="Senha" type="password">
+      <button id="loginBtn" class="btn" onclick="loginDriver()">Entrar</button>
+    </div>
+  </div>
+
+  <div id="appScreen" class="app hidden">
+    <div class="topbar">
+      <div>
+        <h2>Meus Pedidos</h2>
+        <small id="driverName">Entregador</small>
+      </div>
+      <div class="topbar-actions">
+        <button id="alertToggleBtn" class="btn-sm" style="background:#ecfdf3;color:#166534" onclick="toggleAlerts()">Alerta: ON</button>
+        <button class="btn-sm" style="background:#eef2ff;color:#1e40af" onclick="openPasswordModal()">Senha</button>
+        <button class="btn-sm" style="background:#f3f4f6;color:#111827" onclick="logoutDriver()">Sair</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="queue-note">No celular, use as setas para organizar a rota. No desktop, pode arrastar.</div>
+      <div id="queueList"></div>
+    </div>
+    <div class="bottom-actions">
+      <button class="btn" onclick="saveQueue()">Salvar ordem da fila</button>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="modal-overlay hidden" onclick="closePasswordModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3>Alterar senha</h3>
+      <p>Troque a senha temporaria criada no admin pela sua senha pessoal.</p>
+      <input id="newPasswordInput" class="form-input" type="password" placeholder="Nova senha (minimo 6)" autocomplete="new-password">
+      <input id="confirmPasswordInput" class="form-input" type="password" placeholder="Confirmar nova senha" autocomplete="new-password">
+      <div class="modal-actions">
+        <button class="btn-sm" style="background:#f3f4f6;color:#111827" onclick="closePasswordModal()">Cancelar</button>
+        <button id="changePasswordBtn" class="btn-secondary" onclick="updateMyPassword()">Salvar nova senha</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="orderModal" class="modal-overlay hidden" onclick="closeOrderModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="orderModalTitle">Detalhes do pedido</h3>
+      <div class="order-meta" id="orderModalClient"></div>
+      <div class="order-meta" id="orderModalPhone"></div>
+      <div class="order-meta" id="orderModalAddress"></div>
+      <div class="order-payment">
+        <div class="order-pay-line"><span>Pagamento</span><strong id="orderModalPaymentMethod">-</strong></div>
+        <div class="order-pay-line"><span>Status pgto</span><strong id="orderModalPaymentStatus">-</strong></div>
+        <div class="order-pay-line"><span>Subtotal</span><strong id="orderModalSubtotal">R$ 0,00</strong></div>
+        <div class="order-pay-line"><span>Entrega</span><strong id="orderModalTaxa">R$ 0,00</strong></div>
+        <div class="order-pay-line total"><span>Total</span><strong id="orderModalTotal">R$ 0,00</strong></div>
+        <div class="order-pay-line charge"><span>Valor a cobrar</span><strong id="orderModalToCharge">R$ 0,00</strong></div>
+      </div>
+      <div class="order-items" id="orderModalItems"></div>
+      <input id="orderReceiverInput" class="form-input" placeholder="Quem recebeu? Ex: Jose, Joao, Sandra">
+      <textarea id="orderObsInput" class="form-input" placeholder="Observacao da entrega" rows="3" style="resize:vertical"></textarea>
+      <select id="orderStatusSelect" class="status-picker" style="width:100%;margin-top:4px">
+        <option value="EM_ROTA">Em rota</option>
+        <option value="ENTREGUE">Entregue</option>
+        <option value="CANCELADO">Cancelado</option>
+      </select>
+      <input type="hidden" id="orderModalCurrentStatus" value="">
+      <div class="modal-actions">
+        <button class="btn-sm" style="background:#f3f4f6;color:#111827" onclick="closeOrderModal()">Fechar</button>
+        <button class="btn-sm" style="background:#dcfce7;color:#166534" onclick="openOrderModalRoute()">Rota</button>
+        <button class="btn-secondary" onclick="saveOrderModal()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { storageKey: 'ga-driver-session' }
+    });
+
+    let driverUser = null;
+    let queue = [];
+    let queueOrder = [];
+    let draggingId = null;
+    let queueDirty = false;
+    let rt = null;
+    let currentOrderModalId = null;
+    let currentOrderModalAddress = '';
+    let orderModalRequestSeq = 0;
+    let orderModalWatchdogTimer = null;
+    let stealthRefreshTimer = null;
+    let knownQueueOrderIds = new Set();
+    let queueInitialized = false;
+    let alertsEnabled = true;
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+    function money(v) {
+      const n = Number(v || 0);
+      return `R$ ${n.toFixed(2).replace('.', ',')}`;
+    }
+    function paymentMethodLabel(v) {
+      const raw = String(v || '').trim().toUpperCase();
+      if (!raw) return '-';
+      if (raw === 'PIX') return 'PIX';
+      if (raw === 'DINHEIRO') return 'Dinheiro';
+      if (raw.includes('CARTAO') || raw.includes('MAQUINA') || raw === 'CREDITO' || raw === 'DEBITO') return 'Maquina / Cartao';
+      return raw;
+    }
+    function paymentStatusLabel(v) {
+      const raw = String(v || '').trim().toUpperCase();
+      if (!raw) return 'PENDENTE';
+      if (raw === 'PAGO') return 'Pago';
+      if (raw === 'PENDENTE') return 'Pendente';
+      return raw;
+    }
+    function normalizePhone(v) { return String(v || '').replace(/\D/g, ''); }
+    function phoneToEmail(phone) { return `entregador_${normalizePhone(phone)}@entrega.globoagua.app`; }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2400);
+    }
+    function safeHiddenHardRefresh(tag) {
+      const key = 'ga_hidden_f5_driver_at';
+      const now = Date.now();
+      const last = Number(sessionStorage.getItem(key) || 0);
+      if (now - last < 120000) return;
+      sessionStorage.setItem(key, String(now));
+      console.warn('[AutoRefresh entregador]', tag || 'hard-refresh');
+      location.reload();
+    }
+    function startStealthRefreshLoop() {
+      if (stealthRefreshTimer) return;
+      stealthRefreshTimer = setInterval(async () => {
+        const modalOpen = !document.getElementById('orderModal').classList.contains('hidden');
+        if (document.hidden || !driverUser || modalOpen) return;
+        await loadQueue();
+      }, 45000);
+    }
+    function loadAlertPreference() {
+      try {
+        const raw = localStorage.getItem('ga_driver_alerts_enabled');
+        if (raw === null) {
+          alertsEnabled = true;
+        } else {
+          alertsEnabled = raw === '1';
+        }
+      } catch (e) {
+        alertsEnabled = true;
+      }
+      updateAlertToggleButton();
+    }
+    function setAlertsEnabled(enabled, options = {}) {
+      const { silent = false } = options;
+      alertsEnabled = !!enabled;
+      try {
+        localStorage.setItem('ga_driver_alerts_enabled', alertsEnabled ? '1' : '0');
+      } catch (e) {}
+      updateAlertToggleButton();
+      if (alertsEnabled) maybeAskNotificationPermission();
+      if (!silent) showToast(alertsEnabled ? 'Alertas ativados' : 'Alertas desativados');
+    }
+    function updateAlertToggleButton() {
+      const btn = document.getElementById('alertToggleBtn');
+      if (!btn) return;
+      btn.textContent = alertsEnabled ? 'Alerta: ON' : 'Alerta: OFF';
+      btn.style.background = alertsEnabled ? '#ecfdf3' : '#fef2f2';
+      btn.style.color = alertsEnabled ? '#166534' : '#991b1b';
+    }
+    function toggleAlerts() {
+      setAlertsEnabled(!alertsEnabled);
+    }
+    function playNewOrderSound() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const beep = (startAt, freq, duration) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, startAt);
+          gain.gain.exponentialRampToValueAtTime(0.18, startAt + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startAt);
+          osc.stop(startAt + duration + 0.02);
+        };
+        const now = ctx.currentTime;
+        beep(now, 1046, 0.16);
+        beep(now + 0.23, 1318, 0.16);
+      } catch (e) {
+        console.warn('playNewOrderSound', e);
+      }
+    }
+    function maybeNotifyNewOrders(newOrders) {
+      if (!alertsEnabled) return;
+      if (!Array.isArray(newOrders) || newOrders.length === 0) return;
+      const count = newOrders.length;
+      const title = count > 1 ? `${count} novos pedidos na fila` : 'Novo pedido na fila';
+      const firstNum = newOrders[0]?.numero ? ` #${newOrders[0].numero}` : '';
+      const body = count > 1 ? 'Abra o app do entregador para ver os detalhes.' : `Pedido${firstNum} recebido.`;
+
+      playNewOrderSound();
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180]);
+      showToast(title);
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('Globo Agua - Entregador', { body });
+        } catch (e) {
+          console.warn('Notification', e);
+        }
+      }
+    }
+    function maybeAskNotificationPermission() {
+      if (!alertsEnabled) return;
+      if (!('Notification' in window)) return;
+      if (Notification.permission !== 'default') return;
+      Notification.requestPermission().catch(() => {});
+    }
+    function openPasswordModal() {
+      document.getElementById('passwordModal').classList.remove('hidden');
+    }
+    function closePasswordModal() {
+      document.getElementById('passwordModal').classList.add('hidden');
+    }
+    function closeOrderModal() {
+      currentOrderModalId = null;
+      currentOrderModalAddress = '';
+      orderModalRequestSeq += 1;
+      if (orderModalWatchdogTimer) {
+        clearTimeout(orderModalWatchdogTimer);
+        orderModalWatchdogTimer = null;
+      }
+      resetOrderModalFields();
+      document.getElementById('orderModal').classList.add('hidden');
+    }
+    function resetOrderModalFields() {
+      currentOrderModalAddress = '';
+      document.getElementById('orderModalTitle').textContent = 'Detalhes do pedido';
+      document.getElementById('orderModalClient').textContent = '';
+      document.getElementById('orderModalPhone').textContent = '';
+      document.getElementById('orderModalAddress').textContent = '';
+      document.getElementById('orderModalPaymentMethod').textContent = '-';
+      document.getElementById('orderModalPaymentStatus').textContent = '-';
+      document.getElementById('orderModalSubtotal').textContent = 'R$ 0,00';
+      document.getElementById('orderModalTaxa').textContent = 'R$ 0,00';
+      document.getElementById('orderModalTotal').textContent = 'R$ 0,00';
+      document.getElementById('orderModalToCharge').textContent = 'R$ 0,00';
+      document.getElementById('orderModalItems').innerHTML = '<div class="order-item-empty">Carregando...</div>';
+      document.getElementById('orderReceiverInput').value = '';
+      document.getElementById('orderObsInput').value = '';
+      document.getElementById('orderStatusSelect').value = 'EM_ROTA';
+      document.getElementById('orderModalCurrentStatus').value = '';
+    }
+    function openRoute(destination) {
+      const dest = String(destination || '').trim();
+      if (!dest) {
+        showToast('Endereco indisponivel para rota');
+        return;
+      }
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+      window.open(url, '_blank', 'noopener');
+    }
+    function openOrderRoute(orderId) {
+      const row = queue.find(o => o.id === orderId);
+      openRoute(row?.addr || '');
+    }
+    function openOrderModalRoute() {
+      openRoute(currentOrderModalAddress);
+    }
+    function priorityClass(p) {
+      const v = String(p || 'NORMAL').toUpperCase();
+      if (v === 'ALTA') return 'p-ALTA';
+      if (v === 'URGENTE') return 'p-URGENTE';
+      return 'p-NORMAL';
+    }
+
+    async function loginDriver() {
+      const phone = normalizePhone(document.getElementById('phoneInput').value);
+      const password = document.getElementById('passwordInput').value;
+      if (phone.length < 10 || !password) { showToast('Informe celular e senha'); return; }
+
+      const email = phoneToEmail(phone);
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        const msg = String(error.message || '');
+        if (msg.toLowerCase().includes('email not confirmed')) {
+          showToast('Login bloqueado: usuario ainda nao confirmado. Fale com o admin.');
+        } else {
+          showToast('Falha no login: ' + msg);
+        }
+        return;
+      }
+
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('id,nome_completo,role,is_admin,driver_online')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      const isAdmin = !!profile?.is_admin;
+      if (!isAdmin && profile?.role !== 'entregador') {
+        await sb.auth.signOut();
+        showToast('Este usuario nao e entregador');
+        return;
+      }
+
+      driverUser = data.user;
+      document.getElementById('driverName').textContent = profile?.nome_completo || 'Entregador';
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+
+      maybeAskNotificationPermission();
+      await sb.from('profiles').update({ driver_online: true }).eq('id', driverUser.id);
+      await loadQueue();
+      setupRealtime();
+      startStealthRefreshLoop();
+    }
+
+    async function logoutDriver() {
+      if (driverUser) await sb.from('profiles').update({ driver_online: false }).eq('id', driverUser.id);
+      if (rt) sb.removeChannel(rt);
+      queueInitialized = false;
+      knownQueueOrderIds.clear();
+      await sb.auth.signOut();
+      location.reload();
+    }
+
+    async function updateMyPassword() {
+      const btn = document.getElementById('changePasswordBtn');
+      const newPassword = document.getElementById('newPasswordInput').value;
+      const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+      if (!driverUser) { showToast('Faca login primeiro'); return; }
+      if (!newPassword || newPassword.length < 6) { showToast('A nova senha precisa ter no minimo 6 caracteres'); return; }
+      if (newPassword !== confirmPassword) { showToast('As senhas nao conferem'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await sb.auth.updateUser({ password: newPassword });
+      btn.disabled = false;
+      btn.textContent = 'Salvar nova senha';
+
+      if (error) {
+        console.error('updateMyPassword', error);
+        showToast('Erro ao alterar senha');
+        return;
+      }
+
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmPasswordInput').value = '';
+      closePasswordModal();
+      showToast('Senha atualizada com sucesso');
+    }
+
+    async function loadQueue() {
+      let rows = [];
+
+      const { data, error } = await sb.rpc('list_driver_orders', {});
+      if (!error && (data || []).length > 0) {
+        rows = (data || []).map(r => ({
+          order_id: r.order_id,
+          numero_pedido: r.numero_pedido,
+          cliente_nome: r.cliente_nome,
+          endereco_completo: r.endereco_completo,
+          prioridade: r.prioridade,
+          status: r.status,
+          queue_position: r.queue_position
+        }));
+      } else {
+        if (error) console.error('loadQueue rpc', error);
+
+        const fallback = await sb
+          .from('orders')
+          .select('id,numero_pedido,cliente_nome,endereco_completo,prioridade,status,fila_posicao,assigned_at,created_at')
+          .eq('driver_id', driverUser?.id || '')
+          .neq('status', 'ENTREGUE')
+          .neq('status', 'CANCELADO')
+          .order('fila_posicao', { ascending: true, nullsFirst: false })
+          .order('assigned_at', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: true });
+
+        if (fallback.error) {
+          console.error('loadQueue fallback orders', fallback.error);
+          showToast('Erro ao carregar fila');
+          return;
+        }
+
+        rows = (fallback.data || []).map(r => ({
+          order_id: r.id,
+          numero_pedido: r.numero_pedido,
+          cliente_nome: r.cliente_nome,
+          endereco_completo: r.endereco_completo,
+          prioridade: r.prioridade,
+          status: r.status,
+          queue_position: r.fila_posicao
+        }));
+      }
+
+      queue = rows
+        .filter(r => !['ENTREGUE', 'CANCELADO'].includes(String(r.status || '').toUpperCase()))
+        .map(r => ({
+        id: r.order_id,
+        numero: r.numero_pedido,
+        cliente: r.cliente_nome,
+        addr: r.endereco_completo,
+        prioridade: r.prioridade,
+        status: r.status,
+        pos: r.queue_position
+      }));
+
+      const incomingOrders = queue.filter(o => !knownQueueOrderIds.has(o.id));
+      if (queueInitialized && incomingOrders.length) {
+        maybeNotifyNewOrders(incomingOrders);
+      }
+      knownQueueOrderIds = new Set(queue.map(o => o.id));
+      queueInitialized = true;
+
+      queueOrder = queue.map(x => x.id);
+      queueDirty = false;
+      renderQueue();
+    }
+
+    function renderQueue() {
+      const el = document.getElementById('queueList');
+      if (!queue.length) {
+        el.innerHTML = '<div class="card"><div class="info">Nenhum pedido atribuido.</div></div>';
+        return;
+      }
+      el.innerHTML = queue.map((o, idx) => `
+        <div class="card" draggable="true"
+          ondragstart="dragStart(event,'${o.id}')"
+          ondragover="dragOver(event)"
+          ondrop="dropOn(event,'${o.id}')">
+          <div class="drag">☰</div>
+          <div class="info">
+            <div class="line">
+              <span class="num">#${esc(o.numero)}</span>
+              <span class="priority ${priorityClass(o.prioridade)}">${esc(o.prioridade || 'NORMAL')}</span>
+            </div>
+            <div class="client">${esc(o.cliente || '-')}</div>
+            <div class="addr">${esc(o.addr || '-')}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-sm" style="background:#e2e8f0;color:#0f172a" onclick="openOrderModal('${o.id}')">Detalhes</button>
+            <button class="btn-sm" style="background:#dcfce7;color:#166534" onclick="openOrderRoute('${o.id}')">Rota</button>
+            <button class="btn-sm btn-move" ${idx === 0 ? 'disabled' : ''} onclick="moveOrder('${o.id}', -1)">↑</button>
+            <button class="btn-sm btn-move" ${idx === (queue.length - 1) ? 'disabled' : ''} onclick="moveOrder('${o.id}', 1)">↓</button>
+            <div class="status-now">${esc(o.status || 'NOVO')}</div>
+            <select class="status-picker" onchange="handleStatusPick('${o.id}', this.value)">
+              <option value="">Status</option>
+              <option value="EM_ROTA">Em rota</option>
+              <option value="ENTREGUE">Entregue</option>
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function dragStart(ev, id) { draggingId = id; ev.dataTransfer.effectAllowed = 'move'; }
+    function dragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; }
+    function dropOn(ev, targetId) {
+      ev.preventDefault();
+      if (!draggingId || draggingId === targetId) return;
+      const from = queueOrder.indexOf(draggingId);
+      const to = queueOrder.indexOf(targetId);
+      if (from < 0 || to < 0) return;
+      queueOrder.splice(from, 1);
+      queueOrder.splice(to, 0, draggingId);
+      queue.sort((a, b) => queueOrder.indexOf(a.id) - queueOrder.indexOf(b.id));
+      queueDirty = true;
+      renderQueue();
+    }
+
+    function moveOrder(orderId, direction) {
+      const from = queueOrder.indexOf(orderId);
+      const to = from + direction;
+      if (from < 0 || to < 0 || to >= queueOrder.length) return;
+      const [item] = queueOrder.splice(from, 1);
+      queueOrder.splice(to, 0, item);
+      queue.sort((a, b) => queueOrder.indexOf(a.id) - queueOrder.indexOf(b.id));
+      queueDirty = true;
+      renderQueue();
+    }
+
+    async function saveQueue() {
+      if (!queueDirty) { showToast('Fila ja esta salva'); return; }
+      const { data, error } = await sb.rpc('reorder_driver_queue', { p_order_ids: queueOrder });
+      if (error || !Array.isArray(data) || data.length === 0) {
+        for (let i = 0; i < queueOrder.length; i++) {
+          const { error: fallbackErr } = await sb
+            .from('orders')
+            .update({ fila_posicao: i + 1 })
+            .eq('id', queueOrder[i])
+            .eq('driver_id', driverUser.id);
+          if (fallbackErr) { showToast('Erro ao salvar fila'); return; }
+        }
+      }
+      queueDirty = false;
+      showToast('Fila atualizada');
+      await loadQueue();
+    }
+
+    async function handleStatusPick(orderId, status) {
+      if (!status) return;
+      if (status === 'ENTREGUE') {
+        await openOrderModal(orderId, 'ENTREGUE');
+        return;
+      }
+      await setStatus(orderId, status);
+    }
+
+    async function setStatus(orderId, status, options = {}) {
+      const { silent = false, skipReload = false } = options;
+      if (!status) return;
+      let { error } = await sb.rpc('set_order_status_v2', { p_order_id: orderId, p_status: status });
+      if (error) {
+        const legacy = await sb.rpc('set_order_status', { p_order_id: orderId, p_status: status });
+        error = legacy.error;
+      }
+      if (error) {
+        if (!silent) showToast(String(error.message || 'Erro ao atualizar status'));
+        return { ok: false, error };
+      }
+      if (!silent) showToast('Status atualizado');
+      if (!skipReload) await loadQueue();
+      return { ok: true };
+    }
+
+    async function openOrderModal(orderId, preferredStatus = '') {
+      const reqSeq = ++orderModalRequestSeq;
+      currentOrderModalId = orderId;
+      resetOrderModalFields();
+      document.getElementById('orderModal').classList.remove('hidden');
+      if (orderModalWatchdogTimer) clearTimeout(orderModalWatchdogTimer);
+      orderModalWatchdogTimer = setTimeout(() => {
+        if (reqSeq !== orderModalRequestSeq) return;
+        const modalOpen = !document.getElementById('orderModal').classList.contains('hidden');
+        const stillLoading = (document.getElementById('orderModalItems').textContent || '').toLowerCase().includes('carregando');
+        if (!modalOpen || !stillLoading) return;
+        safeHiddenHardRefresh('order-modal-timeout');
+      }, 8000);
+
+      const { data, error } = await sb
+        .from('orders')
+        .select('id,numero_pedido,cliente_nome,cliente_whatsapp,endereco_completo,status,status_pagamento,metodo_pagamento,subtotal,taxa_entrega,total,recebedor_nome,observacoes,order_items(produto_nome,quantidade,preco_unitario,subtotal)')
+        .eq('id', orderId)
+        .maybeSingle();
+      if (reqSeq !== orderModalRequestSeq) return;
+      if (orderModalWatchdogTimer) {
+        clearTimeout(orderModalWatchdogTimer);
+        orderModalWatchdogTimer = null;
+      }
+      if (error || !data) {
+        console.error('openOrderModal', error);
+        showToast('Erro ao abrir pedido');
+        closeOrderModal();
+        return;
+      }
+
+      currentOrderModalId = orderId;
+      document.getElementById('orderModalTitle').textContent = `Pedido #${data.numero_pedido || ''}`;
+      document.getElementById('orderModalClient').textContent = `Cliente: ${data.cliente_nome || '-'}`;
+      document.getElementById('orderModalPhone').textContent = `WhatsApp: ${data.cliente_whatsapp || '-'}`;
+      document.getElementById('orderModalAddress').textContent = `Endereco: ${data.endereco_completo || '-'}`;
+      currentOrderModalAddress = data.endereco_completo || '';
+      document.getElementById('orderReceiverInput').value = data.recebedor_nome ?? '';
+      document.getElementById('orderObsInput').value = data.observacoes ?? '';
+      document.getElementById('orderModalCurrentStatus').value = (data.status || '').toUpperCase();
+      document.getElementById('orderStatusSelect').value = (preferredStatus || data.status || 'EM_ROTA').toUpperCase();
+
+      const pgStatusRaw = String(data.status_pagamento || 'PENDENTE').toUpperCase();
+      const total = Number(data.total || 0);
+      const toCharge = pgStatusRaw === 'PAGO' ? 0 : total;
+      document.getElementById('orderModalPaymentMethod').textContent = paymentMethodLabel(data.metodo_pagamento);
+      document.getElementById('orderModalPaymentStatus').textContent = paymentStatusLabel(pgStatusRaw);
+      document.getElementById('orderModalSubtotal').textContent = money(data.subtotal || 0);
+      document.getElementById('orderModalTaxa').textContent = money(data.taxa_entrega || 0);
+      document.getElementById('orderModalTotal').textContent = money(total);
+      document.getElementById('orderModalToCharge').textContent = money(toCharge);
+
+      const itemsEl = document.getElementById('orderModalItems');
+      let items = data.order_items || [];
+      if (!items.length) {
+        const directItems = await sb
+          .from('order_items')
+          .select('produto_nome,quantidade,preco_unitario,subtotal')
+          .eq('order_id', orderId)
+          .order('created_at', { ascending: true });
+        if (reqSeq !== orderModalRequestSeq) return;
+        if (!directItems.error && (directItems.data || []).length) {
+          items = directItems.data;
+        }
+      }
+      if (!items.length) {
+        itemsEl.innerHTML = '<div class="order-item-empty">Sem itens detalhados.</div>';
+      } else {
+        const head = `
+          <div class="order-item-head">
+            <span>Produto</span>
+            <span>Qtd</span>
+            <span>Unit.</span>
+            <span>Subtotal</span>
+          </div>
+        `;
+        const rows = items.map(i => {
+          const qty = Number(i.quantidade || 1);
+          const unit = Number(i.preco_unitario || 0);
+          const sub = Number(i.subtotal || (qty * unit));
+          return `
+            <div class="order-item-row">
+              <span>${esc(i.produto_nome || 'Item')}</span>
+              <span>${qty}</span>
+              <span>${money(unit)}</span>
+              <span>${money(sub)}</span>
+            </div>
+          `;
+        }).join('');
+        itemsEl.innerHTML = head + rows;
+      }
+    }
+
+    async function saveOrderModal() {
+      if (!currentOrderModalId) return;
+      const orderId = currentOrderModalId;
+      const receiver = document.getElementById('orderReceiverInput').value.trim();
+      const obs = document.getElementById('orderObsInput').value.trim();
+      const newStatus = String(document.getElementById('orderStatusSelect').value || '').toUpperCase();
+      const oldStatus = String(document.getElementById('orderModalCurrentStatus').value || '').toUpperCase();
+
+      if (newStatus === 'ENTREGUE' && !receiver) {
+        showToast('Informe quem recebeu');
+        return;
+      }
+
+      const { error: updateError } = await sb
+        .from('orders')
+        .update({
+          recebedor_nome: receiver || '',
+          observacoes: obs || '',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+      if (updateError) {
+        console.error('saveOrderModal update', updateError);
+        showToast('Erro ao salvar observacao');
+        return;
+      }
+
+      if (newStatus && newStatus !== oldStatus) {
+        const st = await setStatus(orderId, newStatus, { silent: true, skipReload: true });
+        if (!st?.ok) {
+          showToast(String(st?.error?.message || 'Erro ao atualizar status'));
+          return;
+        }
+      }
+
+      closeOrderModal();
+      showToast('Pedido atualizado');
+      await loadQueue();
+    }
+
+    function setupRealtime() {
+      if (!driverUser || rt) return;
+      rt = sb
+        .channel('driver-live-' + driverUser.id)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_assignments', filter: `driver_id=eq.${driverUser.id}` }, () => loadQueue())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `driver_id=eq.${driverUser.id}` }, () => loadQueue())
+        .subscribe();
+    }
+
+    (async () => {
+      loadAlertPreference();
+      const { data } = await sb.auth.getSession();
+      if (!data?.session?.user) return;
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('id,nome_completo,role,is_admin')
+        .eq('id', data.session.user.id)
+        .maybeSingle();
+      if (!profile || (!profile.is_admin && profile.role !== 'entregador')) return;
+      driverUser = data.session.user;
+      document.getElementById('driverName').textContent = profile.nome_completo || 'Entregador';
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+      maybeAskNotificationPermission();
+      await loadQueue();
+      setupRealtime();
+      startStealthRefreshLoop();
+    })();
+  </script>
+</body>
+</html>

@@ -429,6 +429,11 @@
       color: #E65100
     }
 
+    .badge-EM_ROTA {
+      background: #E8EAF6;
+      color: #283593
+    }
+
     .badge-ENTREGUE {
       background: #E8F5E9;
       color: #1B5E20
@@ -620,6 +625,12 @@
       color: #E65100;
     }
 
+    .status-select-EM_ROTA {
+      background: #E8EAF6;
+      border-color: #9FA8DA !important;
+      color: #283593;
+    }
+
     .status-select-ENTREGUE {
       background: #E8F5E9;
       border-color: #66BB6A !important;
@@ -700,6 +711,64 @@
       align-items: center
     }
 
+    .priority-pill {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-block
+    }
+
+    .priority-NORMAL {
+      background: #eceff1;
+      color: #455a64
+    }
+
+    .priority-ALTA {
+      background: #fff3e0;
+      color: #e65100
+    }
+
+    .priority-URGENTE {
+      background: #ffebee;
+      color: #b71c1c
+    }
+
+    .driver-queue-card {
+      border: 1px solid #e1e8f5;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .05)
+    }
+
+    .driver-queue-card.dragging {
+      opacity: .55
+    }
+
+    .driver-queue-handle {
+      cursor: grab;
+      font-size: 18px;
+      color: #7a8ca5;
+      user-select: none
+    }
+
+    .driver-queue-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .driver-queue-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px
+    }
+
     .order-detail-card {
       background: #f8fafc;
       padding: 14px;
@@ -720,6 +789,28 @@
     .order-detail-field {
       font-size: 13px;
       color: #2a2a2a
+    }
+
+    .order-note-card {
+      background: #fffde7;
+      border: 1px solid #f3e8a4;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px
+    }
+
+    .order-note-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8a6d00;
+      text-transform: uppercase;
+      margin-bottom: 6px
+    }
+
+    .order-note-text {
+      font-size: 14px;
+      color: #5f4f00;
+      font-weight: 600
     }
 
     .order-items-card {
@@ -1252,6 +1343,21 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle><path d="M3 4h2l2.4 10h9.6l2-7H7"></path></svg>
           </span><span>Pedidos</span>
         </div>
+        <div class="nav-item dispatch-only" data-section="closing" onclick="showSection('closing',this)">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7z"></path><rect x="4" y="7" width="16" height="14" rx="2"></rect><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="14" y2="16"></line></svg>
+          </span><span>Fechamento</span>
+        </div>
+        <div class="nav-item" data-section="branches" data-role="admin" onclick="showSection('branches',this)">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
+          </span><span>Filiais</span>
+        </div>
+        <div class="nav-item" data-section="drivers" data-role="admin" onclick="showSection('drivers',this)">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 16h5l2-3v-3h-7v6z"></path><circle cx="6.5" cy="17.5" r="2"></circle><circle cx="17.5" cy="17.5" r="2"></circle><path d="M2 6h12v9H2z"></path></svg>
+          </span><span>Entregadores</span>
+        </div>
         <div class="nav-item" data-section="clients" data-role="admin" onclick="showSection('clients',this)">
           <span class="nav-item-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"></path><path d="M18 11c1.7 0 3 1.3 3 3"></path><path d="M16.5 19c.2-1.8 1.7-3.2 3.5-3.5"></path></svg>
@@ -1285,7 +1391,7 @@
         <h1 id="pageTitle">Dashboard <small style="font-size:10px;color:#aaa;font-weight:400">v9.7.2</small></h1>
         <div class="topbar-right">
           <span class="admin-name" id="adminNameDisplay"></span>
-          <span style="font-size:22px">👤</span>
+          <span style="font-size:12px;color:#667;background:#eef2f7;padding:4px 8px;border-radius:999px">USER</span>
         </div>
       </div>
 
@@ -1396,6 +1502,7 @@
                   <option value="NOVO">Novo</option>
                   <option value="CONFIRMADO">Confirmado</option>
                   <option value="PRODUCAO">Em produção</option>
+                  <option value="EM_ROTA">Em rota</option>
                   <option value="ENTREGUE">Entregue</option>
                   <option value="CANCELADO">Cancelado</option>
                 </select>
@@ -1403,12 +1510,20 @@
                   style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
                 <input class="form-input" type="month" id="orderMonthFilter" title="Filtrar por mes"
                   style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
+                <input class="form-input" type="date" id="orderDateFromFilter" title="Periodo inicial"
+                  style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
+                <input class="form-input" type="date" id="orderDateToFilter" title="Periodo final"
+                  style="width:auto;padding:7px 12px" onchange="renderAdminOrders()">
+                <select class="form-input dispatch-only" id="orderBranchFilter" style="width:auto;padding:7px 12px"
+                  onchange="renderAdminOrders()">
+                  <option value="">Todas filiais</option>
+                </select>
+                <select class="form-input dispatch-only" id="orderDriverFilter" style="width:auto;padding:7px 12px"
+                  onchange="renderAdminOrders()">
+                  <option value="">Todos entregadores</option>
+                </select>
                 <input class="form-input" id="orderSearchInput" placeholder="Buscar por no. pedido ou nome"
                   style="width:240px;padding:7px 12px" oninput="renderAdminOrders()">
-                <button class="btn btn-ghost admin-only" onclick="exportOrdersExcel()"
-                  title="Exportar todos os pedidos para Excel">
-                  Exportar Excel
-                </button>
               </div>
             </div>
             <div class="table-wrap orders-table-wrap">
@@ -1419,6 +1534,9 @@
                     <th>Cliente</th>
                     <th class="col-hide-mobile">CPF/CNPJ</th>
                     <th>Total</th>
+                    <th class="col-hide-mobile">Filial</th>
+                    <th class="col-hide-mobile">Prioridade</th>
+                    <th class="col-hide-mobile">Entregador</th>
                     <th>Status</th>
                     <th class="col-hide-mobile">Data</th>
                     <th>Ações</th>
@@ -1428,6 +1546,98 @@
               </table>
             </div>
             <div id="ordersMobileList" class="orders-mobile-list"></div>
+            <div id="driverQueueWrap" class="hidden" style="padding:12px">
+              <div style="font-size:13px;color:#667; margin-bottom:8px">Arraste para reordenar sua fila de entrega</div>
+              <div id="driverQueueList"></div>
+              <button class="btn btn-primary" style="margin-top:10px" onclick="saveDriverQueue()">Salvar ordem</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FECHAMENTO -->
+        <div id="sectionClosing" class="hidden">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Fechamento</h3>
+              <div class="orders-filters">
+                <select class="form-input" id="closingStatusFilter" style="width:auto;padding:7px 12px">
+                  <option value="">Todos status</option>
+                  <option value="ENTREGUE" selected>Entregue</option>
+                  <option value="NOVO">Novo</option>
+                  <option value="CONFIRMADO">Confirmado</option>
+                  <option value="PRODUCAO">Em produção</option>
+                  <option value="EM_ROTA">Em rota</option>
+                  <option value="CANCELADO">Cancelado</option>
+                </select>
+                <input class="form-input" type="date" id="closingDateFromFilter" title="Periodo inicial"
+                  style="width:auto;padding:7px 12px">
+                <input class="form-input" type="date" id="closingDateToFilter" title="Periodo final"
+                  style="width:auto;padding:7px 12px">
+                <select class="form-input dispatch-only" id="closingBranchFilter" style="width:auto;padding:7px 12px">
+                  <option value="">Todas filiais</option>
+                </select>
+                <select class="form-input dispatch-only" id="closingDriverFilter" style="width:auto;padding:7px 12px">
+                  <option value="">Todos entregadores</option>
+                </select>
+                <input class="form-input" id="closingSearchInput" placeholder="Buscar por no. pedido ou nome"
+                  style="width:240px;padding:7px 12px">
+                <button class="btn btn-ghost" onclick="setClosingCurrentMonth()">Mês atual</button>
+                <button class="btn btn-primary dispatch-only" onclick="exportClosingExcel()"
+                  title="Exportar fechamento em Excel">
+                  Exportar Fechamento
+                </button>
+              </div>
+            </div>
+            <div style="padding:14px 16px;color:#5b6578;font-size:13px;line-height:1.5">
+              Use esta área para gerar o fechamento mensal por cliente/produto, com totais e consumo consolidado.
+            </div>
+          </div>
+        </div>
+
+        <!-- FILIAIS -->
+        <div id="sectionBranches" class="hidden">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Filiais</h3>
+              <button class="btn btn-primary" onclick="openBranchModal()">+ Nova Filial</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Cobertura</th>
+                    <th>Taxa/Prazo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="branchesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENTREGADORES -->
+        <div id="sectionDrivers" class="hidden">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Entregadores</h3>
+              <button class="btn btn-primary" onclick="openDriverModal()">+ Cadastrar Entregador</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Filial</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="driversTable"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1764,6 +1974,89 @@
     </div>
   </div>
 
+  <!-- MODAL FILIAL -->
+  <div class="modal-overlay hidden" id="branchModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h3 id="branchModalTitle">Nova Filial</h3>
+        <button class="modal-close" onclick="closeModal('branchModal')">x</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="branchId">
+        <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="branchNome" placeholder="Filial Centro"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Código</label><input class="form-input" id="branchCodigo" placeholder="CENTRO"></div>
+          <div class="form-group"><label class="form-label">CEP</label><input class="form-input" id="branchCep" placeholder="00000-000"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Bairro</label><input class="form-input" id="branchBairro"></div>
+          <div class="form-group"><label class="form-label">Rua</label><input class="form-input" id="branchRua"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Número</label><input class="form-input" id="branchNumero"></div>
+          <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="branchCidade" value="São Paulo"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Estado</label><input class="form-input" id="branchEstado" value="SP"></div>
+          <div class="form-group"><label class="form-label">Raio (km)</label><input class="form-input" type="number" step="0.1" id="branchRaio" value="8"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Latitude</label><input class="form-input" type="number" step="0.000001" id="branchLat"></div>
+          <div class="form-group"><label class="form-label">Longitude</label><input class="form-input" type="number" step="0.000001" id="branchLng"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Taxa de Entrega (R$)</label><input class="form-input" type="number" step="0.01" id="branchTaxa" value="0"></div>
+          <div class="form-group"><label class="form-label">Prazo (min)</label><input class="form-input" type="number" id="branchPrazo" value="30"></div>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <label class="toggle"><input type="checkbox" id="branchAtivo" checked><span class="slider"></span></label>
+          <label class="form-label" style="margin:0">Filial ativa</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('branchModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveBranch()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ENTREGADOR -->
+  <div class="modal-overlay hidden" id="driverModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h3 id="driverModalTitle">Novo Entregador</h3>
+        <button class="modal-close" onclick="closeModal('driverModal')">x</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="driverId">
+        <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="driverName"
+            placeholder="Nome do entregador"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Celular *</label><input class="form-input" id="driverPhone"
+              placeholder="11999999999"></div>
+          <div class="form-group"><label class="form-label">Senha <small style="color:#888">(obrigatória no novo)</small></label><input class="form-input" type="password" id="driverPassword"
+              placeholder="Min. 6 caracteres"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Filial</label>
+            <select class="form-input" id="driverBranchSelect"></select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:25px">
+            <label class="toggle"><input type="checkbox" id="driverOnline"><span class="slider"></span></label>
+            <label class="form-label" style="margin:0">Status online</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('driverModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveDriver()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL DETALHES PEDIDO -->
   <div class="modal-overlay hidden" id="orderDetailModal" onclick="closeModal('orderDetailModal')">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1788,13 +2081,13 @@
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script>
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
     // Cliente principal: usa anon key para autenticação funcionar corretamente
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { storageKey: 'ga-admin-session' }
     });
     let adminUser = null;
-    let allProducts = [], allCompanies = [], allProfiles = [], allOrders = [];
+    let allProducts = [], allCompanies = [], allProfiles = [], allOrders = [], allBranches = [], allDrivers = [];
     let charts = {};
     let currentSettings = {};
     let uploadedFileObj = null;
@@ -1804,16 +2097,28 @@
     let currentRole = null;
     let currentSection = 'dashboard';
     let currentOrderDetailId = null;
-    const ORDER_ALLOWED_STATUSES = ['NOVO', 'CONFIRMADO', 'PRODUCAO', 'ENTREGUE', 'CANCELADO'];
+    let orderDetailModalRequestSeq = 0;
+    let orderDetailWatchdogTimer = null;
+    let stealthRefreshTimer = null;
+    let realtimeChannel = null;
+    let queueDirty = false;
+    let orderFiltersInitialized = false;
+    let closingFiltersInitialized = false;
+    const ORDER_ALLOWED_STATUSES = ['NOVO', 'CONFIRMADO', 'PRODUCAO', 'EM_ROTA', 'ENTREGUE', 'CANCELADO'];
+    const ORDER_PRIORITY_LEVELS = ['NORMAL', 'ALTA', 'URGENTE'];
     const ORDER_STATUS_SELECT_CLASSES = ORDER_ALLOWED_STATUSES.map(s => `status-select-${s}`);
     const ROLE_ALLOWED_SECTIONS = {
-      admin: ['dashboard', 'products', 'orders', 'clients', 'companies', 'prices', 'settings'],
-      operador_pedidos: ['orders']
+      admin: ['dashboard', 'products', 'orders', 'closing', 'branches', 'drivers', 'clients', 'companies', 'prices', 'settings'],
+      operador_pedidos: ['orders', 'closing'],
+      entregador: ['orders']
     };
     const SECTION_TO_PATH = {
       dashboard: '/admin',
       products: '/admin/produtos',
       orders: '/admin/pedidos',
+      closing: '/admin/fechamento',
+      branches: '/admin/filiais',
+      drivers: '/admin/entregadores',
       clients: '/admin/clientes',
       companies: '/admin/empresas',
       prices: '/admin/precos',
@@ -1825,8 +2130,16 @@
       '/admin/dashboard': 'dashboard',
       '/admin/produtos': 'products',
       '/admin/pedidos': 'orders',
+      '/admin/fechamento': 'closing',
+      '/admin/filiais': 'branches',
+      '/admin/entregadores': 'drivers',
       '/pedido': 'orders',
       '/pedido/index.html': 'orders',
+      '/pedido/fechamento': 'closing',
+      '/entregador': 'orders',
+      '/entregador/index.html': 'orders',
+      '/entrega': 'orders',
+      '/entrega/index.html': 'orders',
       '/admin/clientes': 'clients',
       '/admin/empresas': 'companies',
       '/admin/precos': 'prices',
@@ -1846,9 +2159,13 @@
     }
 
     function normalizeRole(rawRole, isAdmin) {
-      if (rawRole === 'admin' || rawRole === 'operador_pedidos') return rawRole;
       if (isAdmin === true) return 'admin';
+      if (rawRole === 'admin' || rawRole === 'operador_pedidos' || rawRole === 'entregador') return rawRole;
       return null;
+    }
+
+    function canManageOrderDispatch() {
+      return currentRole === 'admin' || currentRole === 'operador_pedidos';
     }
 
     function normalizePathname(pathname) {
@@ -1864,7 +2181,8 @@
     }
 
     function enforceAllowedSection(section) {
-      if (currentRole === 'operador_pedidos') return 'orders';
+      if (currentRole === 'entregador') return 'orders';
+      if (currentRole === 'operador_pedidos') return canAccessSection(section) ? section : 'orders';
       if (canAccessSection(section)) return section;
       return 'dashboard';
     }
@@ -1876,6 +2194,8 @@
 
     function getPathFromSection(section) {
       if (currentRole === 'operador_pedidos' && section === 'orders') return '/pedido';
+      if (currentRole === 'operador_pedidos' && section === 'closing') return '/pedido/fechamento';
+      if (currentRole === 'entregador' && section === 'orders') return '/entregador';
       return SECTION_TO_PATH[section] || '/admin';
     }
 
@@ -1892,11 +2212,15 @@
 
     function configureMenuByRole() {
       const isAdmin = currentRole === 'admin';
+      const canDispatch = canManageOrderDispatch();
       document.querySelectorAll('[data-role="admin"]').forEach(el => {
         el.classList.toggle('hidden', !isAdmin);
       });
       document.querySelectorAll('.admin-only').forEach(el => {
         el.classList.toggle('hidden', !isAdmin);
+      });
+      document.querySelectorAll('.dispatch-only').forEach(el => {
+        el.classList.toggle('hidden', !canDispatch);
       });
     }
 
@@ -1986,16 +2310,37 @@
     async function initApp() {
       console.log('Iniciando apps e carregando dados...');
       if (currentRole === 'admin') {
-        await Promise.all([loadDashboard(), loadAllProducts(), loadAllCompanies(), loadAdminClients(), loadSettings()]);
+        await Promise.all([
+          loadDashboard(),
+          loadAllProducts(),
+          loadAllCompanies(),
+          loadAllBranches(),
+          loadAdminClients(),
+          loadDrivers(),
+          loadSettings()
+        ]);
         console.log('Dados carregados:', { profiles: allProfiles.length, companies: allCompanies.length });
         renderClientsTable();
+        renderBranches();
+        renderDrivers();
+        populateBranchFilter();
+        populateDriverFilter();
         populatePriceCompanySelect();
       } else {
+        await Promise.all([
+          loadAllBranches(),
+          loadDrivers()
+        ]);
+        populateBranchFilter();
+        populateDriverFilter();
         await loadAdminOrders();
       }
 
+      setupRealtimeSync();
+
       const sectionFromPath = getSectionFromPath(location.pathname);
       showSection(sectionFromPath, null, { replaceRoute: true });
+      startStealthRefreshLoop();
     }
 
     // ============================================================
@@ -2014,14 +2359,28 @@
       if (activeNav) activeNav.classList.add('active');
 
       currentSection = targetSection;
-      const titles = { dashboard: 'Dashboard', products: 'Produtos', orders: 'Pedidos', clients: 'Clientes', companies: 'Empresas B2B', prices: 'Preços Especiais', settings: 'Configurações' };
+      const titles = {
+        dashboard: 'Dashboard',
+        products: 'Produtos',
+        orders: currentRole === 'entregador' ? 'Meus Pedidos' : 'Pedidos',
+        closing: 'Fechamento',
+        branches: 'Filiais',
+        drivers: 'Entregadores',
+        clients: 'Clientes',
+        companies: 'Empresas B2B',
+        prices: 'Preços Especiais',
+        settings: 'Configurações'
+      };
       document.getElementById('pageTitle').textContent = titles[targetSection] || targetSection;
       syncRoute(targetSection, opts.replaceRoute);
       closeSidebar(); // Garante o fechamento no mobile
       if (targetSection === 'orders') loadAdminOrders();
+      if (targetSection === 'closing') initializeClosingDateFilters();
 
       if (currentRole === 'admin') {
         if (targetSection === 'clients') renderClientsTable();
+        if (targetSection === 'branches') renderBranches();
+        if (targetSection === 'drivers') renderDrivers();
         if (targetSection === 'companies') renderCompanies();
         if (targetSection === 'prices') populatePriceCompanySelect();
       }
@@ -2070,7 +2429,7 @@
       charts.sales = new Chart(document.getElementById('chartSales').getContext('2d'), { type: 'line', data: { labels: days.map(d => new Date(d + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })), datasets: [{ label: 'Vendas', data: days.map(d => salesByDay[d]), borderColor: '#1976D2', backgroundColor: 'rgba(25,118,210,.1)', fill: true, tension: .4 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
       const statusCount = {}; orders.forEach(o => { statusCount[o.status] = (statusCount[o.status] || 0) + 1; });
       if (charts.status) charts.status.destroy();
-      charts.status = new Chart(document.getElementById('chartStatus').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ['#1976D2', '#2E7D32', '#FF9800', '#4CAF50', '#F44336'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+      charts.status = new Chart(document.getElementById('chartStatus').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ['#1976D2', '#2E7D32', '#FF9800', '#3F51B5', '#4CAF50', '#F44336'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
     }
 
     // ============================================================
@@ -2087,7 +2446,7 @@
       document.getElementById('productsTable').innerHTML = allProducts.map(p => `
     <tr>
       <td><div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid #eee">
-        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='💧'">` : '💧'}
+        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='IMG'">` : 'IMG'}
       </div></td>
       <td><strong>${p.nome}</strong><br><small style="color:#aaa">${p.descricao || ''}</small></td>
       <td><span style="display:block;font-weight:600">${p.categoria}</span><small style="color:#999">${p.subcategoria || '-'}</small></td>
@@ -2346,7 +2705,29 @@
 
     function formatDateTime(value) {
       if (!value) return '-';
-      return new Date(value).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '-';
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = String(d.getFullYear());
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mi = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      return `${dd}-${mm}-${yyyy} ${hh}:${mi}:${ss}`;
+    }
+
+    function formatDateKeyBR(dateKey) {
+      if (!dateKey || !dateKey.includes('-')) return dateKey || '';
+      const [yyyy, mm, dd] = dateKey.split('-');
+      if (!yyyy || !mm || !dd) return dateKey;
+      return `${dd}-${mm}-${yyyy}`;
+    }
+
+    function formatMonthKeyBR(monthKey) {
+      if (!monthKey || !monthKey.includes('-')) return monthKey || '';
+      const [yyyy, mm] = monthKey.split('-');
+      if (!yyyy || !mm) return monthKey;
+      return `${mm}-${yyyy}`;
     }
 
     function formatPaymentMethod(value) {
@@ -2397,43 +2778,213 @@
       return dateKey ? dateKey.slice(0, 7) : '';
     }
 
+    function initializeOrderDateFilters() {
+      if (orderFiltersInitialized) return;
+      const dayEl = document.getElementById('orderDayFilter');
+      const monthEl = document.getElementById('orderMonthFilter');
+      const fromEl = document.getElementById('orderDateFromFilter');
+      const toEl = document.getElementById('orderDateToFilter');
+      if (!dayEl) return;
+
+      const hasAnyDateFilter = Boolean(
+        dayEl.value ||
+        monthEl?.value ||
+        fromEl?.value ||
+        toEl?.value
+      );
+
+      if (!hasAnyDateFilter) {
+        dayEl.value = getLocalDateKey(new Date());
+      }
+
+      orderFiltersInitialized = true;
+    }
+
+    function initializeClosingDateFilters() {
+      if (closingFiltersInitialized) return;
+      setClosingCurrentMonth();
+      closingFiltersInitialized = true;
+    }
+
+    function setClosingCurrentMonth() {
+      const today = new Date();
+      const from = new Date(today.getFullYear(), today.getMonth(), 1);
+      const fromValue = getLocalDateKey(from);
+      const toValue = getLocalDateKey(today);
+
+      const fromEl = document.getElementById('closingDateFromFilter');
+      const toEl = document.getElementById('closingDateToFilter');
+
+      if (fromEl) fromEl.value = fromValue;
+      if (toEl) toEl.value = toValue;
+    }
+
     async function loadAdminOrders() {
+      if (currentRole === 'entregador') {
+        await loadDriverQueue();
+        return;
+      }
+
+      initializeOrderDateFilters();
+
       const filter = document.getElementById('orderStatusFilter')?.value || '';
-      let query = sb.from('orders').select('*').order('created_at', { ascending: false }).limit(300);
+      let query = sb
+        .from('orders')
+        .select('*, branches(id,nome)')
+        .order('created_at', { ascending: false })
+        .limit(300);
       if (filter) query = query.eq('status', filter);
       const { data, error } = await query;
       if (error) {
         console.error('loadAdminOrders:', error);
-        showToast('Erro ao carregar pedidos');
-        return;
+        const { data: fallback, error: fallbackError } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(300);
+        if (fallbackError) {
+          showToast('Erro ao carregar pedidos');
+          return;
+        }
+        allOrders = fallback || [];
+      } else {
+        allOrders = data || [];
       }
-      allOrders = data || [];
       renderAdminOrders();
     }
 
+    function getOrderPriorityClass(priority) {
+      const p = String(priority || 'NORMAL').toUpperCase();
+      if (!ORDER_PRIORITY_LEVELS.includes(p)) return 'priority-NORMAL';
+      return `priority-${p}`;
+    }
+
+    function getPriorityBadge(priority) {
+      const p = String(priority || 'NORMAL').toUpperCase();
+      return `<span class="priority-pill ${getOrderPriorityClass(p)}">${p}</span>`;
+    }
+
+    function getBranchNameFromOrder(order) {
+      if (order?.branches?.nome) return order.branches.nome;
+      const branch = allBranches.find(b => b.id === order?.branch_id);
+      return branch?.nome || '-';
+    }
+
+    function getDriverNameFromOrder(order) {
+      if (order?.driver?.nome_completo) return order.driver.nome_completo;
+      const driver = allDrivers.find(d => d.id === order?.driver_id);
+      return driver?.nome_completo || '-';
+    }
+
+    function getFiltersByPrefix(prefix) {
+      const filters = {
+        status: document.getElementById(`${prefix}StatusFilter`)?.value || '',
+        day: document.getElementById(`${prefix}DayFilter`)?.value || '',
+        month: document.getElementById(`${prefix}MonthFilter`)?.value || '',
+        dateFrom: document.getElementById(`${prefix}DateFromFilter`)?.value || '',
+        dateTo: document.getElementById(`${prefix}DateToFilter`)?.value || '',
+        branchId: document.getElementById(`${prefix}BranchFilter`)?.value || '',
+        driverId: document.getElementById(`${prefix}DriverFilter`)?.value || '',
+        search: (document.getElementById(`${prefix}SearchInput`)?.value || '').trim().toLowerCase()
+      };
+
+      // Evita conflito entre filtros de data:
+      // 1) Se informou periodo (de/ate), ignora dia/mes.
+      // 2) Se informou dia, ignora mes e periodo.
+      // 3) Se informou mes, ignora dia e periodo.
+      const hasRange = Boolean(filters.dateFrom || filters.dateTo);
+      if (hasRange) {
+        filters.day = '';
+        filters.month = '';
+      } else if (filters.day) {
+        filters.month = '';
+        filters.dateFrom = '';
+        filters.dateTo = '';
+      } else if (filters.month) {
+        filters.day = '';
+        filters.dateFrom = '';
+        filters.dateTo = '';
+      }
+
+      // Se intervalo invertido, corrige automaticamente.
+      if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
+        const tmp = filters.dateFrom;
+        filters.dateFrom = filters.dateTo;
+        filters.dateTo = tmp;
+      };
+
+      return filters;
+    }
+
+    function getOrderFilters() {
+      return getFiltersByPrefix('order');
+    }
+
+    function getClosingFilters() {
+      return getFiltersByPrefix('closing');
+    }
+
+    function orderMatchesFilters(o, filters) {
+      const orderDay = getLocalDateKey(o.created_at);
+      const orderMonth = getLocalMonthKey(o.created_at);
+      const number = String(o.numero_pedido || '').toLowerCase();
+      const client = String(o.cliente_nome || '').toLowerCase();
+      const statusOk = !filters.status || o.status === filters.status;
+      const dayOk = !filters.day || orderDay === filters.day;
+      const monthOk = !filters.month || orderMonth === filters.month;
+      const fromOk = !filters.dateFrom || orderDay >= filters.dateFrom;
+      const toOk = !filters.dateTo || orderDay <= filters.dateTo;
+      const branchOk = !filters.branchId || o.branch_id === filters.branchId;
+      const driverOk = !filters.driverId || o.driver_id === filters.driverId;
+      const searchOk = !filters.search || number.includes(filters.search) || client.includes(filters.search);
+      return statusOk && dayOk && monthOk && fromOk && toOk && searchOk && branchOk && driverOk;
+    }
+
     function renderAdminOrders() {
-      const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
-      const dayFilter = document.getElementById('orderDayFilter')?.value || '';
-      const monthFilter = document.getElementById('orderMonthFilter')?.value || '';
-      const search = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
-      const list = allOrders.filter(o => {
-        const statusOk = !statusFilter || o.status === statusFilter;
-        const orderDay = getLocalDateKey(o.created_at);
-        const orderMonth = getLocalMonthKey(o.created_at);
-        const dayOk = !dayFilter || orderDay === dayFilter;
-        const monthOk = !monthFilter || orderMonth === monthFilter;
-        const number = String(o.numero_pedido || '').toLowerCase();
-        const client = String(o.cliente_nome || '').toLowerCase();
-        const searchOk = !search || number.includes(search) || client.includes(search);
-        return statusOk && dayOk && monthOk && searchOk;
-      });
+      const tableWrap = document.querySelector('#sectionOrders .orders-table-wrap');
+      const mobileListEl = document.getElementById('ordersMobileList');
+      const queueWrap = document.getElementById('driverQueueWrap');
+      const filtersWrap = document.querySelector('#sectionOrders .orders-filters');
+
+      if (currentRole === 'entregador') {
+        if (filtersWrap) filtersWrap.classList.add('hidden');
+        if (tableWrap) tableWrap.classList.add('hidden');
+        if (mobileListEl) mobileListEl.classList.add('hidden');
+        if (queueWrap) queueWrap.classList.remove('hidden');
+        return;
+      }
+
+      if (filtersWrap) filtersWrap.classList.remove('hidden');
+      if (tableWrap) tableWrap.classList.remove('hidden');
+      if (mobileListEl) mobileListEl.classList.remove('hidden');
+      if (queueWrap) queueWrap.classList.add('hidden');
+
+      const filters = getOrderFilters();
+      const list = allOrders.filter(o => orderMatchesFilters(o, filters));
+
+      const driverOpts = ['<option value="">Sem entregador</option>', ...allDrivers.map(d =>
+        `<option value="${d.id}">${escapeHtml(d.nome_completo || d.email || d.id)}</option>`
+      )].join('');
+
+      const branchOpts = ['<option value="">Sem filial</option>', ...allBranches.map(b =>
+        `<option value="${b.id}">${escapeHtml(b.nome || b.codigo || b.id)}</option>`
+      )].join('');
+      const canDispatch = canManageOrderDispatch();
 
       document.getElementById('ordersTable').innerHTML = list.map(o => `
     <tr onclick="openOrderDetailModal('${o.id}')" style="cursor:pointer">
       <td><strong style="color:var(--blue)">#${o.numero_pedido}</strong></td>
       <td>${escapeHtml(o.cliente_nome || '-')}<br><small style="color:#aaa">${escapeHtml(o.cliente_whatsapp || '')}</small></td>
-      <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? 'PJ' : 'PF'} ${o.cliente_documento || '—'}</small></td>
+      <td class="col-hide-mobile"><small style="color:#666;font-size:11px">${o.cliente_tipo === 'PJ' ? 'PJ' : 'PF'} ${o.cliente_documento || '-'}</small></td>
       <td><strong>${formatMoney(o.total)}</strong></td>
+      <td class="col-hide-mobile">${canDispatch
+          ? `<select class="form-input" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:120px" onclick="event.stopPropagation()" onchange="setOrderBranch('${o.id}',this.value)">${branchOpts.replace(`value="${o.branch_id || ''}"`, `value="${o.branch_id || ''}" selected`)}</select>`
+          : escapeHtml(getBranchNameFromOrder(o))
+        }</td>
+      <td class="col-hide-mobile">${canDispatch
+          ? `<select class="form-input" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px" onclick="event.stopPropagation()" onchange="changePriority('${o.id}',this.value)">${ORDER_PRIORITY_LEVELS.map(p => `<option value="${p}"${(String(o.prioridade || 'NORMAL').toUpperCase() === p) ? ' selected' : ''}>${p}</option>`).join('')}</select>`
+          : getPriorityBadge(o.prioridade)
+        }</td>
+      <td class="col-hide-mobile">${canDispatch
+          ? `<select class="form-input" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:130px" onclick="event.stopPropagation()" onchange="handleDriverAssign('${o.id}',this.value)">${driverOpts.replace(`value="${o.driver_id || ''}"`, `value="${o.driver_id || ''}" selected`)}</select>`
+          : escapeHtml(getDriverNameFromOrder(o))
+        }</td>
       <td>
         <select class="form-input status-select ${getStatusSelectClass(o.status)}" style="padding:5px 8px;font-size:12px;border-radius:8px;min-width:110px"
           onclick="event.stopPropagation()"
@@ -2447,7 +2998,6 @@
       </td>
     </tr>`).join('');
 
-      const mobileListEl = document.getElementById('ordersMobileList');
       if (mobileListEl) {
         mobileListEl.innerHTML = list.map(o => `
           <div class="order-mobile-card" onclick="openOrderDetailModal('${o.id}')">
@@ -2457,10 +3007,24 @@
             </div>
             <div class="order-mobile-client">${escapeHtml(o.cliente_nome || '-')}</div>
             <div class="order-mobile-contact">${escapeHtml(o.cliente_whatsapp || '')}</div>
+            <div style="margin:8px 0">${getPriorityBadge(o.prioridade)}</div>
             <div class="order-mobile-meta">
-              <span>${formatDateTime(o.created_at)}</span>
+              <span>${escapeHtml(getBranchNameFromOrder(o))}</span>
               <strong class="order-mobile-total">${formatMoney(o.total)}</strong>
             </div>
+            ${canDispatch ? `
+              <div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">
+                <select class="form-input" onclick="event.stopPropagation()" onchange="setOrderBranch('${o.id}',this.value)">
+                  ${branchOpts.replace(`value="${o.branch_id || ''}"`, `value="${o.branch_id || ''}" selected`)}
+                </select>
+                <select class="form-input" onclick="event.stopPropagation()" onchange="changePriority('${o.id}',this.value)">
+                  ${ORDER_PRIORITY_LEVELS.map(p => `<option value="${p}"${(String(o.prioridade || 'NORMAL').toUpperCase() === p) ? ' selected' : ''}>${p}</option>`).join('')}
+                </select>
+                <select class="form-input" onclick="event.stopPropagation()" onchange="handleDriverAssign('${o.id}',this.value)">
+                  ${driverOpts.replace(`value="${o.driver_id || ''}"`, `value="${o.driver_id || ''}" selected`)}
+                </select>
+              </div>
+            ` : ''}
             <div class="order-mobile-actions">
               <select class="form-input status-select ${getStatusSelectClass(o.status)}"
                 onclick="event.stopPropagation()"
@@ -2476,7 +3040,7 @@
       if (!list.length) {
         document.getElementById('ordersTable').innerHTML = `
           <tr>
-            <td colspan="7" style="text-align:center;color:#888;padding:18px">Nenhum pedido encontrado</td>
+            <td colspan="10" style="text-align:center;color:#888;padding:18px">Nenhum pedido encontrado</td>
           </tr>
         `;
         if (mobileListEl) {
@@ -2485,159 +3049,328 @@
       }
     }
 
-    async function exportOrdersExcel() {
-      showToast('⏳ Gerando relatório detalhado...');
+    let driverQueueOrder = [];
+    let draggingQueueId = null;
+
+    async function loadDriverQueue() {
+      const { data, error } = await sb.rpc('list_driver_orders', {});
+      if (error) {
+        console.error('loadDriverQueue:', error);
+        showToast('Erro ao carregar sua fila');
+        return;
+      }
+      allOrders = (data || []).map(r => ({
+        id: r.order_id,
+        numero_pedido: r.numero_pedido,
+        cliente_nome: r.cliente_nome,
+        cliente_whatsapp: r.cliente_whatsapp,
+        endereco_completo: r.endereco_completo,
+        endereco_cidade: r.endereco_cidade,
+        endereco_estado: r.endereco_estado,
+        total: r.total,
+        status: r.status,
+        prioridade: r.prioridade,
+        prioritario: r.prioritario,
+        created_at: r.created_at,
+        fila_posicao: r.queue_position,
+        branch_id: r.branch_id,
+        branches: { nome: r.branch_nome }
+      }));
+      driverQueueOrder = allOrders.map(o => o.id);
+      queueDirty = false;
+      renderDriverQueue();
+      renderAdminOrders();
+    }
+
+    function renderDriverQueue() {
+      const listEl = document.getElementById('driverQueueList');
+      if (!listEl) return;
+      if (!allOrders.length) {
+        listEl.innerHTML = '<div style="text-align:center;color:#888;padding:18px">Nenhum pedido atribuido.</div>';
+        return;
+      }
+      listEl.innerHTML = allOrders.map(o => `
+        <div class="driver-queue-card" draggable="true"
+          ondragstart="onQueueDragStart(event,'${o.id}')"
+          ondragover="onQueueDragOver(event)"
+          ondrop="onQueueDrop(event,'${o.id}')">
+          <div class="driver-queue-handle">?</div>
+          <div class="driver-queue-info">
+            <div class="driver-queue-line">
+              <strong style="color:var(--blue)">#${escapeHtml(o.numero_pedido || '')}</strong>
+              ${getPriorityBadge(o.prioridade)}
+            </div>
+            <div style="font-size:13px;margin-top:3px">${escapeHtml(o.cliente_nome || '-')}</div>
+            <div style="font-size:12px;color:#667;margin-top:2px">${escapeHtml(o.endereco_completo || '-')}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); updateOrderStatus('${o.id}','EM_ROTA')">Em rota</button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); updateOrderStatus('${o.id}','ENTREGUE')">Entregue</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function onQueueDragStart(event, orderId) {
+      draggingQueueId = orderId;
+      event.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onQueueDragOver(event) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    function onQueueDrop(event, targetOrderId) {
+      event.preventDefault();
+      if (!draggingQueueId || draggingQueueId === targetOrderId) return;
+      const from = driverQueueOrder.indexOf(draggingQueueId);
+      const to = driverQueueOrder.indexOf(targetOrderId);
+      if (from < 0 || to < 0) return;
+      driverQueueOrder.splice(from, 1);
+      driverQueueOrder.splice(to, 0, draggingQueueId);
+      allOrders.sort((a, b) => driverQueueOrder.indexOf(a.id) - driverQueueOrder.indexOf(b.id));
+      queueDirty = true;
+      renderDriverQueue();
+    }
+
+    async function saveDriverQueue() {
+      if (!queueDirty || !driverQueueOrder.length) {
+        showToast('Fila ja esta salva');
+        return;
+      }
+      const { error } = await sb.rpc('reorder_driver_queue', { p_order_ids: driverQueueOrder });
+      if (error) {
+        console.error('saveDriverQueue:', error);
+        showToast('Erro ao salvar ordem da fila');
+        return;
+      }
+      queueDirty = false;
+      showToast('Fila atualizada');
+      await loadDriverQueue();
+    }
+
+    async function exportOrdersExcel(filtersOverride = null, loadingMessage = 'Gerando relatorio de entregas...') {
+      showToast(loadingMessage);
       try {
-        // Busca pedidos com seus itens
         const { data: orders, error } = await sb
           .from('orders')
-          .select('*, order_items(*)')
+          .select('*, branches(id,nome), order_items(*)')
           .order('created_at', { ascending: true });
 
         if (error) throw error;
         if (!orders || !orders.length) { showToast('Nenhum pedido para exportar'); return; }
 
+        const filters = filtersOverride || getOrderFilters();
+        const filteredOrders = orders.filter(o => orderMatchesFilters(o, filters));
+        if (!filteredOrders.length) { showToast('Nenhum pedido no filtro selecionado'); return; }
+
         const wb = XLSX.utils.book_new();
-
-        // ABA 1: DETALHE POR PEDIDO (uma linha por item)
         const rowsDetalhe = [];
+        const companyMap = {};
+        const driverMap = {};
+        const branchMap = {};
+        const prodMap = {};
+        const dayMap = {};
+        const monthMap = {};
+        const consumoClienteProdutoMap = {};
+        const consumoClienteMap = {};
+        const consumoOrderSeen = new Set();
+        const consumoOrderProductSeen = new Set();
 
-        orders.forEach(o => {
+        filteredOrders.forEach(o => {
+          const orderTotal = parseFloat(o.total || 0);
           const itens = o.order_items || [];
-          const dataFmt = new Date(o.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-          const tipo = o.cliente_tipo === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física';
+          const dayKey = getLocalDateKey(o.created_at);
+          const monthKey = getLocalMonthKey(o.created_at);
+          const dayBr = formatDateKeyBR(dayKey);
+          const monthBr = formatMonthKeyBR(monthKey);
+          const dt = new Date(o.created_at);
+          const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo' });
+          const empresa = o.razao_social || (o.cliente_tipo === 'PJ' ? (o.cliente_nome || '-') : '-');
+          const clienteNome = o.razao_social || o.cliente_nome || '-';
+          const clienteDoc = o.cliente_documento || '';
+          const filial = o.branches?.nome || getBranchNameFromOrder(o);
+          const entregador = o.driver?.nome_completo || getDriverNameFromOrder(o);
+          const statusEntregue = String(o.status || '').toUpperCase() === 'ENTREGUE';
 
-          if (itens.length === 0) {
-            // Pedido sem itens registrados
+          if (!companyMap[empresa]) companyMap[empresa] = { Empresa: empresa, Pedidos: 0, 'Total (R$)': 0 };
+          companyMap[empresa].Pedidos += 1;
+          companyMap[empresa]['Total (R$)'] += orderTotal;
+
+          if (!driverMap[entregador]) driverMap[entregador] = { Entregador: entregador, Pedidos: 0, 'Total (R$)': 0 };
+          driverMap[entregador].Pedidos += 1;
+          driverMap[entregador]['Total (R$)'] += orderTotal;
+
+          if (!branchMap[filial]) branchMap[filial] = { Filial: filial, Pedidos: 0, 'Total (R$)': 0 };
+          branchMap[filial].Pedidos += 1;
+          branchMap[filial]['Total (R$)'] += orderTotal;
+
+          if (!dayMap[dayKey]) dayMap[dayKey] = { Dia: dayBr, Pedidos: 0, 'Total (R$)': 0 };
+          dayMap[dayKey].Pedidos += 1;
+          dayMap[dayKey]['Total (R$)'] += orderTotal;
+
+          if (!monthMap[monthKey]) monthMap[monthKey] = { Mes: monthBr, Pedidos: 0, 'Total (R$)': 0 };
+          monthMap[monthKey].Pedidos += 1;
+          monthMap[monthKey]['Total (R$)'] += orderTotal;
+
+          if (!itens.length) {
             rowsDetalhe.push({
-              'Nº Pedido': o.numero_pedido,
-              'Data/Hora': dataFmt,
-              'Cliente': o.cliente_nome || '',
-              'Tipo': tipo,
-              'CPF/CNPJ': o.cliente_documento || '',
-              'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
-              'E-mail': o.cliente_email || '',
-              'WhatsApp': o.cliente_whatsapp || '',
-              'Produto': '(sem itens)',
-              'Qtd': '',
-              'Preço Unit. (R$)': '',
-              'Subtotal Item (R$)': '',
-              'Endereço': o.endereco_completo || '',
-              'Cidade': o.endereco_cidade || '',
-              'Estado': o.endereco_estado || '',
-              'Recebedor': o.recebedor_nome || '',
-              'WhatsApp Receb.': o.recebedor_whatsapp || '',
-              'Referência': o.recebedor_referencia || '',
-              'Observações': o.observacoes || '',
-              'Pagamento': o.metodo_pagamento || '',
-              'Status Pag.': o.status_pagamento || '',
-              'Status Pedido': o.status || '',
-              'TOTAL PEDIDO (R$)': parseFloat(o.total || 0).toFixed(2).replace('.', ','),
+              Pedido: o.numero_pedido,
+              Dia: dayBr,
+              Hora: hora,
+              Mes: monthBr,
+              Empresa: empresa,
+              Entregador: entregador,
+              Filial: filial,
+              Cliente: o.cliente_nome || '',
+              Produto: '(sem itens)',
+              Quantidade: '',
+              'Valor Item (R$)': '',
+              'Total Pedido (R$)': orderTotal.toFixed(2).replace('.', ','),
+              Status: o.status || ''
             });
           } else {
             itens.forEach((item, idx) => {
+              const qtd = parseFloat(item.quantidade || 0);
+              const sub = parseFloat(item.subtotal || 0);
+              const prodName = item.produto_nome || 'Produto';
+              if (!prodMap[prodName]) prodMap[prodName] = { Produto: prodName, Quantidade: 0, 'Total (R$)': 0 };
+              prodMap[prodName].Quantidade += qtd;
+              prodMap[prodName]['Total (R$)'] += sub;
+
               rowsDetalhe.push({
-                'Nº Pedido': o.numero_pedido,
-                'Data/Hora': dataFmt,
-                'Cliente': o.cliente_nome || '',
-                'Tipo': tipo,
-                'CPF/CNPJ': o.cliente_documento || '',
-                'Razão Social': o.cliente_tipo === 'PJ' ? (o.cliente_nome || '') : '',
-                'E-mail': o.cliente_email || '',
-                'WhatsApp': o.cliente_whatsapp || '',
-                'Produto': item.produto_nome || '',
-                'Qtd': item.quantidade || 0,
-                'Preço Unit. (R$)': parseFloat(item.preco_unitario || 0).toFixed(2).replace('.', ','),
-                'Subtotal Item (R$)': parseFloat(item.subtotal || 0).toFixed(2).replace('.', ','),
-                'Endereço': o.endereco_completo || '',
-                'Cidade': o.endereco_cidade || '',
-                'Estado': o.endereco_estado || '',
-                'Recebedor': o.recebedor_nome || '',
-                'WhatsApp Receb.': o.recebedor_whatsapp || '',
-                'Referência': o.recebedor_referencia || '',
-                'Observações': o.observacoes || '',
-                'Pagamento': o.metodo_pagamento || '',
-                'Status Pag.': o.status_pagamento || '',
-                'Status Pedido': o.status || '',
-                // total do pedido só na primeira linha
-                'TOTAL PEDIDO (R$)': idx === 0 ? parseFloat(o.total || 0).toFixed(2).replace('.', ',') : '',
+                Pedido: o.numero_pedido,
+                Dia: dayBr,
+                Hora: hora,
+                Mes: monthBr,
+                Empresa: empresa,
+                Entregador: entregador,
+                Filial: filial,
+                Cliente: o.cliente_nome || '',
+                Produto: prodName,
+                Quantidade: qtd,
+                'Valor Item (R$)': sub.toFixed(2).replace('.', ','),
+                'Total Pedido (R$)': idx === 0 ? orderTotal.toFixed(2).replace('.', ',') : '',
+                Status: o.status || ''
               });
+
+              if (statusEntregue) {
+                const keyProduto = `${clienteNome}||${clienteDoc}||${prodName}`;
+                if (!consumoClienteProdutoMap[keyProduto]) {
+                  consumoClienteProdutoMap[keyProduto] = {
+                    Cliente: clienteNome,
+                    Documento: clienteDoc || '-',
+                    Produto: prodName,
+                    Quantidade: 0,
+                    Pedidos: 0,
+                    'Valor (R$)': 0
+                  };
+                }
+                consumoClienteProdutoMap[keyProduto].Quantidade += qtd;
+                consumoClienteProdutoMap[keyProduto]['Valor (R$)'] += sub;
+
+                const orderProductKey = `${o.id}||${keyProduto}`;
+                if (!consumoOrderProductSeen.has(orderProductKey)) {
+                  consumoClienteProdutoMap[keyProduto].Pedidos += 1;
+                  consumoOrderProductSeen.add(orderProductKey);
+                }
+              }
             });
           }
 
-          // Linha separadora de pedido (linha em branco)
-          rowsDetalhe.push({});
-        });
+          if (statusEntregue) {
+            const keyCliente = `${clienteNome}||${clienteDoc}`;
+            if (!consumoClienteMap[keyCliente]) {
+              consumoClienteMap[keyCliente] = {
+                Cliente: clienteNome,
+                Documento: clienteDoc || '-',
+                Pedidos: 0,
+                'Qtd Itens': 0,
+                'Total Gasto (R$)': 0
+              };
+            }
+            consumoClienteMap[keyCliente]['Qtd Itens'] += itens.reduce((acc, item) => acc + parseFloat(item.quantidade || 0), 0);
+            consumoClienteMap[keyCliente]['Total Gasto (R$)'] += orderTotal;
 
-        // Total geral
-        const grandTotal = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
-        rowsDetalhe.push({
-          'Nº Pedido': 'TOTAL GERAL',
-          'TOTAL PEDIDO (R$)': grandTotal.toFixed(2).replace('.', ','),
-        });
-
-        const ws1 = XLSX.utils.json_to_sheet(rowsDetalhe);
-        // Larguras das colunas
-        ws1['!cols'] = [
-          { wch: 14 }, { wch: 20 }, { wch: 28 }, { wch: 16 }, { wch: 18 }, { wch: 28 },
-          { wch: 28 }, { wch: 16 }, { wch: 32 }, { wch: 6 }, { wch: 16 }, { wch: 18 },
-          { wch: 32 }, { wch: 20 }, { wch: 8 }, { wch: 24 }, { wch: 16 }, { wch: 20 },
-          { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 18 }
-        ];
-        XLSX.utils.book_append_sheet(wb, ws1, 'Pedidos Detalhados');
-
-        // ABA 2: RESUMO POR CLIENTE
-        const clientMap = {};
-        orders.forEach(o => {
-          const key = o.cliente_documento || o.cliente_email || o.cliente_nome;
-          if (!clientMap[key]) {
-            clientMap[key] = {
-              'Cliente': o.cliente_nome || '',
-              'Tipo': o.cliente_tipo === 'PJ' ? 'PJ' : 'PF',
-              'CPF/CNPJ': o.cliente_documento || '',
-              'E-mail': o.cliente_email || '',
-              'WhatsApp': o.cliente_whatsapp || '',
-              'Qtd Pedidos': 0,
-              'Total Gasto (R$)': 0
-            };
+            if (!consumoOrderSeen.has(o.id)) {
+              consumoClienteMap[keyCliente].Pedidos += 1;
+              consumoOrderSeen.add(o.id);
+            }
           }
-          clientMap[key]['Qtd Pedidos']++;
-          clientMap[key]['Total Gasto (R$)'] += parseFloat(o.total || 0);
         });
-        const rowsClientes = Object.values(clientMap).map(c => ({
-          ...c,
-          'Total Gasto (R$)': c['Total Gasto (R$)'].toFixed(2).replace('.', ',')
-        })).sort((a, b) => parseFloat(b['Total Gasto (R$)'].replace(',', '.')) - parseFloat(a['Total Gasto (R$)'].replace(',', '.')));
 
-        const ws2 = XLSX.utils.json_to_sheet(rowsClientes);
-        ws2['!cols'] = [{ wch: 28 }, { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 16 }, { wch: 12 }, { wch: 18 }];
-        XLSX.utils.book_append_sheet(wb, ws2, 'Resumo por Cliente');
+        const totalGeral = filteredOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+        rowsDetalhe.push({});
+        rowsDetalhe.push({ Pedido: 'TOTAL GERAL', 'Total Pedido (R$)': totalGeral.toFixed(2).replace('.', ',') });
 
-        // ABA 3: PRODUTOS MAIS VENDIDOS
-        const prodMap = {};
-        orders.forEach(o => {
-          (o.order_items || []).forEach(item => {
-            const k = item.produto_nome || 'Desconhecido';
-            if (!prodMap[k]) prodMap[k] = { 'Produto': k, 'Total Vendido (unid.)': 0, 'Receita Total (R$)': 0 };
-            prodMap[k]['Total Vendido (unid.)'] += item.quantidade || 0;
-            prodMap[k]['Receita Total (R$)'] += parseFloat(item.subtotal || 0);
+        const wsDetalhe = XLSX.utils.json_to_sheet(rowsDetalhe);
+        wsDetalhe['!cols'] = [
+          { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 24 }, { wch: 24 }, { wch: 22 },
+          { wch: 24 }, { wch: 28 }, { wch: 10 }, { wch: 14 }, { wch: 16 }, { wch: 12 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsDetalhe, 'Entregas Detalhadas');
+
+        const toRows = (mapObj, sortKey = 'Total (R$)') =>
+          Object.values(mapObj)
+            .map(r => ({ ...r, 'Total (R$)': Number(r['Total (R$)'] || 0).toFixed(2).replace('.', ',') }))
+            .sort((a, b) => parseFloat(String(b[sortKey] || '0').replace(',', '.')) - parseFloat(String(a[sortKey] || '0').replace(',', '.')));
+
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(companyMap)), 'Resumo Empresa');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(driverMap)), 'Resumo Entregador');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(branchMap)), 'Resumo Filial');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(prodMap)), 'Resumo Produto');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(dayMap)), 'Resumo Diario');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(monthMap)), 'Resumo Mensal');
+
+        const consumoClienteProdutoRows = Object.values(consumoClienteProdutoMap)
+          .map(r => ({
+            ...r,
+            Quantidade: Number(r.Quantidade || 0),
+            'Valor (R$)': Number(r['Valor (R$)'] || 0).toFixed(2).replace('.', ',')
+          }))
+          .sort((a, b) => {
+            const c = String(a.Cliente).localeCompare(String(b.Cliente), 'pt-BR');
+            if (c !== 0) return c;
+            return String(a.Produto).localeCompare(String(b.Produto), 'pt-BR');
           });
-        });
-        const rowsProd = Object.values(prodMap).map(p => ({
-          ...p, 'Receita Total (R$)': p['Receita Total (R$)'].toFixed(2).replace('.', ',')
-        })).sort((a, b) => b['Total Vendido (unid.)'] - a['Total Vendido (unid.)']);
 
-        const ws3 = XLSX.utils.json_to_sheet(rowsProd);
-        ws3['!cols'] = [{ wch: 32 }, { wch: 20 }, { wch: 20 }];
-        XLSX.utils.book_append_sheet(wb, ws3, 'Produtos Mais Vendidos');
+        const consumoClienteRows = Object.values(consumoClienteMap)
+          .map(r => ({
+            ...r,
+            'Qtd Itens': Number(r['Qtd Itens'] || 0),
+            'Total Gasto (R$)': Number(r['Total Gasto (R$)'] || 0).toFixed(2).replace('.', ',')
+          }))
+          .sort((a, b) => String(a.Cliente).localeCompare(String(b.Cliente), 'pt-BR'));
 
-        const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-        XLSX.writeFile(wb, `relatorio_globo_agua_${date}.xlsx`);
-        showToast('o. Relatório completo gerado!');
+        if (consumoClienteProdutoRows.length) {
+          XLSX.utils.book_append_sheet(
+            wb,
+            XLSX.utils.json_to_sheet(consumoClienteProdutoRows),
+            'Consumo Cliente Produto'
+          );
+        }
+        if (consumoClienteRows.length) {
+          XLSX.utils.book_append_sheet(
+            wb,
+            XLSX.utils.json_to_sheet(consumoClienteRows),
+            'Consumo Cliente'
+          );
+        }
+
+        const now = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        XLSX.writeFile(wb, `relatorio_entregas_${now}.xlsx`);
+        showToast('Relatorio de entregas gerado');
       } catch (e) {
         console.error('Erro ao exportar:', e);
-        showToast('Erro ao gerar relatório: ' + (e.message || 'Tente novamente'));
+        showToast('Erro ao gerar relatorio: ' + (e.message || 'Tente novamente'));
       }
+    }
+
+    function exportClosingExcel() {
+      initializeClosingDateFilters();
+      const filters = getClosingFilters();
+      exportOrdersExcel(filters, 'Gerando fechamento...');
     }
 
     function renderOrderStatusActions(orderId, currentStatus) {
@@ -2648,12 +3381,41 @@
     }
 
     async function openOrderDetailModal(id) {
+      const reqSeq = ++orderDetailModalRequestSeq;
       currentOrderDetailId = id;
-      const { data: o, error } = await sb
+      if (orderDetailWatchdogTimer) clearTimeout(orderDetailWatchdogTimer);
+      orderDetailWatchdogTimer = setTimeout(() => {
+        if (reqSeq !== orderDetailModalRequestSeq) return;
+        safeHiddenHardRefresh('order-detail-timeout');
+      }, 8000);
+      let o = null;
+      let error = null;
+
+      const withDriver = await sb
         .from('orders')
-        .select('*, order_items(id,produto_nome,quantidade,preco_unitario,subtotal)')
+        .select('*, branches(id,nome), order_items(id,produto_nome,quantidade,preco_unitario,subtotal)')
         .eq('id', id)
         .single();
+      if (reqSeq !== orderDetailModalRequestSeq) return;
+
+      o = withDriver.data;
+      error = withDriver.error;
+
+      if (error || !o) {
+        const fallback = await sb
+          .from('orders')
+          .select('*, branches(id,nome), order_items(id,produto_nome,quantidade,preco_unitario,subtotal)')
+          .eq('id', id)
+          .single();
+        if (reqSeq !== orderDetailModalRequestSeq) return;
+        o = fallback.data;
+        error = fallback.error;
+      }
+
+      if (orderDetailWatchdogTimer) {
+        clearTimeout(orderDetailWatchdogTimer);
+        orderDetailWatchdogTimer = null;
+      }
 
       if (error || !o) {
         console.error('openOrderDetailModal:', error);
@@ -2664,6 +3426,7 @@
       const razaoSocial = o.razao_social || (o.cliente_tipo === 'PJ' ? o.cliente_nome : '');
       const paymentMethod = formatPaymentMethod(o.metodo_pagamento);
       const paymentStatus = escapeHtml(o.status_pagamento || '-');
+      const driverName = o.driver?.nome_completo || getDriverNameFromOrder(o);
       const clientWhatsRaw = String(o.cliente_whatsapp || '').trim();
       const clientWhatsDigits = clientWhatsRaw.replace(/\D/g, '');
       const clientWhatsHtml = clientWhatsDigits
@@ -2684,6 +3447,9 @@
           <div class="order-detail-grid">
             <p class="order-detail-field"><strong>Data/Hora:</strong> ${formatDateTime(o.created_at)}</p>
             <p class="order-detail-field"><strong>Status:</strong> <span class="badge badge-${escapeHtml(o.status || 'NOVO')}">${escapeHtml(o.status || 'NOVO')}</span></p>
+            <p class="order-detail-field"><strong>Prioridade:</strong> ${escapeHtml(o.prioridade || 'NORMAL')}</p>
+            <p class="order-detail-field"><strong>Filial:</strong> ${escapeHtml(o.branches?.nome || getBranchNameFromOrder(o))}</p>
+            <p class="order-detail-field"><strong>Entregador:</strong> ${escapeHtml(driverName)}</p>
             <p class="order-detail-field"><strong>Forma de pagamento:</strong> ${escapeHtml(paymentMethod)}</p>
             <p class="order-detail-field"><strong>Status do pagamento:</strong> ${paymentStatus}</p>
           </div>
@@ -2709,9 +3475,16 @@
             <p class="order-detail-field"><strong>Recebedor:</strong> ${escapeHtml(o.recebedor_nome || '-')}</p>
             <p class="order-detail-field"><strong>WhatsApp recebedor:</strong> ${escapeHtml(o.recebedor_whatsapp || '-')}</p>
             <p class="order-detail-field"><strong>Referencia:</strong> ${escapeHtml(o.recebedor_referencia || '-')}</p>
-            <p class="order-detail-field"><strong>Observacoes:</strong> ${escapeHtml(o.observacoes || '-')}</p>
           </div>
         </div>
+
+        ${o.observacoes
+          ? `<div class="order-note-card">
+              <div class="order-note-label">Observacoes</div>
+              <div class="order-note-text">${escapeHtml(o.observacoes)}</div>
+            </div>`
+          : ''
+        }
 
         <div class="order-items-card">
           <h4 style="margin-bottom:10px">Itens do pedido</h4>
@@ -2744,11 +3517,14 @@
         return;
       }
 
-      const { error } = await sb.rpc('set_order_status', {
+      let { error } = await sb.rpc('set_order_status_v2', {
         p_order_id: id,
         p_status: nextStatus
       });
-
+      if (error) {
+        const legacy = await sb.rpc('set_order_status', { p_order_id: id, p_status: nextStatus });
+        error = legacy.error;
+      }
       if (error) {
         console.error('updateOrderStatus:', error);
         showToast('Erro ao atualizar status: ' + error.message);
@@ -2758,7 +3534,11 @@
       const order = getOrderById(id);
       if (order) order.status = nextStatus;
 
-      renderAdminOrders();
+      if (currentRole === 'entregador') {
+        await loadDriverQueue();
+      } else {
+        renderAdminOrders();
+      }
       if (currentOrderDetailId === id && !document.getElementById('orderDetailModal').classList.contains('hidden')) {
         await openOrderDetailModal(id);
       }
@@ -2777,9 +3557,12 @@
     function renderClientsTable() {
       const search = (document.getElementById('clientSearchInput').value || '').toLowerCase();
       const list = allProfiles.filter(p =>
-        (p.nome_completo || '').toLowerCase().includes(search) ||
-        (p.email || '').toLowerCase().includes(search) ||
-        (p.documento || '').includes(search)
+        (p.role === 'cliente' || !p.role) &&
+        (
+          (p.nome_completo || '').toLowerCase().includes(search) ||
+          (p.email || '').toLowerCase().includes(search) ||
+          (p.documento || '').includes(search)
+        )
       );
 
       document.getElementById('clientsTable').innerHTML = list.map(p => {
@@ -2906,6 +3689,494 @@
       await sb.from('companies').delete().eq('id', id);
       await loadAllCompanies(); renderCompanies();
       showToast('Empresa excluída');
+    }
+
+    // ============================================================
+    // BRANCHES + DRIVERS
+    // ============================================================
+    function populateBranchFilter() {
+      ['orderBranchFilter', 'closingBranchFilter'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const current = sel.value || '';
+        sel.innerHTML = '<option value=\"\">Todas filiais</option>' + allBranches
+          .map(b => `<option value=\"${b.id}\">${escapeHtml(b.nome || b.codigo || b.id)}</option>`).join('');
+        if (current) sel.value = current;
+      });
+    }
+
+    function populateDriverFilter() {
+      ['orderDriverFilter', 'closingDriverFilter'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const current = sel.value || '';
+        sel.innerHTML = '<option value=\"\">Todos entregadores</option>' + allDrivers
+          .map(d => `<option value=\"${d.id}\">${escapeHtml(d.nome_completo || d.email || d.id)}</option>`).join('');
+        if (current) sel.value = current;
+      });
+    }
+
+    async function loadAllBranches() {
+      const { data, error } = await sb.from('branches').select('*').order('nome');
+      if (error) {
+        console.error('loadAllBranches:', error);
+        allBranches = [];
+        return;
+      }
+      allBranches = data || [];
+    }
+
+    function renderBranches() {
+      const table = document.getElementById('branchesTable');
+      if (!table) return;
+      if (!allBranches.length) {
+        table.innerHTML = `<tr><td colspan=\"4\" style=\"text-align:center;color:#888;padding:18px\">Nenhuma filial cadastrada</td></tr>`;
+        return;
+      }
+      table.innerHTML = allBranches.map(b => `
+        <tr>
+          <td><strong>${escapeHtml(b.nome || '-')}</strong><br><small style=\"color:#888\">${escapeHtml(b.codigo || '')}</small></td>
+          <td>${escapeHtml(b.bairro || '-')}<br><small style=\"color:#888\">Raio: ${parseFloat(b.raio_km || 0).toFixed(1)}km</small></td>
+          <td>R$ ${parseFloat(b.taxa_entrega || 0).toFixed(2).replace('.', ',')}<br><small style=\"color:#888\">${parseInt(b.prazo_min || 30, 10)} min</small></td>
+          <td style=\"white-space:nowrap\">
+            <button class=\"btn btn-ghost btn-sm\" onclick=\"openBranchModal('${b.id}')\">Editar</button>
+            <button class=\"btn btn-danger btn-sm\" onclick=\"deleteBranch('${b.id}')\">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openBranchModal(id) {
+      const b = id ? allBranches.find(x => x.id === id) : null;
+      document.getElementById('branchModalTitle').textContent = b ? 'Editar Filial' : 'Nova Filial';
+      document.getElementById('branchId').value = b?.id || '';
+      document.getElementById('branchNome').value = b?.nome || '';
+      document.getElementById('branchCodigo').value = b?.codigo || '';
+      document.getElementById('branchCep').value = b?.cep || '';
+      document.getElementById('branchBairro').value = b?.bairro || '';
+      document.getElementById('branchRua').value = b?.rua || '';
+      document.getElementById('branchNumero').value = b?.numero || '';
+      document.getElementById('branchCidade').value = b?.cidade || 'Sao Paulo';
+      document.getElementById('branchEstado').value = b?.estado || 'SP';
+      document.getElementById('branchRaio').value = b?.raio_km ?? 8;
+      document.getElementById('branchLat').value = b?.latitude ?? '';
+      document.getElementById('branchLng').value = b?.longitude ?? '';
+      document.getElementById('branchTaxa').value = b?.taxa_entrega ?? 0;
+      document.getElementById('branchPrazo').value = b?.prazo_min ?? 30;
+      document.getElementById('branchAtivo').checked = b?.ativo !== false;
+      document.getElementById('branchModal').classList.remove('hidden');
+    }
+
+    async function saveBranch() {
+      const id = document.getElementById('branchId').value;
+      const nome = document.getElementById('branchNome').value.trim();
+      if (!nome) { showToast('Informe o nome da filial'); return; }
+      const payload = {
+        nome,
+        codigo: document.getElementById('branchCodigo').value.trim() || null,
+        cep: document.getElementById('branchCep').value.trim(),
+        bairro: document.getElementById('branchBairro').value.trim(),
+        rua: document.getElementById('branchRua').value.trim(),
+        numero: document.getElementById('branchNumero').value.trim(),
+        cidade: document.getElementById('branchCidade').value.trim() || 'Sao Paulo',
+        estado: document.getElementById('branchEstado').value.trim() || 'SP',
+        raio_km: parseFloat(document.getElementById('branchRaio').value) || 8,
+        latitude: document.getElementById('branchLat').value ? parseFloat(document.getElementById('branchLat').value) : null,
+        longitude: document.getElementById('branchLng').value ? parseFloat(document.getElementById('branchLng').value) : null,
+        taxa_entrega: parseFloat(document.getElementById('branchTaxa').value) || 0,
+        prazo_min: parseInt(document.getElementById('branchPrazo').value || '30', 10),
+        ativo: document.getElementById('branchAtivo').checked
+      };
+      let error = null;
+      if (id) ({ error } = await sb.from('branches').update(payload).eq('id', id));
+      else ({ error } = await sb.from('branches').insert(payload));
+      if (error) {
+        console.error('saveBranch:', error);
+        showToast('Erro ao salvar filial');
+        return;
+      }
+      closeModal('branchModal');
+      await loadAllBranches();
+      renderBranches();
+      populateBranchFilter();
+      populateDriverBranchSelect();
+      showToast('Filial salva');
+    }
+
+    async function deleteBranch(id) {
+      if (!confirm('Excluir esta filial?')) return;
+      const { error } = await sb.from('branches').delete().eq('id', id);
+      if (error) {
+        showToast('Erro ao excluir filial');
+        return;
+      }
+      await loadAllBranches();
+      renderBranches();
+      populateBranchFilter();
+      populateDriverBranchSelect();
+      showToast('Filial excluida');
+    }
+
+    async function loadDrivers() {
+      const { data, error } = await sb
+        .from('profiles')
+        .select('id,nome_completo,whatsapp,role,branch_id,driver_online,created_at')
+        .eq('role', 'entregador')
+        .order('nome_completo');
+
+      const profileRows = data || [];
+      if (!error && profileRows.length > 0) {
+        allDrivers = profileRows;
+        return;
+      }
+
+      const rpc = await sb.rpc('list_delivery_drivers', {});
+      if (!rpc.error) {
+        allDrivers = (rpc.data || []).map(d => ({ ...d, role: 'entregador' }));
+        return;
+      }
+
+      if (SUPABASE_SERVICE_KEY) {
+        const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+            storageKey: 'ga-driver-load-admin-' + Date.now()
+          }
+        });
+        const adminRes = await sbAdmin
+          .from('profiles')
+          .select('id,nome_completo,whatsapp,role,branch_id,driver_online,created_at')
+          .eq('role', 'entregador')
+          .order('nome_completo');
+
+        if (!adminRes.error) {
+          allDrivers = adminRes.data || [];
+          return;
+        }
+        console.error('loadDrivers service fallback:', adminRes.error);
+      }
+
+      if (error) console.error('loadDrivers profiles:', error);
+      console.error('loadDrivers rpc:', rpc.error);
+      allDrivers = profileRows;
+    }
+
+    function getBranchLabel(branchId) {
+      const b = allBranches.find(x => x.id === branchId);
+      return b?.nome || '-';
+    }
+
+    function renderDrivers() {
+      const table = document.getElementById('driversTable');
+      if (!table) return;
+      if (!allDrivers.length) {
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#888;padding:18px">Nenhum entregador cadastrado</td></tr>`;
+        return;
+      }
+      table.innerHTML = allDrivers.map(d => `
+        <tr>
+          <td><strong>${escapeHtml(d.nome_completo || d.id)}</strong><br><small style="color:#888">ID: ${escapeHtml(d.id)}</small></td>
+          <td>${escapeHtml(d.whatsapp || '-')}</td>
+          <td>${escapeHtml(getBranchLabel(d.branch_id))}</td>
+          <td>${d.driver_online ? '<span class="badge badge-CONFIRMADO">ONLINE</span>' : '<span class="badge badge-CANCELADO">OFFLINE</span>'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-ghost btn-sm" onclick="openDriverModal('${d.id}')">Editar</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleDriverOnline('${d.id}',${d.driver_online ? 'false' : 'true'})">${d.driver_online ? 'Ficar offline' : 'Ficar online'}</button>
+            <button class="btn btn-danger btn-sm" onclick="removeDriver('${d.id}')">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function normalizePhone(value) {
+      return String(value || '').replace(/\D/g, '');
+    }
+
+    function phoneToDriverEmail(phone) {
+      const digits = normalizePhone(phone);
+      return `entregador_${digits}@entrega.globoagua.app`;
+    }
+
+    function generateTempDriverPassword(length = 10) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+      let out = '';
+      for (let i = 0; i < length; i++) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return out;
+    }
+
+    function populateDriverBranchSelect(selectedId = '') {
+      const sel = document.getElementById('driverBranchSelect');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Sem filial</option>' + allBranches.map(b =>
+        `<option value="${b.id}">${escapeHtml(b.nome || b.codigo || b.id)}</option>`
+      ).join('');
+      if (selectedId) sel.value = selectedId;
+    }
+
+    function openDriverModal(id) {
+      const d = id ? allDrivers.find(x => x.id === id) : null;
+      document.getElementById('driverModalTitle').textContent = d ? 'Editar Entregador' : 'Novo Entregador';
+      document.getElementById('driverId').value = d?.id || '';
+      document.getElementById('driverName').value = d?.nome_completo || '';
+      document.getElementById('driverPhone').value = d?.whatsapp || '';
+      document.getElementById('driverPhone').readOnly = !!d;
+      document.getElementById('driverPassword').value = '';
+      document.getElementById('driverOnline').checked = !!d?.driver_online;
+      populateDriverBranchSelect(d?.branch_id || '');
+      document.getElementById('driverModal').classList.remove('hidden');
+    }
+
+    async function saveDriver() {
+      const profileId = document.getElementById('driverId').value;
+      const nome = document.getElementById('driverName').value.trim();
+      const phoneDigits = normalizePhone(document.getElementById('driverPhone').value);
+      let pwd = document.getElementById('driverPassword').value;
+      const branchId = document.getElementById('driverBranchSelect').value || null;
+      const online = document.getElementById('driverOnline').checked;
+      let generatedPwd = '';
+
+      if (!nome) { showToast('Informe o nome do entregador'); return; }
+      if (phoneDigits.length < 10) { showToast('Informe um celular válido'); return; }
+
+      let targetProfileId = profileId || '';
+      if (!targetProfileId) {
+        if (!pwd) {
+          generatedPwd = generateTempDriverPassword(10);
+          pwd = generatedPwd;
+        }
+        if (pwd.length < 6) {
+          showToast('Senha inválida (mínimo 6 caracteres)');
+          return;
+        }
+
+        const driverEmail = phoneToDriverEmail(phoneDigits);
+        if (SUPABASE_SERVICE_KEY) {
+          const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false,
+              storageKey: 'ga-driver-admin-create-' + Date.now()
+            }
+          });
+
+          const { data: adminData, error: adminErr } = await sbAdmin.auth.admin.createUser({
+            email: driverEmail,
+            password: pwd,
+            email_confirm: true,
+            user_metadata: { nome_completo: nome, whatsapp: phoneDigits, role: 'entregador' }
+          });
+
+          const adminMsg = String(adminErr?.message || '').toLowerCase();
+          const alreadyExists = adminMsg.includes('already') || adminMsg.includes('registered') || adminMsg.includes('exists');
+          if (adminErr && !alreadyExists) {
+            showToast('Erro ao criar login do entregador: ' + adminErr.message);
+            return;
+          }
+          if (adminData?.user?.id) {
+            targetProfileId = adminData.user.id;
+          }
+        } else {
+          const sbTmp = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false,
+              storageKey: 'ga-driver-create-' + Date.now()
+            }
+          });
+
+          const { data: signData, error: signErr } = await sbTmp.auth.signUp({
+            email: driverEmail,
+            password: pwd,
+            options: {
+              data: { nome_completo: nome, whatsapp: phoneDigits, role: 'entregador' }
+            }
+          });
+
+          const signMsg = String(signErr?.message || '').toLowerCase();
+          const alreadyExists = signMsg.includes('already') || signMsg.includes('registered') || signMsg.includes('exists');
+          if (signErr && !alreadyExists) {
+            showToast('Erro ao criar login do entregador: ' + signErr.message);
+            return;
+          }
+          if (signData?.user?.id) {
+            targetProfileId = signData.user.id;
+          }
+        }
+
+        if (!targetProfileId) {
+          const { data: existingProfile } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('whatsapp', phoneDigits)
+            .maybeSingle();
+          targetProfileId = existingProfile?.id || '';
+        }
+
+        if (!targetProfileId) {
+          showToast('Não foi possível criar ou localizar o usuário do entregador');
+          return;
+        }
+      } else {
+        const currentDriver = allDrivers.find(d => d.id === targetProfileId);
+        const oldPhone = normalizePhone(currentDriver?.whatsapp || '');
+        if (oldPhone && oldPhone !== phoneDigits) {
+          showToast('Para manter o login por celular, não altere o número de entregadores já criados');
+          return;
+        }
+
+        if (pwd) {
+          if (pwd.length < 6) {
+            showToast('Senha inválida (mínimo 6 caracteres)');
+            return;
+          }
+          if (!SUPABASE_SERVICE_KEY) {
+            showToast('Não foi possível resetar senha (SERVICE_KEY ausente)');
+            return;
+          }
+          const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false,
+              storageKey: 'ga-driver-admin-reset-' + Date.now()
+            }
+          });
+          const { error: resetErr } = await sbAdmin.auth.admin.updateUserById(targetProfileId, { password: pwd });
+          if (resetErr) {
+            showToast('Erro ao resetar senha do entregador: ' + resetErr.message);
+            return;
+          }
+        }
+      }
+
+      const payload = {
+        id: targetProfileId,
+        nome_completo: nome,
+        role: 'entregador',
+        whatsapp: phoneDigits,
+        branch_id: branchId,
+        driver_online: online
+      };
+
+      const { error } = await sb.from('profiles').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('saveDriver:', error);
+        showToast('Erro ao salvar entregador');
+        return;
+      }
+
+      closeModal('driverModal');
+      await Promise.all([loadAdminClients(), loadDrivers()]);
+      renderDrivers();
+      populateDriverFilter();
+      if (generatedPwd) {
+        alert(`Entregador criado.\nCelular: ${phoneDigits}\nSenha temporaria: ${generatedPwd}\n\nPeça para o entregador entrar em /entregador e trocar a senha.`);
+      }
+      showToast('Entregador salvo');
+    }
+
+    async function removeDriver(driverId) {
+      if (!confirm('Excluir/desativar este entregador?')) return;
+      const { error } = await sb
+        .from('profiles')
+        .update({ role: 'cliente', driver_online: false, branch_id: null })
+        .eq('id', driverId);
+      if (error) {
+        showToast('Erro ao excluir entregador');
+        return;
+      }
+      await loadDrivers();
+      renderDrivers();
+      populateDriverFilter();
+      showToast('Entregador removido');
+    }
+
+    async function toggleDriverOnline(driverId, online) {
+      const { error } = await sb.from('profiles').update({ driver_online: !!online }).eq('id', driverId);
+      if (error) {
+        showToast('Erro ao atualizar status do entregador');
+        return;
+      }
+      await loadDrivers();
+      renderDrivers();
+      showToast('Status atualizado');
+    }
+
+    async function setOrderBranch(orderId, branchId) {
+      const { error } = await sb.from('orders').update({ branch_id: branchId || null }).eq('id', orderId);
+      if (error) {
+        showToast('Erro ao atualizar filial do pedido');
+        return;
+      }
+      const o = allOrders.find(x => x.id === orderId);
+      if (o) o.branch_id = branchId || null;
+      renderAdminOrders();
+    }
+
+    async function changePriority(orderId, prioridade) {
+      const p = String(prioridade || 'NORMAL').toUpperCase();
+      const rpc = await sb.rpc('set_order_priority', {
+        p_order_id: orderId,
+        p_priority: p,
+        p_prioritario: p !== 'NORMAL'
+      });
+      if (rpc.error) {
+        const fallback = await sb.from('orders').update({ prioridade: p, prioritario: p !== 'NORMAL' }).eq('id', orderId);
+        if (fallback.error) {
+          showToast('Erro ao atualizar prioridade');
+          return;
+        }
+      }
+      const o = allOrders.find(x => x.id === orderId);
+      if (o) { o.prioridade = p; o.prioritario = p !== 'NORMAL'; }
+      renderAdminOrders();
+    }
+
+    async function handleDriverAssign(orderId, driverId) {
+      if (!driverId) {
+        const { error } = await sb.from('orders').update({ driver_id: null, fila_posicao: null }).eq('id', orderId);
+        if (error) {
+          showToast('Erro ao remover entregador');
+          return;
+        }
+      } else {
+        const rpc = await sb.rpc('assign_order_to_driver', { p_order_id: orderId, p_driver_id: driverId });
+        if (rpc.error) {
+          const { error } = await sb.from('orders').update({ driver_id: driverId, assigned_at: new Date().toISOString() }).eq('id', orderId);
+          if (error) {
+            showToast('Erro ao atribuir entregador');
+            return;
+          }
+        }
+      }
+      await loadAdminOrders();
+      showToast('Atribuicao atualizada');
+    }
+
+    function setupRealtimeSync() {
+      if (realtimeChannel) return;
+      realtimeChannel = sb.channel('orders-live-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          if (currentSection === 'orders') loadAdminOrders();
+          if (currentSection === 'dashboard' && currentRole === 'admin') loadDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_assignments' }, () => {
+          if (currentSection === 'orders') loadAdminOrders();
+          if (currentRole === 'entregador') loadDriverQueue();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+          if (canManageOrderDispatch()) loadDrivers().then(() => {
+            renderDrivers();
+            populateDriverFilter();
+          });
+        })
+        .subscribe();
     }
 
     // ============================================================
@@ -3196,8 +4467,38 @@
     // ============================================================
     // UTILS
     // ============================================================
+    function safeHiddenHardRefresh(tag) {
+      const key = 'ga_hidden_f5_admin_at';
+      const now = Date.now();
+      const last = Number(sessionStorage.getItem(key) || 0);
+      if (now - last < 120000) return;
+      sessionStorage.setItem(key, String(now));
+      console.warn('[AutoRefresh admin/pedido]', tag || 'hard-refresh');
+      location.reload();
+    }
+
+    function startStealthRefreshLoop() {
+      if (stealthRefreshTimer) return;
+      stealthRefreshTimer = setInterval(async () => {
+        const modalOpen = !document.getElementById('orderDetailModal').classList.contains('hidden');
+        if (document.hidden || !adminUser || modalOpen || currentSection !== 'orders') return;
+        if (currentRole === 'entregador') {
+          await loadDriverQueue();
+        } else {
+          await loadAdminOrders();
+        }
+      }, 45000);
+    }
+
     function closeModal(id) {
-      if (id === 'orderDetailModal') currentOrderDetailId = null;
+      if (id === 'orderDetailModal') {
+        currentOrderDetailId = null;
+        orderDetailModalRequestSeq += 1;
+        if (orderDetailWatchdogTimer) {
+          clearTimeout(orderDetailWatchdogTimer);
+          orderDetailWatchdogTimer = null;
+        }
+      }
       document.getElementById(id).classList.add('hidden');
     }
 
