@@ -1536,14 +1536,35 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">URL da Mídia (Imagem, GIF ou Vídeo)</label>
-                  <input class="form-input" id="setPromoBannerMediaUrl" placeholder="https://exemplo.com/banner.jpg">
+                  <input class="form-input" id="setPromoBannerMediaUrl" placeholder="https://exemplo.com/banner.jpg"
+                    oninput="renderPromoBannerPreview()">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Tipo de Mídia</label>
-                  <select class="form-input" id="setPromoBannerMediaType">
+                  <select class="form-input" id="setPromoBannerMediaType" onchange="renderPromoBannerPreview()">
                     <option value="image">Imagem / GIF</option>
                     <option value="video">Vídeo (MP4)</option>
                   </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Upload da midia do banner</label>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                    <div class="upload-area" style="flex:1;min-width:220px;padding:14px">
+                      <div class="upload-area-icon">BAN</div>
+                      <p id="promoBannerFileLabel">Clique para selecionar imagem ou video</p>
+                      <small>PNG, JPG, GIF ou MP4</small>
+                      <input type="file" id="setPromoBannerFile" accept="image/*,video/*"
+                        onchange="handlePromoBannerFileSelect(this)">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="uploadPromoBannerMedia()">Enviar arquivo</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Preview do banner</label>
+                  <div id="promoBannerPreviewBox"
+                    style="background:#fff;border:1px solid #e0e6ef;border-radius:10px;min-height:90px;padding:10px;display:flex;align-items:center;justify-content:center;color:#8a94a6;font-size:12px">
+                    Sem preview
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Link de Destino (Opcional)</label>
@@ -1775,6 +1796,7 @@
     let charts = {};
     let currentSettings = {};
     let uploadedFileObj = null;
+    let promoBannerUploadFile = null;
     let currentPhotoTab = 'url';
     let colorPicker = null;
     let currentRole = null;
@@ -2990,6 +3012,12 @@
       if (gw.public_key) document.getElementById('setGwPubKey').value = gw.public_key;
       if (gw.modo) document.getElementById('setGwModo').value = gw.modo;
       if (gw.pix_manual) document.getElementById('setPixManual').value = gw.pix_manual;
+      promoBannerUploadFile = null;
+      const fileInput = document.getElementById('setPromoBannerFile');
+      if (fileInput) fileInput.value = '';
+      const fileLabel = document.getElementById('promoBannerFileLabel');
+      if (fileLabel) fileLabel.textContent = 'Clique para selecionar imagem ou video';
+      renderPromoBannerPreview();
       updateWaPreview();
     }
 
@@ -3025,6 +3053,110 @@
       const num = document.getElementById('setWhatsapp').value.replace(/\D/g, '');
       const el = document.getElementById('waLinkPreview');
       el.textContent = num ? 'wa.me/' + num : 'wa.me/...';
+    }
+
+    function isValidHttpUrl(value) {
+      try {
+        const parsed = new URL(String(value || ''));
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function inferPromoMediaType(fileOrUrl) {
+      const raw = String(fileOrUrl || '').toLowerCase();
+      if (raw.includes('video/') || raw.endsWith('.mp4') || raw.endsWith('.webm') || raw.endsWith('.mov')) {
+        return 'video';
+      }
+      return 'image';
+    }
+
+    function renderPromoBannerPreview() {
+      const mediaUrlEl = document.getElementById('setPromoBannerMediaUrl');
+      const mediaTypeEl = document.getElementById('setPromoBannerMediaType');
+      const previewBox = document.getElementById('promoBannerPreviewBox');
+      if (!mediaUrlEl || !mediaTypeEl || !previewBox) return;
+
+      const mediaUrl = (mediaUrlEl.value || '').trim();
+      const mediaType = mediaTypeEl.value === 'video' ? 'video' : 'image';
+      if (!mediaUrl || !isValidHttpUrl(mediaUrl)) {
+        previewBox.innerHTML = 'Sem preview';
+        return;
+      }
+
+      if (mediaType === 'video') {
+        previewBox.innerHTML = `
+          <video src="${escapeHtml(mediaUrl)}" controls muted playsinline
+            style="max-width:100%;max-height:220px;border-radius:8px;background:#000"></video>
+        `;
+      } else {
+        previewBox.innerHTML = `
+          <img src="${escapeHtml(mediaUrl)}" alt="Preview banner"
+            style="max-width:100%;max-height:220px;border-radius:8px;object-fit:cover">
+        `;
+      }
+    }
+
+    function handlePromoBannerFileSelect(input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      promoBannerUploadFile = file;
+
+      const label = document.getElementById('promoBannerFileLabel');
+      if (label) label.textContent = file.name;
+
+      const mediaTypeEl = document.getElementById('setPromoBannerMediaType');
+      if (mediaTypeEl) mediaTypeEl.value = inferPromoMediaType(file.type || file.name);
+
+      const previewBox = document.getElementById('promoBannerPreviewBox');
+      if (previewBox) {
+        const localUrl = URL.createObjectURL(file);
+        if ((mediaTypeEl?.value || 'image') === 'video') {
+          previewBox.innerHTML = `
+            <video src="${localUrl}" controls muted playsinline
+              style="max-width:100%;max-height:220px;border-radius:8px;background:#000"></video>
+          `;
+        } else {
+          previewBox.innerHTML = `
+            <img src="${localUrl}" alt="Preview local banner"
+              style="max-width:100%;max-height:220px;border-radius:8px;object-fit:cover">
+          `;
+        }
+      }
+    }
+
+    async function uploadPromoBannerMedia() {
+      if (!promoBannerUploadFile) {
+        showToast('Selecione um arquivo do banner primeiro');
+        return;
+      }
+
+      const ext = (promoBannerUploadFile.name.split('.').pop() || 'bin').toLowerCase();
+      const safeExt = ext.replace(/[^a-z0-9]/g, '') || 'bin';
+      const path = `banners/banner_${Date.now()}.${safeExt}`;
+
+      const { error } = await sb.storage
+        .from('produtos')
+        .upload(path, promoBannerUploadFile, {
+          upsert: true,
+          contentType: promoBannerUploadFile.type || undefined
+        });
+
+      if (error) {
+        console.error('uploadPromoBannerMedia:', error);
+        showToast('Erro no upload do banner: ' + error.message);
+        return;
+      }
+
+      const { data: publicData } = sb.storage.from('produtos').getPublicUrl(path);
+      const mediaUrlEl = document.getElementById('setPromoBannerMediaUrl');
+      const mediaTypeEl = document.getElementById('setPromoBannerMediaType');
+      if (mediaUrlEl) mediaUrlEl.value = publicData?.publicUrl || '';
+      if (mediaTypeEl) mediaTypeEl.value = inferPromoMediaType(promoBannerUploadFile.type || safeExt);
+
+      renderPromoBannerPreview();
+      showToast('Upload do banner concluido');
     }
 
     function setSettingsTab(tab, el) {
