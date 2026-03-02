@@ -2105,6 +2105,8 @@
     let suspendOrdersAutoRefreshUntil = 0;
     let ordersRefreshDeferred = false;
     let queueDirty = false;
+    let queueSaveInFlight = false;
+    let queueAutoSaveTimer = null;
     let orderFiltersInitialized = false;
     let closingFiltersInitialized = false;
     const ORDER_ALLOWED_STATUSES = ['NOVO', 'CONFIRMADO', 'PRODUCAO', 'EM_ROTA', 'ENTREGUE', 'CANCELADO'];
@@ -3055,6 +3057,19 @@
     let driverQueueOrder = [];
     let draggingQueueId = null;
 
+    function holdDriverQueueRefresh() {
+      return currentRole === 'entregador' && currentSection === 'orders' && (queueDirty || queueSaveInFlight);
+    }
+
+    function scheduleDriverQueueAutoSave() {
+      if (currentRole !== 'entregador') return;
+      if (queueAutoSaveTimer) clearTimeout(queueAutoSaveTimer);
+      queueAutoSaveTimer = setTimeout(() => {
+        queueAutoSaveTimer = null;
+        saveDriverQueue(true);
+      }, 700);
+    }
+
     async function loadDriverQueue() {
       const { data, error } = await sb.rpc('list_driver_orders', {});
       if (error) {
@@ -3117,6 +3132,7 @@
     function onQueueDragStart(event, orderId) {
       draggingQueueId = orderId;
       event.dataTransfer.effectAllowed = 'move';
+      pauseOrdersAutoRefresh(6000);
     }
 
     function onQueueDragOver(event) {
@@ -3134,23 +3150,35 @@
       driverQueueOrder.splice(to, 0, draggingQueueId);
       allOrders.sort((a, b) => driverQueueOrder.indexOf(a.id) - driverQueueOrder.indexOf(b.id));
       queueDirty = true;
+      pauseOrdersAutoRefresh(6000);
       renderDriverQueue();
+      scheduleDriverQueueAutoSave();
+      draggingQueueId = null;
     }
 
-    async function saveDriverQueue() {
+    async function saveDriverQueue(silent = false) {
+      if (queueSaveInFlight) return;
       if (!queueDirty || !driverQueueOrder.length) {
-        showToast('Fila ja esta salva');
+        if (!silent) showToast('Fila ja esta salva');
         return;
       }
-      const { error } = await sb.rpc('reorder_driver_queue', { p_order_ids: driverQueueOrder });
-      if (error) {
-        console.error('saveDriverQueue:', error);
-        showToast('Erro ao salvar ordem da fila');
-        return;
+      queueSaveInFlight = true;
+      try {
+        const { error } = await sb.rpc('reorder_driver_queue', { p_order_ids: driverQueueOrder });
+        if (error) {
+          console.error('saveDriverQueue:', error);
+          showToast('Erro ao salvar ordem da fila');
+          return;
+        }
+        queueDirty = false;
+        if (!silent) showToast('Fila atualizada');
+        await loadDriverQueue();
+      } finally {
+        queueSaveInFlight = false;
+        if (ordersRefreshDeferred) {
+          setTimeout(() => refreshOrdersSectionSafe(), 120);
+        }
       }
-      queueDirty = false;
-      showToast('Fila atualizada');
-      await loadDriverQueue();
     }
 
     async function exportOrdersExcel(filtersOverride = null, loadingMessage = 'Gerando relatorio de entregas...') {
@@ -4503,7 +4531,7 @@
     }
 
     async function refreshOrdersSectionSafe() {
-      if (isOrdersAutoRefreshPaused()) {
+      if (isOrdersAutoRefreshPaused() || holdDriverQueueRefresh()) {
         ordersRefreshDeferred = true;
         return;
       }
