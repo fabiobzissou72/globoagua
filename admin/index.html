@@ -1763,8 +1763,8 @@
   </div>
 
   <!-- MODAL DETALHES PEDIDO -->
-  <div class="modal-overlay hidden" id="orderDetailModal">
-    <div class="modal">
+  <div class="modal-overlay hidden" id="orderDetailModal" onclick="closeModal('orderDetailModal')">
+    <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-handle"></div>
       <div class="modal-header">
         <h3>Detalhes do Pedido</h3>
