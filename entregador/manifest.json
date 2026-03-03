@@ -3,7 +3,7 @@
   "short_name": "GA Entregador",
   "description": "App do entregador Globo Água",
   "start_url": "/entregador",
-  "scope": "/",
+  "scope": "/entregador",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#1976D2",

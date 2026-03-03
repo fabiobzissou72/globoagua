@@ -3,7 +3,7 @@
   "short_name": "GA Pedidos",
   "description": "Gestão de pedidos Globo Água",
   "start_url": "/admin",
-  "scope": "/",
+  "scope": "/admin",
   "display": "standalone",
   "background_color": "#0d47a1",
   "theme_color": "#1565C0",
