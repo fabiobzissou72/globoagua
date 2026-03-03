@@ -1358,6 +1358,11 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7z"></path><rect x="4" y="7" width="16" height="14" rx="2"></rect><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="14" y2="16"></line></svg>
           </span><span>Fechamento</span>
         </div>
+        <div class="nav-item dispatch-only" data-section="driverStats" onclick="showSection('driverStats',this)">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          </span><span>Desempenho</span>
+        </div>
         <div class="nav-item" data-section="branches" data-role="admin" onclick="showSection('branches',this)">
           <span class="nav-item-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
@@ -1601,6 +1606,40 @@
             </div>
             <div style="padding:14px 16px;color:#5b6578;font-size:13px;line-height:1.5">
               Use esta área para gerar o fechamento mensal por cliente/produto, com totais e consumo consolidado.
+            </div>
+          </div>
+        </div>
+
+        <!-- DESEMPENHO ENTREGADORES -->
+        <div id="sectionDriverStats" class="hidden">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Desempenho dos Entregadores</h3>
+              <div class="orders-filters" style="flex-wrap:wrap;gap:8px">
+                <input class="form-input" type="date" id="dsFrom" style="width:auto;padding:7px 12px">
+                <input class="form-input" type="date" id="dsTo" style="width:auto;padding:7px 12px">
+                <button class="btn btn-ghost" onclick="dsSetPeriod('today')">Hoje</button>
+                <button class="btn btn-ghost" onclick="dsSetPeriod('week')">Esta semana</button>
+                <button class="btn btn-ghost" onclick="dsSetPeriod('month')">Este mês</button>
+                <button class="btn btn-primary" onclick="loadDriverStats()">Buscar</button>
+              </div>
+            </div>
+            <div id="dsCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px"></div>
+            <div style="overflow-x:auto">
+              <table style="width:100%;border-collapse:collapse;font-size:13px" id="dsTable">
+                <thead>
+                  <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
+                    <th style="padding:10px 12px;text-align:left;font-weight:700;color:#374151">Entregador</th>
+                    <th style="padding:10px 12px;text-align:center;color:#166534">✓ Entregas</th>
+                    <th style="padding:10px 12px;text-align:center;color:#991b1b">✗ Cancelados</th>
+                    <th style="padding:10px 12px;text-align:center;color:#374151">Total</th>
+                    <th style="padding:10px 12px;text-align:center;color:#374151">Taxa sucesso</th>
+                  </tr>
+                </thead>
+                <tbody id="dsBody">
+                  <tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Selecione um período e clique em Buscar</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -2384,6 +2423,7 @@
         products: 'Produtos',
         orders: currentRole === 'entregador' ? 'Meus Pedidos' : 'Pedidos',
         closing: 'Fechamento',
+        driverStats: 'Desempenho',
         branches: 'Filiais',
         drivers: 'Entregadores',
         clients: 'Clientes',
@@ -2396,6 +2436,7 @@
       closeSidebar(); // Garante o fechamento no mobile
       if (targetSection === 'orders') loadAdminOrders();
       if (targetSection === 'closing') initializeClosingDateFilters();
+      if (targetSection === 'driverStats') { dsSetPeriod('month'); loadDriverStats(); }
 
       if (currentRole === 'admin') {
         if (targetSection === 'clients') renderClientsTable();
@@ -4527,6 +4568,105 @@
     // ============================================================
     // UTILS
     // ============================================================
+    // ============================================================
+    // DESEMPENHO ENTREGADORES
+    // ============================================================
+    function dsSetPeriod(period) {
+      const today = new Date();
+      const fmt = d => d.toISOString().slice(0, 10);
+      let from = today, to = today;
+      if (period === 'today') {
+        from = to = today;
+      } else if (period === 'week') {
+        const day = today.getDay() || 7;
+        from = new Date(today); from.setDate(today.getDate() - day + 1);
+        to = today;
+      } else if (period === 'month') {
+        from = new Date(today.getFullYear(), today.getMonth(), 1);
+        to = today;
+      }
+      document.getElementById('dsFrom').value = fmt(from);
+      document.getElementById('dsTo').value = fmt(to);
+    }
+
+    async function loadDriverStats() {
+      const from = document.getElementById('dsFrom').value;
+      const to = document.getElementById('dsTo').value;
+      const tbody = document.getElementById('dsBody');
+      const cards = document.getElementById('dsCards');
+      if (!from || !to) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Selecione o período</td></tr>'; return; }
+
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Carregando...</td></tr>';
+      cards.innerHTML = '';
+
+      const fromDt = from + 'T00:00:00';
+      const toDt = to + 'T23:59:59';
+
+      const [ordersRes, driversRes] = await Promise.all([
+        sb.from('orders').select('driver_id,status').gte('created_at', fromDt).lte('created_at', toDt).not('driver_id', 'is', null),
+        sb.from('profiles').select('id,nome_completo').eq('role', 'entregador')
+      ]);
+
+      if (ordersRes.error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#ef4444">Erro ao carregar dados</td></tr>'; return; }
+
+      const driverMap = {};
+      (driversRes.data || []).forEach(d => { driverMap[d.id] = d.nome_completo || 'Sem nome'; });
+
+      const stats = {};
+      (ordersRes.data || []).forEach(o => {
+        const id = o.driver_id;
+        if (!stats[id]) stats[id] = { entregas: 0, cancelados: 0, total: 0 };
+        stats[id].total++;
+        if (o.status === 'ENTREGUE') stats[id].entregas++;
+        if (o.status === 'CANCELADO') stats[id].cancelados++;
+      });
+
+      const rows = Object.entries(stats).sort((a, b) => b[1].entregas - a[1].entregas);
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Nenhuma entrega no período</td></tr>';
+        cards.innerHTML = '';
+        return;
+      }
+
+      const totalEntregas = rows.reduce((s, [, v]) => s + v.entregas, 0);
+      const totalCancelados = rows.reduce((s, [, v]) => s + v.cancelados, 0);
+      const totalPedidos = rows.reduce((s, [, v]) => s + v.total, 0);
+
+      cards.innerHTML = `
+        <div style="background:#dcfce7;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#166534">${totalEntregas}</div>
+          <div style="font-size:12px;color:#166534;margin-top:2px">Total entregues</div>
+        </div>
+        <div style="background:#fee2e2;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#991b1b">${totalCancelados}</div>
+          <div style="font-size:12px;color:#991b1b;margin-top:2px">Total cancelados</div>
+        </div>
+        <div style="background:#eff6ff;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#1e40af">${totalPedidos}</div>
+          <div style="font-size:12px;color:#1e40af;margin-top:2px">Total pedidos</div>
+        </div>
+        <div style="background:#f5f3ff;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:#6d28d9">${rows.length}</div>
+          <div style="font-size:12px;color:#6d28d9;margin-top:2px">Entregadores ativos</div>
+        </div>
+      `;
+
+      tbody.innerHTML = rows.map(([id, v], i) => {
+        const nome = driverMap[id] || 'Entregador ' + id.slice(0, 6);
+        const taxa = v.total > 0 ? Math.round((v.entregas / v.total) * 100) : 0;
+        const cor = taxa >= 80 ? '#166534' : taxa >= 50 ? '#92400e' : '#991b1b';
+        const bg = i % 2 === 0 ? '#fff' : '#f8fafc';
+        return `<tr style="background:${bg};border-bottom:1px solid #f1f5f9">
+          <td style="padding:10px 12px;font-weight:600">${escapeHtml(nome)}</td>
+          <td style="padding:10px 12px;text-align:center;color:#166534;font-weight:700">${v.entregas}</td>
+          <td style="padding:10px 12px;text-align:center;color:#991b1b;font-weight:700">${v.cancelados}</td>
+          <td style="padding:10px 12px;text-align:center;color:#374151">${v.total}</td>
+          <td style="padding:10px 12px;text-align:center;font-weight:700;color:${cor}">${taxa}%</td>
+        </tr>`;
+      }).join('');
+    }
+
     function safeHiddenHardRefresh(tag) {
       const key = 'ga_hidden_f5_admin_at';
       const now = Date.now();
