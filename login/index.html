@@ -16,8 +16,7 @@
     .field label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
     .field input { width: 100%; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; font-size: 15px; outline: none; transition: border-color .15s; }
     .field input:focus { border-color: #1976D2; }
-    .field input.error { border-color: #ef4444; }
-    .btn { width: 100%; border: none; border-radius: 12px; padding: 13px; background: #1976D2; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: opacity .15s; }
+    .btn { width: 100%; border: none; border-radius: 12px; padding: 13px; background: #1976D2; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
     .btn:disabled { opacity: .6; cursor: not-allowed; }
     .msg { font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; color: #ef4444; }
     .hint { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 16px; }
@@ -30,125 +29,114 @@
       <h1>Globo Agua</h1>
       <p>Entre com seu acesso</p>
     </div>
-
     <div class="field">
       <label>E-mail ou celular</label>
-      <input id="identifier" type="text" placeholder="email@exemplo.com ou 11999999999" autocomplete="username" inputmode="email">
+      <input id="identifier" type="text" placeholder="email@exemplo.com ou 11999999999" autocomplete="username">
     </div>
     <div class="field">
       <label>Senha</label>
       <input id="password" type="password" placeholder="Sua senha" autocomplete="current-password">
     </div>
-
     <button id="loginBtn" class="btn" onclick="doLogin()">Entrar</button>
     <div id="msg" class="msg"></div>
-    <div class="hint">Você será redirecionado automaticamente para sua área.</div>
+    <div class="hint">Você será redirecionado para sua área automaticamente.</div>
   </div>
 
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
-    // Cliente temporário sem persistir sessão — só pra ler o role
-    const sbTemp = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false }
-    });
 
     function normalizePhone(v) { return String(v || '').replace(/\D/g, ''); }
-    function phoneToEmail(phone) { return `entregador_${phone}@entrega.globoagua.app`; }
+    function phoneToEmail(p) { return `entregador_${p}@entrega.globoagua.app`; }
+    function mkClient(storageKey) {
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { storageKey, persistSession: true }
+      });
+    }
     function setMsg(text, color) {
       const el = document.getElementById('msg');
       el.textContent = text;
       el.style.color = color || '#ef4444';
     }
+    function setLoading(on) {
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = on;
+      btn.textContent = on ? 'Entrando...' : 'Entrar';
+    }
+    function showErr(msg) {
+      setLoading(false);
+      setMsg(msg);
+    }
 
-    document.getElementById('password').addEventListener('keydown', e => {
-      if (e.key === 'Enter') doLogin();
-    });
-    document.getElementById('identifier').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('password').focus();
-    });
+    document.getElementById('identifier').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+    document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
     async function doLogin() {
-      const btn = document.getElementById('loginBtn');
       const raw = document.getElementById('identifier').value.trim();
       const password = document.getElementById('password').value;
+      if (!raw || !password) { setMsg('Preencha os dois campos'); return; }
 
-      if (!raw || !password) { setMsg('Preencha e-mail/celular e senha'); return; }
-
-      btn.disabled = true;
-      btn.textContent = 'Entrando...';
+      setLoading(true);
       setMsg('');
 
       const phone = normalizePhone(raw);
       const isPhone = /^\d{10,11}$/.test(phone);
 
-      const candidates = [];
-      if (isPhone) candidates.push(phoneToEmail(phone));
-      candidates.push(raw);
-
-      // Passo 1: login temporário (sem salvar sessão) só pra ler o role
-      let authedUser = null;
-      let successEmail = '';
-      let lastErr = '';
-
-      for (const email of candidates) {
-        const { data, error } = await sbTemp.auth.signInWithPassword({ email, password });
-        if (!error && data?.user) { authedUser = data.user; successEmail = email; break; }
-        lastErr = String(error?.message || '');
-      }
-
-      if (!authedUser) {
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        if (lastErr.toLowerCase().includes('email not confirmed')) {
-          setMsg('Conta ainda não confirmada. Fale com o administrador.');
-        } else if (lastErr.toLowerCase().includes('invalid login')) {
-          setMsg('E-mail/celular ou senha incorretos.');
-        } else {
-          setMsg('Falha no login. Verifique seus dados.');
-        }
+      // ENTREGADOR — celular
+      if (isPhone) {
+        const sb = mkClient('ga-driver-session');
+        const { error } = await sb.auth.signInWithPassword({ email: phoneToEmail(phone), password });
+        if (error) { showErr('Celular ou senha incorretos.'); return; }
+        setMsg('Redirecionando...', '#166534');
+        window.location.href = '/entregador';
         return;
       }
 
-      // Passo 2: lê o perfil com a sessão temporária ativa
-      const { data: profile } = await sbTemp
+      // EMAIL — pode ser admin, operador ou cliente
+      // Tenta com a chave do admin primeiro
+      const sbAdmin = mkClient('ga-admin-session');
+      const { data: aData, error: aErr } = await sbAdmin.auth.signInWithPassword({ email: raw, password });
+
+      if (aErr) {
+        // Credenciais erradas — tenta como cliente
+        const sbClient = mkClient('ga_auth_session');
+        const { error: cErr } = await sbClient.auth.signInWithPassword({ email: raw, password });
+        if (cErr) {
+          const m = String(aErr.message || '').toLowerCase();
+          if (m.includes('email not confirmed')) showErr('Conta não confirmada. Fale com o administrador.');
+          else showErr('E-mail ou senha incorretos.');
+          return;
+        }
+        setMsg('Redirecionando...', '#166534');
+        window.location.href = '/';
+        return;
+      }
+
+      // Login ok — verifica o role
+      const { data: profile } = await sbAdmin
         .from('profiles')
         .select('role, is_admin')
-        .eq('id', authedUser.id)
+        .eq('id', aData.user.id)
         .maybeSingle();
 
       const role = profile?.role || '';
-      const isAdmin = !!profile?.is_admin;
+      const isAdm = !!profile?.is_admin;
 
-      // Passo 3: determina destino e storageKey da tela alvo
-      let storageKey = 'ga_auth_session';
-      let dest = '/';
-      if (isAdmin || role === 'admin') {
-        storageKey = 'ga-admin-session';
-        dest = '/admin';
+      if (isAdm || role === 'admin') {
+        setMsg('Redirecionando...', '#166534');
+        window.location.href = '/admin';
       } else if (role === 'operador') {
-        storageKey = 'ga-admin-session';
-        dest = '/pedido';
-      } else if (role === 'entregador') {
-        storageKey = 'ga-driver-session';
-        dest = '/entregador';
+        setMsg('Redirecionando...', '#166534');
+        window.location.href = '/pedido';
+      } else {
+        // Não é admin/operador — desloga da chave admin e loga como cliente
+        await sbAdmin.auth.signOut();
+        const sbClient = mkClient('ga_auth_session');
+        await sbClient.auth.signInWithPassword({ email: raw, password });
+        setMsg('Redirecionando...', '#166534');
+        window.location.href = '/';
       }
-
-      // Passo 4: loga com a chave correta da tela destino e redireciona
-      const sbDest = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: { storageKey, persistSession: true }
-      });
-      const { error: err2 } = await sbDest.auth.signInWithPassword({ email: successEmail, password });
-      if (err2) {
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        setMsg('Erro ao finalizar login. Tente novamente.');
-        return;
-      }
-
-      setMsg('Identificado! Redirecionando...', '#166534');
-      window.location.href = dest;
     }
   </script>
 </body>
