@@ -80,17 +80,17 @@
       const phone = normalizePhone(raw);
       const isPhone = /^\d{10,11}$/.test(phone);
 
-      // Monta lista de emails para tentar, na ordem certa
       const candidates = [];
       if (isPhone) candidates.push(phoneToEmail(phone));
-      candidates.push(raw); // tenta como email direto também
+      candidates.push(raw);
 
       let authedUser = null;
+      let successEmail = '';
       let lastErr = '';
 
       for (const email of candidates) {
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (!error && data?.user) { authedUser = data.user; break; }
+        if (!error && data?.user) { authedUser = data.user; successEmail = email; break; }
         lastErr = String(error?.message || '');
       }
 
@@ -107,7 +107,7 @@
         return;
       }
 
-      // Lê o perfil para saber para onde redirecionar
+      // Lê o perfil para descobrir o role
       const { data: profile } = await sb
         .from('profiles')
         .select('role, is_admin')
@@ -117,15 +117,33 @@
       const role = profile?.role || '';
       const isAdmin = !!profile?.is_admin;
 
-      setMsg('Identificado! Redirecionando...', '#166534');
-
+      // Cada tela usa uma storageKey diferente no localStorage
+      // Precisa fazer login novamente com a chave correta pra sessão ser reconhecida
+      let storageKey = 'ga_auth_session';
+      let dest = '/';
       if (isAdmin || role === 'admin' || role === 'operador') {
-        window.location.href = '/admin';
+        storageKey = 'ga-admin-session';
+        dest = '/admin';
       } else if (role === 'entregador') {
-        window.location.href = '/entregador';
-      } else {
-        window.location.href = '/';
+        storageKey = 'ga-driver-session';
+        dest = '/entregador';
       }
+
+      // Desloga do cliente temporário e loga com a chave da tela destino
+      await sb.auth.signOut();
+      const sbDest = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { storageKey, persistSession: true }
+      });
+      const { error: err2 } = await sbDest.auth.signInWithPassword({ email: successEmail, password });
+      if (err2) {
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+        setMsg('Erro ao finalizar login. Tente novamente.');
+        return;
+      }
+
+      setMsg('Identificado! Redirecionando...', '#166534');
+      window.location.href = dest;
     }
   </script>
 </body>
