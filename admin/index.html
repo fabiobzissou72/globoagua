@@ -1318,6 +1318,7 @@
             enterkeyhint="go">
           <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
         </form>
+        <button id="installPwaBtnLogin" onclick="installPwa()" style="display:none;width:100%;margin-top:10px;border:none;border-radius:10px;padding:12px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">⬇ Instalar app no celular</button>
       </div>
     </div>
   </div>
@@ -4680,16 +4681,20 @@
 
     // Botão de instalar PWA
     let _pwaPrompt = null;
+    function _showInstallBtns(visible) {
+      ['installPwaBtn','installPwaBtnLogin'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.style.display = visible ? (id === 'installPwaBtn' ? 'inline-flex' : 'block') : 'none';
+      });
+    }
     window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       _pwaPrompt = e;
-      const btn = document.getElementById('installPwaBtn');
-      if (btn) btn.style.display = 'inline-flex';
+      _showInstallBtns(true);
     });
     window.addEventListener('appinstalled', () => {
-      const btn = document.getElementById('installPwaBtn');
-      if (btn) btn.style.display = 'none';
       _pwaPrompt = null;
+      _showInstallBtns(false);
     });
     function installPwa() {
       if (!_pwaPrompt) return;
