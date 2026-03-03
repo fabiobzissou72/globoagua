@@ -134,11 +134,12 @@
       <div class="order-items" id="orderModalItems"></div>
       <input id="orderReceiverInput" class="form-input" placeholder="Quem recebeu? Ex: Jose, Joao, Sandra">
       <textarea id="orderObsInput" class="form-input" placeholder="Observacao da entrega" rows="3" style="resize:vertical"></textarea>
-      <select id="orderStatusSelect" class="status-picker" style="width:100%;margin-top:4px">
-        <option value="EM_ROTA">Em rota</option>
-        <option value="ENTREGUE">Entregue</option>
-        <option value="CANCELADO">Cancelado</option>
-      </select>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="modalBtnRota" class="btn-sm btn-status btn-status-rota" style="flex:1" onclick="selectModalStatus('EM_ROTA')">Em rota</button>
+        <button id="modalBtnEntregue" class="btn-sm btn-status btn-status-entregue" style="flex:1" onclick="selectModalStatus('ENTREGUE')">Entregue</button>
+        <button id="modalBtnCancelado" class="btn-sm btn-status btn-status-cancelado" style="flex:1" onclick="selectModalStatus('CANCELADO')">Cancelado</button>
+      </div>
+      <input type="hidden" id="orderStatusSelect" value="EM_ROTA">
       <input type="hidden" id="orderModalCurrentStatus" value="">
       <div class="modal-actions">
         <button class="btn-sm" style="background:#f3f4f6;color:#111827" onclick="closeOrderModal()">Fechar</button>
@@ -355,9 +356,16 @@
       document.getElementById('orderModalItems').innerHTML = '<div class="order-item-empty">Carregando...</div>';
       document.getElementById('orderReceiverInput').value = '';
       document.getElementById('orderObsInput').value = '';
-      document.getElementById('orderStatusSelect').value = 'EM_ROTA';
       document.getElementById('orderModalCurrentStatus').value = '';
+      selectModalStatus('EM_ROTA');
     }
+    function selectModalStatus(val) {
+      document.getElementById('orderStatusSelect').value = val;
+      document.getElementById('modalBtnRota').classList.toggle('active', val === 'EM_ROTA');
+      document.getElementById('modalBtnEntregue').classList.toggle('active', val === 'ENTREGUE');
+      document.getElementById('modalBtnCancelado').classList.toggle('active', val === 'CANCELADO');
+    }
+
     function openRoute(destination) {
       const dest = String(destination || '').trim();
       if (!dest) {
@@ -676,7 +684,7 @@
       document.getElementById('orderReceiverInput').value = data.recebedor_nome ?? '';
       document.getElementById('orderObsInput').value = data.observacoes ?? '';
       document.getElementById('orderModalCurrentStatus').value = (data.status || '').toUpperCase();
-      document.getElementById('orderStatusSelect').value = (preferredStatus || data.status || 'EM_ROTA').toUpperCase();
+      selectModalStatus((preferredStatus || data.status || 'EM_ROTA').toUpperCase());
 
       const pgStatusRaw = String(data.status_pagamento || 'PENDENTE').toUpperCase();
       const total = Number(data.total || 0);
