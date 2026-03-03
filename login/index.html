@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Entrar - Globo Agua</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(145deg,#1976D2,#0d47a1); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .box { width: 100%; max-width: 380px; background: #fff; border-radius: 20px; padding: 28px 24px; box-shadow: 0 15px 40px rgba(0,0,0,.25); }
+    .logo { text-align: center; margin-bottom: 20px; }
+    .logo img { width: 72px; height: 72px; border-radius: 16px; object-fit: cover; }
+    .logo h1 { font-size: 20px; margin-top: 8px; color: #1d2430; }
+    .logo p { font-size: 13px; color: #667085; margin-top: 2px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .field input { width: 100%; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; font-size: 15px; outline: none; transition: border-color .15s; }
+    .field input:focus { border-color: #1976D2; }
+    .field input.error { border-color: #ef4444; }
+    .btn { width: 100%; border: none; border-radius: 12px; padding: 13px; background: #1976D2; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: opacity .15s; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .msg { font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; color: #ef4444; }
+    .hint { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">
+      <img src="/images/logo.jpeg" alt="Globo Agua" onerror="this.style.display='none'">
+      <h1>Globo Agua</h1>
+      <p>Entre com seu acesso</p>
+    </div>
+
+    <div class="field">
+      <label>E-mail ou celular</label>
+      <input id="identifier" type="text" placeholder="email@exemplo.com ou 11999999999" autocomplete="username" inputmode="email">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input id="password" type="password" placeholder="Sua senha" autocomplete="current-password">
+    </div>
+
+    <button id="loginBtn" class="btn" onclick="doLogin()">Entrar</button>
+    <div id="msg" class="msg"></div>
+    <div class="hint">Você será redirecionado automaticamente para sua área.</div>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function normalizePhone(v) { return String(v || '').replace(/\D/g, ''); }
+    function phoneToEmail(phone) { return `entregador_${phone}@entrega.globoagua.app`; }
+    function setMsg(text, color) {
+      const el = document.getElementById('msg');
+      el.textContent = text;
+      el.style.color = color || '#ef4444';
+    }
+
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+    document.getElementById('identifier').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('password').focus();
+    });
+
+    async function doLogin() {
+      const btn = document.getElementById('loginBtn');
+      const raw = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!raw || !password) { setMsg('Preencha e-mail/celular e senha'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      setMsg('');
+
+      const phone = normalizePhone(raw);
+      const isPhone = /^\d{10,11}$/.test(phone);
+
+      // Monta lista de emails para tentar, na ordem certa
+      const candidates = [];
+      if (isPhone) candidates.push(phoneToEmail(phone));
+      candidates.push(raw); // tenta como email direto também
+
+      let authedUser = null;
+      let lastErr = '';
+
+      for (const email of candidates) {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (!error && data?.user) { authedUser = data.user; break; }
+        lastErr = String(error?.message || '');
+      }
+
+      if (!authedUser) {
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+        if (lastErr.toLowerCase().includes('email not confirmed')) {
+          setMsg('Conta ainda não confirmada. Fale com o administrador.');
+        } else if (lastErr.toLowerCase().includes('invalid login')) {
+          setMsg('E-mail/celular ou senha incorretos.');
+        } else {
+          setMsg('Falha no login. Verifique seus dados.');
+        }
+        return;
+      }
+
+      // Lê o perfil para saber para onde redirecionar
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('role, is_admin')
+        .eq('id', authedUser.id)
+        .maybeSingle();
+
+      const role = profile?.role || '';
+      const isAdmin = !!profile?.is_admin;
+
+      setMsg('Identificado! Redirecionando...', '#166534');
+
+      if (isAdmin || role === 'admin' || role === 'operador') {
+        window.location.href = '/admin';
+      } else if (role === 'entregador') {
+        window.location.href = '/entregador';
+      } else {
+        window.location.href = '/';
+      }
+    }
+  </script>
+</body>
+</html>
