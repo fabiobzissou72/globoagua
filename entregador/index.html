@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1976D2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GA Entregador">
+  <link rel="manifest" href="/entregador/manifest.json">
+  <link rel="apple-touch-icon" href="/images/logo.jpeg">
   <title>Entregador - Globo Agua</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -829,6 +836,19 @@
       setupRealtime();
       startStealthRefreshLoop();
     })();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) sw.postMessage('SKIP_WAITING');
+          });
+        });
+      }).catch(() => {});
+      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+    }
   </script>
 </body>
 </html>

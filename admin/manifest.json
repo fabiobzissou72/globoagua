@@ -1,0 +1,26 @@
+{
+  "name": "Globo Água - Pedidos",
+  "short_name": "GA Pedidos",
+  "description": "Gestão de pedidos Globo Água",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d47a1",
+  "theme_color": "#1565C0",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/images/logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}

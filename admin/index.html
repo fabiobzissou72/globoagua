@@ -4,6 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1565C0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GA Pedidos">
+  <link rel="manifest" href="/admin/manifest.json">
+  <link rel="apple-touch-icon" href="/images/logo.jpeg">
   <title>Admin - Globo Água</title>
   <style>
     * {
@@ -4632,6 +4639,19 @@
         console.error('session restore error:', e);
       }
     })();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) sw.postMessage('SKIP_WAITING');
+          });
+        });
+      }).catch(() => {});
+      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+    }
   </script>
 </body>
 
