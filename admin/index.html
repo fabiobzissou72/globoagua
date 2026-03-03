@@ -1613,31 +1613,38 @@
         <!-- DESEMPENHO ENTREGADORES -->
         <div id="sectionDriverStats" class="hidden">
           <div class="table-card">
-            <div class="table-header">
-              <h3>Desempenho dos Entregadores</h3>
-              <div class="orders-filters" style="flex-wrap:wrap;gap:8px">
-                <input class="form-input" type="date" id="dsFrom" style="width:auto;padding:7px 12px">
-                <input class="form-input" type="date" id="dsTo" style="width:auto;padding:7px 12px">
-                <button class="btn btn-ghost" onclick="dsSetPeriod('today')">Hoje</button>
-                <button class="btn btn-ghost" onclick="dsSetPeriod('week')">Esta semana</button>
-                <button class="btn btn-ghost" onclick="dsSetPeriod('month')">Este mês</button>
-                <button class="btn btn-primary" onclick="loadDriverStats()">Buscar</button>
-              </div>
+            <h3 style="margin-bottom:12px">Desempenho dos Entregadores</h3>
+
+            <!-- Filtros período -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn btn-ghost" onclick="dsSetPeriod('today')">Hoje</button>
+              <button class="btn btn-ghost" onclick="dsSetPeriod('week')">Esta semana</button>
+              <button class="btn btn-ghost" onclick="dsSetPeriod('month')">Este mês</button>
             </div>
-            <div id="dsCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px"></div>
-            <div style="overflow-x:auto">
-              <table style="width:100%;border-collapse:collapse;font-size:13px" id="dsTable">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
+              <input class="form-input" type="date" id="dsFrom" style="flex:1;min-width:130px;padding:8px 10px">
+              <span style="color:#9ca3af;font-size:13px">até</span>
+              <input class="form-input" type="date" id="dsTo" style="flex:1;min-width:130px;padding:8px 10px">
+              <button class="btn btn-primary" style="white-space:nowrap" onclick="loadDriverStats()">Buscar</button>
+            </div>
+
+            <!-- Cards resumo -->
+            <div id="dsCards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px"></div>
+
+            <!-- Tabela -->
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:360px">
                 <thead>
                   <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
                     <th style="padding:10px 12px;text-align:left;font-weight:700;color:#374151">Entregador</th>
-                    <th style="padding:10px 12px;text-align:center;color:#166534">✓ Entregas</th>
-                    <th style="padding:10px 12px;text-align:center;color:#991b1b">✗ Cancelados</th>
-                    <th style="padding:10px 12px;text-align:center;color:#374151">Total</th>
-                    <th style="padding:10px 12px;text-align:center;color:#374151">Taxa sucesso</th>
+                    <th style="padding:8px 10px;text-align:center;color:#166534;font-size:12px">✓ Entregas</th>
+                    <th style="padding:8px 10px;text-align:center;color:#991b1b;font-size:12px">✗ Cancel.</th>
+                    <th style="padding:8px 10px;text-align:center;color:#374151;font-size:12px">Total</th>
+                    <th style="padding:8px 10px;text-align:center;color:#374151;font-size:12px">Taxa</th>
                   </tr>
                 </thead>
                 <tbody id="dsBody">
-                  <tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Selecione um período e clique em Buscar</td></tr>
+                  <tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af">Carregando...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2437,7 +2444,7 @@
       closeSidebar(); // Garante o fechamento no mobile
       if (targetSection === 'orders') loadAdminOrders();
       if (targetSection === 'closing') initializeClosingDateFilters();
-      if (targetSection === 'driverStats') { dsSetPeriod('month'); loadDriverStats(); }
+      if (targetSection === 'driverStats') dsSetPeriod('month', true);
 
       if (currentRole === 'admin') {
         if (targetSection === 'clients') renderClientsTable();
@@ -4572,22 +4579,19 @@
     // ============================================================
     // DESEMPENHO ENTREGADORES
     // ============================================================
-    function dsSetPeriod(period) {
+    function dsSetPeriod(period, autoLoad = true) {
       const today = new Date();
       const fmt = d => d.toISOString().slice(0, 10);
       let from = today, to = today;
-      if (period === 'today') {
-        from = to = today;
-      } else if (period === 'week') {
+      if (period === 'week') {
         const day = today.getDay() || 7;
         from = new Date(today); from.setDate(today.getDate() - day + 1);
-        to = today;
       } else if (period === 'month') {
         from = new Date(today.getFullYear(), today.getMonth(), 1);
-        to = today;
       }
       document.getElementById('dsFrom').value = fmt(from);
       document.getElementById('dsTo').value = fmt(to);
+      if (autoLoad) loadDriverStats();
     }
 
     async function loadDriverStats() {
