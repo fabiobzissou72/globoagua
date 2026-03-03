@@ -1949,10 +1949,7 @@
         <h3>Filial de atendimento</h3>
         <p style="font-size:13px;color:#666;margin-bottom:10px">A filial define taxa e prazo de entrega.</p>
         <div class="form-group">
-          <button class="auth-btn btn-biometric" type="button" style="margin:0" onclick="detectBranchByGeo()">Usar localizacao</button>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Escolher manualmente</label>
+          <label class="form-label">Selecione sua filial</label>
           <select class="form-input" id="branchSelect" onchange="selectBranchManual(this.value)">
             <option value="">Selecione uma filial</option>
           </select>
@@ -2351,7 +2348,6 @@
     // Registro do Service Worker com atualização forçada
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then(reg => {
-        // Força o novo SW a assumir imediatamente sem esperar fechar abas
         if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
         reg.addEventListener('updatefound', () => {
           const newSW = reg.installing;
@@ -2362,6 +2358,11 @@
           });
         });
       }).catch(() => { });
+
+      // Quando o novo SW assumir o controle, recarrega automaticamente
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
     }
 
     async function loadProfile() {
@@ -2474,42 +2475,6 @@
       await persistBranchSelection(branchId, data[0].strategy || 'coverage');
     }
 
-    async function detectBranchByGeo() {
-      if (!navigator.geolocation) {
-        showToast('Geolocalizacao indisponivel no navegador');
-        return;
-      }
-      if (!S.user) {
-        showToast('Faca login para detectar filial automaticamente');
-        return;
-      }
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      }).catch(err => {
-        console.warn('GPS negado/falhou:', err);
-        showToast('Nao foi possivel usar o GPS. Informe o CEP.');
-        return null;
-      });
-      if (!position) return;
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const cep = document.getElementById('addrCep')?.value || '';
-      const client = getSupabase();
-      if (!client) return;
-      const { data, error } = await client.rpc('pick_branch_for_customer', { p_lat: lat, p_lon: lon, p_cep: cep });
-      if (error || !data?.length) {
-        showToast('Nao foi possivel identificar a filial automaticamente');
-        return;
-      }
-      const branchId = data[0].branch_id;
-      setSelectedBranch(branchId, data[0].strategy || 'gps');
-      await persistBranchSelection(branchId, data[0].strategy || 'gps');
-      showToast('Filial selecionada automaticamente');
-    }
 
     function updateBiometricBtn() {
       const el = document.getElementById('btnUsbLogin');
@@ -3300,46 +3265,54 @@
       if (S.checkoutNextLock) return;
       S.checkoutNextLock = true;
       const btn = document.getElementById('btnNext');
-      if (S.checkoutStep === 0) {
-        if (!S.selectedBranchId) {
-          const currentCep = (document.getElementById('addrCep')?.value || '').replace(/\D/g, '');
-          if (currentCep.length === 8) {
-            try {
-              await Promise.race([
-                pickBranchByCep(currentCep),
-                new Promise(resolve => setTimeout(resolve, 2500))
-              ]);
-            } catch (_) { }
+      const originalText = btn ? btn.textContent : 'Continuar →';
+      if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+      try {
+        if (S.checkoutStep === 0) {
+          if (!S.selectedBranchId) {
+            const currentCep = (document.getElementById('addrCep')?.value || '').replace(/\D/g, '');
+            if (currentCep.length === 8) {
+              try {
+                await Promise.race([
+                  pickBranchByCep(currentCep),
+                  new Promise(resolve => setTimeout(resolve, 3000))
+                ]);
+              } catch (_) { }
+            }
+          }
+          if (!S.selectedBranchId && S.profile?.branch_id) {
+            setSelectedBranch(S.profile.branch_id, 'profile');
+          }
+          if (!S.selectedBranchId) {
+            showToast('Selecione uma filial para continuar');
+            const bsel = document.getElementById('branchSelect');
+            if (bsel) {
+              bsel.style.borderColor = '#ef4444';
+              bsel.focus();
+              setTimeout(() => { bsel.style.borderColor = ''; }, 3000);
+            }
+            return;
+          }
+          if (!document.getElementById('addrRua').value || !document.getElementById('addrCidade').value) {
+            showToast('Preencha o endereço completo');
+            return;
           }
         }
-        if (!S.selectedBranchId && S.profile?.branch_id) {
-          setSelectedBranch(S.profile.branch_id, 'profile');
-        }
-        if (!S.selectedBranchId) {
-          showToast('Selecione uma filial para continuar');
+        if (S.checkoutStep === 2) {
           S.checkoutNextLock = false;
+          if (btn) { btn.disabled = false; btn.textContent = originalText; }
+          placeOrder();
           return;
         }
-        if (!document.getElementById('addrRua').value || !document.getElementById('addrCidade').value) {
-          showToast('Preencha o endereço completo');
-          S.checkoutNextLock = false;
-          return;
-        }
-        if (!document.getElementById('recNome').value) {
-          showToast('Informe o nome do recebedor');
-          S.checkoutNextLock = false;
-          return;
-        }
-      }
-      if (S.checkoutStep === 2) {
+        S.checkoutStep++;
+        updateCheckoutStep();
+      } catch (e) {
+        console.error('nextStep erro:', e);
+        showToast('Erro ao avançar. Tente novamente.');
+      } finally {
         S.checkoutNextLock = false;
-        placeOrder();
-        return;
+        if (btn && S.checkoutStep !== 3) { btn.disabled = false; btn.textContent = originalText; }
       }
-      S.checkoutStep++;
-      updateCheckoutStep();
-      S.checkoutNextLock = false;
-      if (btn && S.checkoutStep !== 3) btn.disabled = false;
     }
 
     function renderReview() {
@@ -3524,7 +3497,7 @@
         return;
       }
 
-      if (listEl) {
+      if (listEl && force) {
         listEl.innerHTML = '<div class="loading-center"><div class="spinner" style="border-color:#e0e0e0;border-top-color:var(--blue)"></div></div>';
       }
 
@@ -3548,6 +3521,7 @@
         }
 
         if (!listEl) return;
+        const scrollBefore = listEl.scrollTop;
         listEl.innerHTML = data.map(o => `
       <div class="order-card" onclick="openOrderDetail('${o.id}')">
         <div class="order-card-header">
@@ -3562,6 +3536,7 @@
         <div class="order-card-arrow">›</div>
       </div>
     `).join('');
+        listEl.scrollTop = scrollBefore;
       } catch (err) {
         if (reqSeq !== S.ordersLoadReqSeq) return;
         console.error('loadOrders:', err);
@@ -3731,7 +3706,8 @@
         if (reqSeq !== S.orderDetailRequestSeq) return;
         if (!overlay.classList.contains('open')) return;
         if (!body.querySelector('.spinner')) return;
-        safeHiddenHardRefresh('order-detail-timeout');
+        closeOrderDetail();
+        showToast('Erro ao carregar pedido. Verifique sua conexão e tente novamente.');
       }, 8000);
 
       const { data: o, error } = await client.from('orders').select('*, order_items(*)').eq('id', orderId).single();
@@ -4135,14 +4111,14 @@
         <div class="profile-card" style="margin:0 0 12px">
           <div style="padding:16px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <strong style="font-size:14px">${a.rua}, ${a.numero}</strong>
+              <strong style="font-size:14px">${escHtml(a.rua)}, ${escHtml(a.numero)}</strong>
               ${a.is_default ? '<span style="font-size:10px;background:#e3f2fd;color:var(--blue);padding:2px 6px;border-radius:4px">PADRÃO</span>' : ''}
             </div>
-            <div style="font-size:13px;color:#666;margin-top:4px">${a.bairro} - ${a.cidade}/${a.estado}</div>
-            <div style="font-size:12px;color:#999;margin-top:2px">CEP: ${a.cep}</div>
-            <div style="display:flex;gap:12px;margin-top:12px border-top:1px solid #f0f0f0;padding-top:12px">
-              ${!a.is_default ? `<button onclick="setDefaultAddress('${a.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;padding:0">Usar como padrão</button>` : ''}
-              <button onclick="deleteAddress('${a.id}')" style="background:none;border:none;color:#e53935;font-size:12px;font-weight:700;padding:0">Excluir</button>
+            <div style="font-size:13px;color:#666;margin-top:4px">${escHtml(a.bairro)} - ${escHtml(a.cidade)}/${escHtml(a.estado)}</div>
+            <div style="font-size:12px;color:#999;margin-top:2px">CEP: ${escHtml(a.cep)}</div>
+            <div style="display:flex;gap:12px;margin-top:12px;border-top:1px solid #f0f0f0;padding-top:12px">
+              ${!a.is_default ? `<button onclick="setDefaultAddress('${escAttr(a.id)}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;padding:0">Usar como padrão</button>` : ''}
+              <button onclick="deleteAddress('${escAttr(a.id)}')" style="background:none;border:none;color:#e53935;font-size:12px;font-weight:700;padding:0">Excluir</button>
             </div>
           </div>
         </div>
@@ -4151,7 +4127,7 @@
 
     async function saveAddress() {
       const btn = document.getElementById('btnSaveAddress');
-      const originalText = btn ? btn.textContent : 'Salvar Endereço';
+      const originalText = 'Salvar Endereço';
 
       if (!S.user) {
         showToast('❌ Você precisa estar logado');
@@ -4167,10 +4143,9 @@
         return;
       }
 
+      if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Salvando...'; }
+      let saved = false;
       try {
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner"></div> Salvando...';
-
         const client = getSupabase();
         if (!client) throw new Error('Sem conexão com servidor');
 
@@ -4187,21 +4162,16 @@
           bairro: document.getElementById('newAddrBairro').value.trim() || '',
           cidade: document.getElementById('newAddrCidade').value.trim() || '',
           estado: document.getElementById('newAddrEstado').value.trim() || '',
-          is_default: isFirst // Primeiro endereço vira padrão automaticamente
+          is_default: isFirst
         };
 
-        console.log('📡 Salvando endereço...', addr);
-        const { data, error } = await client.from('user_addresses').insert(addr).select();
+        const { error } = await client.from('user_addresses').insert(addr).select();
 
-        if (error) {
-          console.error('❌ Erro Supabase ao salvar endereço:', error);
-          throw error;
-        }
+        if (error) throw error;
 
-        console.log('✅ Endereço salvo:', data);
+        saved = true;
         showToast('✅ Endereço salvo!');
 
-        // Limpa campos
         ['newAddrCep', 'newAddrRua', 'newAddrNum', 'newAddrComp', 'newAddrBairro', 'newAddrCidade', 'newAddrEstado'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
@@ -4210,10 +4180,10 @@
         closeAddressForm();
         await loadAddresses();
       } catch (err) {
-        console.error('❌ Erro crítico no saveAddress:', err);
+        console.error('❌ Erro ao salvar endereço:', err);
         showToast('Erro ao salvar: ' + (err.message || 'Verifique sua conexão'));
-        btn.disabled = false;
-        btn.textContent = originalText;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = originalText; }
       }
     }
 
@@ -4376,10 +4346,7 @@
             S.user = sessionData.session.user;
             await loadProfile();
             setupOrdersRealtime();
-            if (!S.selectedBranchId && !sessionStorage.getItem('ga_geo_prompted')) {
-              sessionStorage.setItem('ga_geo_prompted', '1');
-              setTimeout(() => detectBranchByGeo(), 400);
-            }
+            loadOrders(true);
             renderProfile();
             updateCartUI();
           }
@@ -4401,10 +4368,7 @@
             S.postLoginAction = null;
             await loadProfile();
             setupOrdersRealtime();
-            if (!S.selectedBranchId && !sessionStorage.getItem('ga_geo_prompted')) {
-              sessionStorage.setItem('ga_geo_prompted', '1');
-              setTimeout(() => detectBranchByGeo(), 400);
-            }
+            loadOrders(true);
             closeAuth();
             if (postLoginAction === 'checkout') {
               if (!S.cart.length) {

@@ -44,7 +44,14 @@
     .btn-route { background: #eef2ff; color: #283593; }
     .btn-ok { background: #e8f5e9; color: #1b5e20; }
     .status-now { font-size: 11px; color: #64748b; text-align: center; font-weight: 700; }
-    .status-picker { border: 1px solid #d5ddeb; border-radius: 8px; padding: 7px 8px; font-size: 12px; font-weight: 700; color: #1f2937; background: #fff; }
+    .btn-status { border: 1.5px solid transparent; border-radius: 8px; padding: 6px 8px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; opacity: 0.38; transition: opacity .15s; }
+    .btn-status.active { opacity: 1; }
+    .btn-status-rota { background: #eef2ff; color: #283593; border-color: #c7d2fe; }
+    .btn-status-rota.active { background: #3949ab; color: #fff; border-color: #3949ab; }
+    .btn-status-entregue { background: #e8f5e9; color: #1b5e20; border-color: #a5d6a7; }
+    .btn-status-entregue.active { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+    .btn-status-cancelado { background: #fff3f3; color: #b71c1c; border-color: #ffcdd2; }
+    .btn-status-cancelado.active { background: #c62828; color: #fff; border-color: #c62828; }
     .bottom-actions { position: sticky; bottom: 0; background: #f3f6fb; padding: 10px 12px 14px; border-top: 1px solid #e6ebf3; }
     .toast { position: fixed; right: 16px; bottom: 16px; background: #111827; color: #fff; border-radius: 10px; padding: 10px 14px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 50; }
     .toast.show { opacity: 1; }
@@ -550,13 +557,9 @@
             <button class="btn-sm" style="background:#dcfce7;color:#166534" onclick="openOrderRoute('${o.id}')">Rota</button>
             <button class="btn-sm btn-move" ${idx === 0 ? 'disabled' : ''} onclick="moveOrder('${o.id}', -1)">↑</button>
             <button class="btn-sm btn-move" ${idx === (queue.length - 1) ? 'disabled' : ''} onclick="moveOrder('${o.id}', 1)">↓</button>
-            <div class="status-now">${esc(o.status || 'NOVO')}</div>
-            <select class="status-picker" onchange="handleStatusPick('${o.id}', this.value)">
-              <option value="">Status</option>
-              <option value="EM_ROTA">Em rota</option>
-              <option value="ENTREGUE">Entregue</option>
-              <option value="CANCELADO">Cancelado</option>
-            </select>
+            <button class="btn-sm btn-status btn-status-rota ${o.status === 'EM_ROTA' ? 'active' : ''}" onclick="handleStatusPick('${o.id}', 'EM_ROTA')">Em rota</button>
+            <button class="btn-sm btn-status btn-status-entregue ${o.status === 'ENTREGUE' ? 'active' : ''}" onclick="handleStatusPick('${o.id}', 'ENTREGUE')">Entregue</button>
+            <button class="btn-sm btn-status btn-status-cancelado ${o.status === 'CANCELADO' ? 'active' : ''}" onclick="handleStatusPick('${o.id}', 'CANCELADO')">Cancelar</button>
           </div>
         </div>
       `).join('');
@@ -643,7 +646,8 @@
         const modalOpen = !document.getElementById('orderModal').classList.contains('hidden');
         const stillLoading = (document.getElementById('orderModalItems').textContent || '').toLowerCase().includes('carregando');
         if (!modalOpen || !stillLoading) return;
-        safeHiddenHardRefresh('order-modal-timeout');
+        closeOrderModal();
+        showToast('Erro ao carregar pedido. Verifique sua conexão e tente novamente.');
       }, 8000);
 
       const { data, error } = await sb
