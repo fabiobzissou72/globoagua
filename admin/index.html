@@ -1314,8 +1314,10 @@
         <form onsubmit="adminLogin(); return false;" autocomplete="on">
           <input class="login-input" type="email" id="adminEmail" placeholder="E-mail"
             autocomplete="email" inputmode="email">
-          <input class="login-input" type="password" id="adminPwd" placeholder="Senha" autocomplete="current-password"
-            enterkeyhint="go">
+          <div style="position:relative">
+            <input class="login-input" type="password" id="adminPwd" placeholder="Senha" autocomplete="current-password" enterkeyhint="go" style="padding-right:42px;width:100%">
+            <button type="button" onclick="togglePwd('adminPwd',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;line-height:1;color:#667085">👁</button>
+          </div>
           <button class="login-btn" type="submit" id="loginBtn">Entrar</button>
         </form>
         <button id="installPwaBtnLogin" onclick="installPwa()" style="display:none;width:100%;margin-top:10px;border:none;border-radius:10px;padding:12px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">⬇ Instalar app no celular</button>
@@ -4677,6 +4679,14 @@
           });
         });
       }).catch(() => {});
+    }
+
+    function togglePwd(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
     }
 
     // Botão de instalar PWA

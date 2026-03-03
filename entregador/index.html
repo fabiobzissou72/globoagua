@@ -85,7 +85,10 @@
       <h1>Area do Entregador</h1>
       <p>Entre com celular e senha</p>
       <input id="phoneInput" class="form-input" placeholder="Celular (11999999999)" inputmode="numeric">
-      <input id="passwordInput" class="form-input" placeholder="Senha" type="password">
+      <div style="position:relative">
+        <input id="passwordInput" class="form-input" placeholder="Senha" type="password" style="padding-right:42px">
+        <button type="button" onclick="togglePwd('passwordInput',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;line-height:1;color:#667085">👁</button>
+      </div>
       <button id="loginBtn" class="btn" onclick="loginDriver()">Entrar</button>
       <button id="installPwaBtnLogin" onclick="installPwa()" style="display:none;width:100%;margin-top:10px;border:none;border-radius:12px;padding:12px;background:#0f172a;color:#fff;font-size:14px;font-weight:700;cursor:pointer">⬇ Instalar app no celular</button>
     </div>
@@ -368,6 +371,14 @@
       document.getElementById('orderModalCurrentStatus').value = '';
       selectModalStatus('EM_ROTA');
     }
+    function togglePwd(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
+    }
+
     function selectModalStatus(val) {
       document.getElementById('orderStatusSelect').value = val;
       document.getElementById('modalBtnRota').classList.toggle('active', val === 'EM_ROTA');
