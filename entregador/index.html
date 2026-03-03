@@ -97,6 +97,7 @@
         <small id="driverName">Entregador</small>
       </div>
       <div class="topbar-actions">
+        <button id="installPwaBtn" onclick="installPwa()" style="display:none;border:none;border-radius:8px;padding:6px 10px;background:#1976D2;color:#fff;font-size:12px;font-weight:700;cursor:pointer">⬇ Instalar</button>
         <button id="alertToggleBtn" class="btn-sm" style="background:#ecfdf3;color:#166534" onclick="toggleAlerts()">Alerta: ON</button>
         <button class="btn-sm" style="background:#eef2ff;color:#1e40af" onclick="openPasswordModal()">Senha</button>
         <button class="btn-sm" style="background:#f3f4f6;color:#111827" onclick="logoutDriver()">Sair</button>
@@ -847,7 +848,25 @@
           });
         });
       }).catch(() => {});
-      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+    }
+
+    // Botão de instalar PWA
+    let _pwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      _pwaPrompt = e;
+      const btn = document.getElementById('installPwaBtn');
+      if (btn) btn.style.display = 'inline-block';
+    });
+    window.addEventListener('appinstalled', () => {
+      const btn = document.getElementById('installPwaBtn');
+      if (btn) btn.style.display = 'none';
+      _pwaPrompt = null;
+    });
+    function installPwa() {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
     }
   </script>
 </body>

@@ -1397,6 +1397,7 @@
         <button class="topbar-menu" onclick="toggleSidebar()">☰</button>
         <h1 id="pageTitle">Dashboard <small style="font-size:10px;color:#aaa;font-weight:400">v9.7.2</small></h1>
         <div class="topbar-right">
+          <button id="installPwaBtn" onclick="installPwa()" style="display:none;align-items:center;gap:4px;border:none;border-radius:8px;padding:6px 10px;background:#1976D2;color:#fff;font-size:12px;font-weight:700;cursor:pointer">⬇ Instalar</button>
           <span class="admin-name" id="adminNameDisplay"></span>
           <span style="font-size:12px;color:#667;background:#eef2f7;padding:4px 8px;border-radius:999px">USER</span>
         </div>
@@ -2296,9 +2297,11 @@
         }
         adminUser = data.user;
         currentRole = role;
+        localStorage.setItem('ga_admin_cached_role', role);
+        localStorage.setItem('ga_admin_cached_name', profile?.nome_completo || email);
         configureMenuByRole();
         initColorPicker();
-        document.getElementById('adminNameDisplay').textContent = profile.nome_completo || email;
+        document.getElementById('adminNameDisplay').textContent = profile?.nome_completo || email;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('appScreen').classList.remove('hidden');
         await initApp();
@@ -2312,6 +2315,8 @@
     }
 
     async function adminLogout() {
+      localStorage.removeItem('ga_admin_cached_role');
+      localStorage.removeItem('ga_admin_cached_name');
       await sb.auth.signOut();
       location.reload();
     }
@@ -4624,17 +4629,38 @@
       const { data } = await sb.auth.getSession();
       if (!data?.session) return;
       try {
+        // Usa role em cache para mostrar o app imediatamente, sem esperar o perfil
+        const cachedRole = localStorage.getItem('ga_admin_cached_role');
+        const cachedName = localStorage.getItem('ga_admin_cached_name') || data.session.user.email;
+        if (cachedRole) {
+          adminUser = data.session.user;
+          currentRole = cachedRole;
+          configureMenuByRole();
+          initColorPicker();
+          document.getElementById('adminNameDisplay').textContent = cachedName;
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('appScreen').classList.remove('hidden');
+          initApp();
+        }
+        // Verifica o perfil em paralelo para confirmar/atualizar
         const { role, profile } = await getCurrentRole(data.session.user.id);
-        if (!role) return;
-
-        adminUser = data.session.user;
-        currentRole = role;
-        configureMenuByRole();
-        initColorPicker();
-        document.getElementById('adminNameDisplay').textContent = profile?.nome_completo || data.session.user.email;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('appScreen').classList.remove('hidden');
-        await initApp();
+        if (!role) {
+          if (!cachedRole) return; // sem cache e sem role: mostra login
+          return; // tinha cache, já está mostrando o app
+        }
+        localStorage.setItem('ga_admin_cached_role', role);
+        localStorage.setItem('ga_admin_cached_name', profile?.nome_completo || data.session.user.email);
+        if (!cachedRole) {
+          // Primeira vez sem cache: mostra o app agora
+          adminUser = data.session.user;
+          currentRole = role;
+          configureMenuByRole();
+          initColorPicker();
+          document.getElementById('adminNameDisplay').textContent = profile?.nome_completo || data.session.user.email;
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('appScreen').classList.remove('hidden');
+          await initApp();
+        }
       } catch (e) {
         console.error('session restore error:', e);
       }
@@ -4650,7 +4676,25 @@
           });
         });
       }).catch(() => {});
-      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+    }
+
+    // Botão de instalar PWA
+    let _pwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      _pwaPrompt = e;
+      const btn = document.getElementById('installPwaBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    });
+    window.addEventListener('appinstalled', () => {
+      const btn = document.getElementById('installPwaBtn');
+      if (btn) btn.style.display = 'none';
+      _pwaPrompt = null;
+    });
+    function installPwa() {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
     }
   </script>
 </body>
