@@ -49,7 +49,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Cliente temporário sem persistir sessão — só pra ler o role
+    const sbTemp = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false }
+    });
 
     function normalizePhone(v) { return String(v || '').replace(/\D/g, ''); }
     function phoneToEmail(phone) { return `entregador_${phone}@entrega.globoagua.app`; }
@@ -84,12 +87,13 @@
       if (isPhone) candidates.push(phoneToEmail(phone));
       candidates.push(raw);
 
+      // Passo 1: login temporário (sem salvar sessão) só pra ler o role
       let authedUser = null;
       let successEmail = '';
       let lastErr = '';
 
       for (const email of candidates) {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        const { data, error } = await sbTemp.auth.signInWithPassword({ email, password });
         if (!error && data?.user) { authedUser = data.user; successEmail = email; break; }
         lastErr = String(error?.message || '');
       }
@@ -107,8 +111,8 @@
         return;
       }
 
-      // Lê o perfil para descobrir o role
-      const { data: profile } = await sb
+      // Passo 2: lê o perfil com a sessão temporária ativa
+      const { data: profile } = await sbTemp
         .from('profiles')
         .select('role, is_admin')
         .eq('id', authedUser.id)
@@ -117,8 +121,7 @@
       const role = profile?.role || '';
       const isAdmin = !!profile?.is_admin;
 
-      // Cada tela usa uma storageKey diferente no localStorage
-      // Precisa fazer login novamente com a chave correta pra sessão ser reconhecida
+      // Passo 3: determina destino e storageKey da tela alvo
       let storageKey = 'ga_auth_session';
       let dest = '/';
       if (isAdmin || role === 'admin' || role === 'operador') {
@@ -129,8 +132,7 @@
         dest = '/entregador';
       }
 
-      // Desloga do cliente temporário e loga com a chave da tela destino
-      await sb.auth.signOut();
+      // Passo 4: loga com a chave correta da tela destino e redireciona
       const sbDest = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { storageKey, persistSession: true }
       });
