@@ -239,4 +239,4 @@ CREATE POLICY "prices_read" ON public.company_prices FOR SELECT USING (auth.uid(
 CREATE POLICY "orders_self" ON public.orders FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "order_items_self" ON public.order_items FOR ALL
   USING (order_id IN (SELECT id FROM public.orders WHERE user_id = auth.uid()));
-CREATE POLICY "settings_read" ON public.settings FOR SELECT USING (true);
+CREATE POLICY "settings_read" ON public.settings FOR SELECT USING (auth.uid() IS NOT NULL);

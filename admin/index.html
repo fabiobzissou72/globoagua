@@ -2138,7 +2138,8 @@
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script>
-    const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY } = window.APP_CONFIG;
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
+    const ADMIN_DRIVER_FN = `${SUPABASE_URL}/functions/v1/admin-driver`;
     // Cliente principal: usa anon key para autenticação funcionar corretamente
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { storageKey: 'ga-admin-session' }
@@ -3932,30 +3933,6 @@
         return;
       }
 
-      if (SUPABASE_SERVICE_KEY) {
-        const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
-            storageKey: 'ga-driver-load-admin-' + Date.now()
-          }
-        });
-        const adminRes = await sbAdmin
-          .from('profiles')
-          .select('id,nome_completo,whatsapp,role,branch_id,driver_online,created_at')
-          .eq('role', 'entregador')
-          .order('nome_completo');
-
-        if (!adminRes.error) {
-          allDrivers = adminRes.data || [];
-          return;
-        }
-        console.error('loadDrivers service fallback:', adminRes.error);
-      }
-
-      if (error) console.error('loadDrivers profiles:', error);
-      console.error('loadDrivers rpc:', rpc.error);
       allDrivers = profileRows;
     }
 
@@ -3997,11 +3974,8 @@
 
     function generateTempDriverPassword(length = 10) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-      let out = '';
-      for (let i = 0; i < length; i++) {
-        out += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return out;
+      const bytes = crypto.getRandomValues(new Uint8Array(length));
+      return Array.from(bytes).map(b => chars[b % chars.length]).join('');
     }
 
     function populateDriverBranchSelect(selectedId = '') {
@@ -4050,59 +4024,24 @@
         }
 
         const driverEmail = phoneToDriverEmail(phoneDigits);
-        if (SUPABASE_SERVICE_KEY) {
-          const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-            auth: {
-              persistSession: false,
-              autoRefreshToken: false,
-              detectSessionInUrl: false,
-              storageKey: 'ga-driver-admin-create-' + Date.now()
-            }
-          });
-
-          const { data: adminData, error: adminErr } = await sbAdmin.auth.admin.createUser({
-            email: driverEmail,
-            password: pwd,
-            email_confirm: true,
-            user_metadata: { nome_completo: nome, whatsapp: phoneDigits, role: 'entregador' }
-          });
-
-          const adminMsg = String(adminErr?.message || '').toLowerCase();
-          const alreadyExists = adminMsg.includes('already') || adminMsg.includes('registered') || adminMsg.includes('exists');
-          if (adminErr && !alreadyExists) {
-            showToast('Erro ao criar login do entregador: ' + adminErr.message);
-            return;
-          }
-          if (adminData?.user?.id) {
-            targetProfileId = adminData.user.id;
-          }
-        } else {
-          const sbTmp = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-              persistSession: false,
-              autoRefreshToken: false,
-              detectSessionInUrl: false,
-              storageKey: 'ga-driver-create-' + Date.now()
-            }
-          });
-
-          const { data: signData, error: signErr } = await sbTmp.auth.signUp({
-            email: driverEmail,
-            password: pwd,
-            options: {
-              data: { nome_completo: nome, whatsapp: phoneDigits, role: 'entregador' }
-            }
-          });
-
-          const signMsg = String(signErr?.message || '').toLowerCase();
-          const alreadyExists = signMsg.includes('already') || signMsg.includes('registered') || signMsg.includes('exists');
-          if (signErr && !alreadyExists) {
-            showToast('Erro ao criar login do entregador: ' + signErr.message);
-            return;
-          }
-          if (signData?.user?.id) {
-            targetProfileId = signData.user.id;
-          }
+        const { data: { session } } = await sb.auth.getSession();
+        const fnRes = await fetch(ADMIN_DRIVER_FN, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`
+          },
+          body: JSON.stringify({ action: 'create', email: driverEmail, password: pwd, nome, whatsapp: phoneDigits })
+        });
+        const fnData = await fnRes.json();
+        const adminMsg = String(fnData.error || '').toLowerCase();
+        const alreadyExists = adminMsg.includes('already') || adminMsg.includes('registered') || adminMsg.includes('exists');
+        if (fnData.error && !alreadyExists) {
+          showToast('Erro ao criar login do entregador: ' + fnData.error);
+          return;
+        }
+        if (fnData.user?.id) {
+          targetProfileId = fnData.user.id;
         }
 
         if (!targetProfileId) {
@@ -4131,21 +4070,18 @@
             showToast('Senha inválida (mínimo 6 caracteres)');
             return;
           }
-          if (!SUPABASE_SERVICE_KEY) {
-            showToast('Não foi possível resetar senha (SERVICE_KEY ausente)');
-            return;
-          }
-          const sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-            auth: {
-              persistSession: false,
-              autoRefreshToken: false,
-              detectSessionInUrl: false,
-              storageKey: 'ga-driver-admin-reset-' + Date.now()
-            }
+          const { data: { session: sess } } = await sb.auth.getSession();
+          const resetRes = await fetch(ADMIN_DRIVER_FN, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sess?.access_token}`
+            },
+            body: JSON.stringify({ action: 'reset-password', userId: targetProfileId, password: pwd })
           });
-          const { error: resetErr } = await sbAdmin.auth.admin.updateUserById(targetProfileId, { password: pwd });
-          if (resetErr) {
-            showToast('Erro ao resetar senha do entregador: ' + resetErr.message);
+          const resetData = await resetRes.json();
+          if (resetData.error) {
+            showToast('Erro ao resetar senha do entregador: ' + resetData.error);
             return;
           }
         }
