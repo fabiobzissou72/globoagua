@@ -2163,8 +2163,8 @@
     const ORDER_PRIORITY_LEVELS = ['NORMAL', 'ALTA', 'URGENTE'];
     const ORDER_STATUS_SELECT_CLASSES = ORDER_ALLOWED_STATUSES.map(s => `status-select-${s}`);
     const ROLE_ALLOWED_SECTIONS = {
-      admin: ['dashboard', 'products', 'orders', 'closing', 'branches', 'drivers', 'clients', 'companies', 'prices', 'settings'],
-      operador_pedidos: ['orders', 'closing'],
+      admin: ['dashboard', 'products', 'orders', 'closing', 'driverStats', 'branches', 'drivers', 'clients', 'companies', 'prices', 'settings'],
+      operador_pedidos: ['orders', 'closing', 'driverStats'],
       entregador: ['orders']
     };
     const SECTION_TO_PATH = {
@@ -2172,6 +2172,7 @@
       products: '/admin/produtos',
       orders: '/admin/pedidos',
       closing: '/admin/fechamento',
+      driverStats: '/admin/desempenho',
       branches: '/admin/filiais',
       drivers: '/admin/entregadores',
       clients: '/admin/clientes',
