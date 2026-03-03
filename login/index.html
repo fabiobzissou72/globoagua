@@ -124,9 +124,12 @@
       // Passo 3: determina destino e storageKey da tela alvo
       let storageKey = 'ga_auth_session';
       let dest = '/';
-      if (isAdmin || role === 'admin' || role === 'operador') {
+      if (isAdmin || role === 'admin') {
         storageKey = 'ga-admin-session';
         dest = '/admin';
+      } else if (role === 'operador') {
+        storageKey = 'ga-admin-session';
+        dest = '/pedido';
       } else if (role === 'entregador') {
         storageKey = 'ga-driver-session';
         dest = '/entregador';
