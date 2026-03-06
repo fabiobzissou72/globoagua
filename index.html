@@ -4366,6 +4366,7 @@
           if (S.user) {
             const postLoginAction = S.postLoginAction;
             S.postLoginAction = null;
+            loadSettings();
             await loadProfile();
             setupOrdersRealtime();
             loadOrders(true);
