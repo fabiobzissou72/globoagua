@@ -1,20 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { ImageResponse } from 'next/og'
+import { NextRequest } from 'next/server'
+
+export const runtime = 'edge'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ size: string }> }) {
   const { size } = await params
   const s = parseInt(size) || 192
+  const radius = Math.round(s * 0.18)
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">
-  <rect width="${s}" height="${s}" rx="${s * 0.18}" fill="#1565C0"/>
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-    font-family="Arial,sans-serif" font-weight="900" font-size="${s * 0.38}"
-    fill="white">GA</text>
-</svg>`
-
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=31536000',
-    },
-  })
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: s,
+          height: s,
+          background: '#1565C0',
+          borderRadius: radius,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'sans-serif',
+          fontWeight: 900,
+          fontSize: Math.round(s * 0.38),
+          color: 'white',
+        }}
+      >
+        GA
+      </div>
+    ),
+    { width: s, height: s }
+  )
 }
