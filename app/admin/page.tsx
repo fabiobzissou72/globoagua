@@ -220,7 +220,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4 mb-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="card p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
         <div className="relative lg:col-span-2">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input type="text" placeholder="Buscar..." value={search}
@@ -241,8 +241,66 @@ export default function AdminOrdersPage() {
         <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="input-base py-2 text-sm" />
       </div>
 
-      {/* Table */}
-      <div className="card overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-gray-400" /></div>
+        ) : orders.length === 0 ? (
+          <div className="card p-8 text-center text-gray-400">Nenhum pedido encontrado</div>
+        ) : orders.map(order => (
+          <div key={order.id} className="card p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-bold text-[#1565C0] font-mono">#{order.numero_pedido}</p>
+                <p className="font-semibold text-gray-900 mt-0.5">{order.cliente_nome}</p>
+                <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-black text-[#2E7D32] text-lg">{formatCurrency(order.total)}</p>
+                <StatusBadge status={order.status} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Filial</p>
+                <select value={order.branch_id || ''} onChange={e => updateOrderField(order.id, 'branch_id', e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                  <option value="">—</option>
+                  {branches.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Entregador</p>
+                <select value={order.driver_id || ''} onChange={e => updateOrderField(order.id, 'driver_id', e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                  <option value="">—</option>
+                  {drivers.map(d => <option key={d.id} value={d.id}>{d.nome_completo || d.email}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <select value={order.status} onChange={e => updateOrderField(order.id, 'status', e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                  {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Prioridade</p>
+                <select value={order.prioridade} onChange={e => updateOrderField(order.id, 'prioridade', e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                  {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+            <button onClick={() => setSelectedOrder(order)} className="btn-secondary w-full text-sm py-2">
+              <Eye size={14} /> Ver detalhes
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
@@ -290,8 +348,7 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">{formatDate(order.created_at)}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setSelectedOrder(order)}
-                      className="btn-secondary text-xs py-1.5 px-3">
+                    <button onClick={() => setSelectedOrder(order)} className="btn-secondary text-xs py-1.5 px-3">
                       <Eye size={14} /> Detalhes
                     </button>
                   </td>
@@ -300,26 +357,24 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
-            <p className="text-sm text-gray-500">
-              Página {page + 1} de {totalPages} · {total} registros
-            </p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                className="btn-secondary py-1.5 px-3 text-sm disabled:opacity-40">
-                <ChevronLeft size={16} />
-              </button>
-              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-                className="btn-secondary py-1.5 px-3 text-sm disabled:opacity-40">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 mt-2 card">
+          <p className="text-sm text-gray-500">Página {page + 1} de {totalPages} · {total} registros</p>
+          <div className="flex gap-2">
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+              className="btn-secondary py-1.5 px-3 text-sm disabled:opacity-40">
+              <ChevronLeft size={16} />
+            </button>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+              className="btn-secondary py-1.5 px-3 text-sm disabled:opacity-40">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {selectedOrder && (
         <OrderDetailModal
