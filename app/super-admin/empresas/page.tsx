@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Edit2, Trash2, X, Building2, Loader2, Mail, MessageCircle, ChevronDown } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Building2, Loader2, Mail, MessageCircle, ChevronDown, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -16,6 +16,15 @@ type Company = {
   created_at?: string
   faturado?: boolean
   prazo_faturamento?: number
+  endereco?: {
+    cep?: string
+    logradouro?: string
+    numero?: string
+    complemento?: string
+    bairro?: string
+    cidade?: string
+    uf?: string
+  } | null
 }
 
 const defaultForm = () => ({
@@ -26,6 +35,13 @@ const defaultForm = () => ({
   email: '',
   faturado: false,
   prazo_faturamento: 30,
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  uf: '',
 })
 
 function CompanyModal({ company, onClose, onSave }: {
@@ -41,20 +57,69 @@ function CompanyModal({ company, onClose, onSave }: {
     email: company.email || '',
     faturado: company.faturado ?? false,
     prazo_faturamento: company.prazo_faturamento ?? 30,
+    cep: company.endereco?.cep || '',
+    logradouro: company.endereco?.logradouro || '',
+    numero: company.endereco?.numero || '',
+    complemento: company.endereco?.complemento || '',
+    bairro: company.endereco?.bairro || '',
+    cidade: company.endereco?.cidade || '',
+    uf: company.endereco?.uf || '',
   } : defaultForm())
   const [saving, setSaving] = useState(false)
+  const [cepLoading, setCepLoading] = useState(false)
 
   const set = (k: string, v: string | boolean | number) => setForm(f => ({ ...f, [k]: v }))
+
+  async function fetchCEP(val: string) {
+    set('cep', val)
+    const clean = val.replace(/\D/g, '')
+    if (clean.length === 8) {
+      setCepLoading(true)
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`)
+        const data = await res.json()
+        if (!data.erro) {
+          set('logradouro', data.logradouro || '')
+          set('bairro', data.bairro || '')
+          set('cidade', data.localidade || '')
+          set('uf', data.uf || '')
+        } else toast.error('CEP não encontrado')
+      } catch { toast.error('Erro ao buscar CEP') }
+      finally { setCepLoading(false) }
+    }
+  }
 
   const handleSave = async () => {
     if (!form.razao_social) { toast.error('Razão social é obrigatória'); return }
     setSaving(true)
     const supabase = createClient()
+
+    const endereco = form.logradouro || form.cep ? {
+      cep: form.cep,
+      logradouro: form.logradouro,
+      numero: form.numero,
+      complemento: form.complemento,
+      bairro: form.bairro,
+      cidade: form.cidade,
+      uf: form.uf,
+    } : null
+
+    const payload = {
+      razao_social: form.razao_social,
+      nome_fantasia: form.nome_fantasia,
+      cnpj: form.cnpj,
+      contato: form.contato,
+      email: form.email,
+      faturado: form.faturado,
+      prazo_faturamento: form.prazo_faturamento,
+      endereco,
+    }
+
     let error
     if (company) {
-      ({ error } = await supabase.from('companies').update(form).eq('id', company.id))
+      ({ error } = await supabase.from('companies').update(payload).eq('id', company.id))
     } else {
-      ({ error } = await supabase.from('companies').insert(form))
+      ({ error } = await supabase.from('companies').insert(payload))
     }
     if (error) toast.error('Erro ao salvar')
     else { toast.success('Empresa salva!'); onSave(); onClose() }
@@ -111,6 +176,38 @@ function CompanyModal({ company, onClose, onSave }: {
                   className="input-base" placeholder="30" />
               </div>
             )}
+          </div>
+
+          {/* Endereço */}
+          <div className="border border-gray-100 rounded-xl p-3 space-y-2">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1">
+              <MapPin size={12} /> Endereço da Empresa
+            </p>
+            <div className="relative">
+              <input type="text" placeholder="CEP" value={form.cep}
+                onChange={e => fetchCEP(e.target.value)} maxLength={9} className="input-base pr-10" />
+              {cepLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2">
+                <input type="text" placeholder="Logradouro" value={form.logradouro}
+                  onChange={e => set('logradouro', e.target.value)} className="input-base" />
+              </div>
+              <input type="text" placeholder="Nº" value={form.numero}
+                onChange={e => set('numero', e.target.value)} className="input-base" />
+            </div>
+            <input type="text" placeholder="Complemento (opcional)" value={form.complemento}
+              onChange={e => set('complemento', e.target.value)} className="input-base" />
+            <input type="text" placeholder="Bairro" value={form.bairro}
+              onChange={e => set('bairro', e.target.value)} className="input-base" />
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2">
+                <input type="text" placeholder="Cidade" value={form.cidade}
+                  onChange={e => set('cidade', e.target.value)} className="input-base" />
+              </div>
+              <input type="text" placeholder="UF" value={form.uf}
+                onChange={e => set('uf', e.target.value)} maxLength={2} className="input-base" />
+            </div>
           </div>
         </div>
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full mt-5 py-3">

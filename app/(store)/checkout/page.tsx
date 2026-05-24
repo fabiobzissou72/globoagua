@@ -123,12 +123,27 @@ export default function CheckoutPage() {
         setSpecialPrices(companyPrices)
       }
 
-      // Verifica se é empresa faturada
+      // Verifica empresa faturada e carrega endereço da empresa
       const { data: company } = await supabase
-        .from('companies').select('faturado, prazo_faturamento').eq('id', profile.company_id).single()
+        .from('companies').select('faturado, prazo_faturamento, endereco').eq('id', profile.company_id).single()
       if (company?.faturado) {
         setIsFaturado(true)
         setPrazoFaturamento(company.prazo_faturamento || 30)
+      }
+      // Auto-preenche com endereço da empresa se o perfil não tiver endereço salvo
+      if (!profile?.endereco_padrao && company?.endereco) {
+        const addr = company.endereco as Record<string, string>
+        if (addr.logradouro) {
+          if (addr.cep) setCep(addr.cep)
+          if (addr.logradouro) setLogradouro(addr.logradouro)
+          if (addr.numero) setNumero(addr.numero)
+          if (addr.complemento) setComplemento(addr.complemento)
+          if (addr.bairro) setBairro(addr.bairro)
+          if (addr.cidade) setCidade(addr.cidade)
+          if (addr.uf) setUf(addr.uf)
+          setSavedAddress(addr)
+          setShowSavedAddress(true)
+        }
       }
     }
   }
