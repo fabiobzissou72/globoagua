@@ -277,7 +277,7 @@ export default function EntregadorPage() {
     setLoading(false)
   }
 
-  async function loadOrders(uid: string) {
+  async function loadOrders(uid: string, checkNew = false) {
     const supabase = createClient()
     const { data } = await supabase
       .from('orders')
@@ -285,32 +285,28 @@ export default function EntregadorPage() {
       .eq('driver_id', uid)
       .in('status', ['CONFIRMADO', 'EM_ROTA'])
       .order('fila_posicao', { ascending: true, nullsFirst: false })
-    ordersRef.current = data || []
-    setOrders(data || [])
+    const newOrders = data || []
+    if (checkNew) {
+      const prevIds = new Set(ordersRef.current.map(o => o.id))
+      const hasNew = newOrders.some(o => !prevIds.has(o.id))
+      if (hasNew && alertOn) {
+        playAlert()
+        toast('🔔 Novo pedido chegou!', { duration: 5000 })
+      }
+    }
+    ordersRef.current = newOrders
+    setOrders(newOrders)
   }
 
   function subscribeToOrders(supabase: ReturnType<typeof createClient>, uid: string) {
     realtimeChannel.current = supabase
       .channel('driver-orders')
       .on('postgres_changes', {
-        event: 'INSERT',
+        event: '*',
         schema: 'public',
         table: 'orders',
-        filter: `driver_id=eq.${uid}`,
       }, () => {
-        loadOrders(uid)
-        if (alertOn) {
-          playAlert()
-          toast('🔔 Novo pedido chegou!', { duration: 5000 })
-        }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'orders',
-        filter: `driver_id=eq.${uid}`,
-      }, () => {
-        loadOrders(uid)
+        loadOrders(uid, true)
       })
       .subscribe()
   }
