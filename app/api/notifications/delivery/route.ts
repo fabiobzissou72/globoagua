@@ -55,9 +55,9 @@ export async function POST(req: NextRequest) {
         const { Resend } = await import('resend')
         const resend = new Resend(resendKey)
         const itemHtml = (items || []).map(i => `<tr>
-          <td style="padding:6px 12px;">${i.product_name}</td>
-          <td style="padding:6px 12px;text-align:center;">${i.qty}</td>
-          <td style="padding:6px 12px;text-align:right;">R$ ${i.total.toFixed(2)}</td>
+          <td style="padding:6px 12px;">${i.produto_nome}</td>
+          <td style="padding:6px 12px;text-align:center;">${i.quantidade}</td>
+          <td style="padding:6px 12px;text-align:right;">R$ ${i.subtotal.toFixed(2)}</td>
         </tr>`).join('')
 
         const { data: profile } = await supabase.from('profiles').select('email').eq('id', order.user_id).maybeSingle()
