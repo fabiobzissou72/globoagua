@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { Search, RefreshCw, X } from 'lucide-react'
+import { Search, RefreshCw, X, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const STATUS_OPTIONS = ['NOVO','CONFIRMADO','PRODUCAO','EM_ROTA','ENTREGUE','CANCELADO']
@@ -23,7 +23,6 @@ export default function SuperAdminPedidosPage() {
   const [selected, setSelected] = useState<any>(null)
   const [page, setPage] = useState(0)
   const PER_PAGE = 50
-
   const sb = createClient()
 
   const loadData = useCallback(async () => {
@@ -72,34 +71,88 @@ export default function SuperAdminPedidosPage() {
 
       {/* Filtros */}
       <div className="card p-4 mb-4">
-        <div className="flex flex-wrap gap-3">
-          <select className="input-base w-auto" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-3">
+          <select className="input-base sm:w-auto" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
             <option>Todos</option>
             {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
           </select>
-          <input type="date" className="input-base w-auto" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
-          <div className="relative flex-1 min-w-48">
+          <input type="date" className="input-base sm:w-auto" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
+          <div className="relative flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="input-base pl-9" placeholder="Buscar por nº pedido ou nome" value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="input-base pl-9 w-full" placeholder="Buscar por nº pedido ou nome" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="card overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="card p-8 text-center text-gray-400">Carregando...</div>
+        ) : filtered.length === 0 ? (
+          <div className="card p-8 text-center text-gray-400">Nenhum pedido encontrado</div>
+        ) : filtered.map(o => (
+          <div key={o.id} className="card p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-bold text-[#1565C0] font-mono">#{o.numero_pedido}</p>
+                <p className="font-semibold text-gray-900 mt-0.5">{o.cliente_nome}</p>
+                <p className="text-xs text-gray-400">{formatDate(o.created_at)}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-black text-[#2E7D32] text-lg">{formatCurrency(o.total)}</p>
+                <span className={`badge ${STATUS_COLORS[o.status] || 'badge-novo'}`}>{o.status}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Filial</p>
+                <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white" value={o.branch_id || ''} onChange={e => updateOrder(o.id, 'branch_id', e.target.value)}>
+                  <option value="">—</option>
+                  {branches.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Entregador</p>
+                <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white" value={o.driver_id || ''} onChange={e => updateOrder(o.id, 'driver_id', e.target.value)}>
+                  <option value="">—</option>
+                  {drivers.map(d => <option key={d.id} value={d.id}>{d.nome_completo}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white" value={o.status} onChange={e => updateOrder(o.id, 'status', e.target.value)}>
+                  {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Prioridade</p>
+                <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white" value={o.prioridade || 'NORMAL'} onChange={e => updateOrder(o.id, 'prioridade', e.target.value)}>
+                  <option>NORMAL</option><option>ALTA</option><option>URGENTE</option>
+                </select>
+              </div>
+            </div>
+            <button className="btn-secondary w-full text-sm py-2" onClick={() => setSelected(o)}>
+              <Eye size={14} /> Ver detalhes
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              {['Nº','Cliente','CPF/CNPJ','Total','Filial','Prioridade','Entregador','Status','Data','Ações'].map(h => (
+              {['Nº','Cliente','Total','Filial','Prioridade','Entregador','Status','Data','Ações'].map(h => (
                 <th key={h} className="px-4 py-3 text-left">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={10} className="text-center py-12 text-gray-400">Carregando...</td></tr>
+              <tr><td colSpan={9} className="text-center py-12 text-gray-400">Carregando...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={10} className="text-center py-12 text-gray-400">Nenhum pedido encontrado</td></tr>
+              <tr><td colSpan={9} className="text-center py-12 text-gray-400">Nenhum pedido encontrado</td></tr>
             ) : filtered.map(o => (
               <tr key={o.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-mono text-blue-600 font-semibold">#{o.numero_pedido}</td>
@@ -107,7 +160,6 @@ export default function SuperAdminPedidosPage() {
                   <div className="font-medium text-gray-900">{o.cliente_nome}</div>
                   <div className="text-gray-400 text-xs">{o.cliente_whatsapp}</div>
                 </td>
-                <td className="px-4 py-3 text-gray-500">{o.cliente_documento}</td>
                 <td className="px-4 py-3 font-semibold text-gray-900">{formatCurrency(o.total)}</td>
                 <td className="px-4 py-3">
                   <select className="text-xs border border-gray-200 rounded-lg px-2 py-1" value={o.branch_id || ''} onChange={e => updateOrder(o.id, 'branch_id', e.target.value)}>

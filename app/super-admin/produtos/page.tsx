@@ -213,59 +213,106 @@ export default function ProdutosPage() {
       {loading ? (
         <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-gray-400" /></div>
       ) : (
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  {['Foto','Nome','Categoria','Preço','Ativo','Destaque','Ações'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 font-semibold text-gray-600">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {products.map(p => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-blue-50 flex items-center justify-center">
-                        {p.foto_url ? <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" /> : <span className="text-lg">💧</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-gray-900">{p.nome}</p>
-                      {p.subcategoria && <p className="text-xs text-gray-400">{p.subcategoria}</p>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{p.categoria}</td>
-                    <td className="px-4 py-3">
-                      <p className="font-bold">{formatCurrency(p.preco_padrao)}</p>
-                      {p.preco_oferta && <p className="text-xs text-[#2E7D32]">{formatCurrency(p.preco_oferta)} oferta</p>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => toggleField(p.id, 'ativo', p.ativo)}
-                        className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.ativo ? 'bg-[#2E7D32]' : 'bg-gray-200')}>
-                        <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.ativo ? 'translate-x-4' : 'translate-x-0')} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => toggleField(p.id, 'destaque', p.destaque)}
-                        className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.destaque ? 'bg-[#1565C0]' : 'bg-gray-200')}>
-                        <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.destaque ? 'translate-x-4' : 'translate-x-0')} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => setModal({ open: true, product: p })} className="btn-secondary text-xs py-1.5 px-3 gap-1">
-                          <Edit2 size={13} /> Editar
-                        </button>
-                        <button onClick={() => deleteProduct(p.id)} className="btn-danger"><Trash2 size={13} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {products.length === 0 ? (
+              <div className="card p-8 text-center text-gray-400">Nenhum produto cadastrado</div>
+            ) : products.map(p => (
+              <div key={p.id} className="card p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-blue-50 flex items-center justify-center shrink-0">
+                    {p.foto_url ? <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" /> : <span className="text-2xl">💧</span>}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900 truncate">{p.nome}</p>
+                    <p className="text-xs text-gray-400">{p.categoria}{p.subcategoria ? ` · ${p.subcategoria}` : ''}</p>
+                    <p className="font-bold text-gray-900 text-sm">{formatCurrency(p.preco_padrao)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <button onClick={() => toggleField(p.id, 'ativo', p.ativo)}
+                      className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.ativo ? 'bg-[#2E7D32]' : 'bg-gray-200')}>
+                      <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.ativo ? 'translate-x-4' : 'translate-x-0')} />
+                    </button>
+                    Ativo
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <button onClick={() => toggleField(p.id, 'destaque', p.destaque)}
+                      className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.destaque ? 'bg-[#1565C0]' : 'bg-gray-200')}>
+                      <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.destaque ? 'translate-x-4' : 'translate-x-0')} />
+                    </button>
+                    Destaque
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setModal({ open: true, product: p })} className="btn-secondary flex-1 text-xs py-1.5 gap-1">
+                    <Edit2 size={13} /> Editar
+                  </button>
+                  <button onClick={() => deleteProduct(p.id)} className="btn-danger py-1.5 px-4">
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    {['Foto', 'Nome', 'Categoria', 'Preço', 'Ativo', 'Destaque', 'Ações'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 font-semibold text-gray-600">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {products.map(p => (
+                    <tr key={p.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-blue-50 flex items-center justify-center">
+                          {p.foto_url ? <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" /> : <span className="text-lg">💧</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-gray-900">{p.nome}</p>
+                        {p.subcategoria && <p className="text-xs text-gray-400">{p.subcategoria}</p>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{p.categoria}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-bold">{formatCurrency(p.preco_padrao)}</p>
+                        {p.preco_oferta && <p className="text-xs text-[#2E7D32]">{formatCurrency(p.preco_oferta)} oferta</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => toggleField(p.id, 'ativo', p.ativo)}
+                          className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.ativo ? 'bg-[#2E7D32]' : 'bg-gray-200')}>
+                          <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.ativo ? 'translate-x-4' : 'translate-x-0')} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => toggleField(p.id, 'destaque', p.destaque)}
+                          className={cn('w-9 h-5 rounded-full transition-colors flex items-center px-0.5', p.destaque ? 'bg-[#1565C0]' : 'bg-gray-200')}>
+                          <div className={cn('w-4 h-4 bg-white rounded-full shadow transition-transform', p.destaque ? 'translate-x-4' : 'translate-x-0')} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => setModal({ open: true, product: p })} className="btn-secondary text-xs py-1.5 px-3 gap-1">
+                            <Edit2 size={13} /> Editar
+                          </button>
+                          <button onClick={() => deleteProduct(p.id)} className="btn-danger"><Trash2 size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {modal.open && (

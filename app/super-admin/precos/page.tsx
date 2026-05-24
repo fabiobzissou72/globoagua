@@ -132,7 +132,52 @@ export default function PrecosPage() {
               <div className="px-4 py-2 bg-gray-50 border-b">
                 <h3 className="font-bold text-sm text-gray-700">{category}</h3>
               </div>
-              <table className="w-full text-sm">
+
+              {/* Mobile: stacked cards per product */}
+              <div className="md:hidden divide-y divide-gray-50">
+                {catProducts.map(product => (
+                  <div key={product.id} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">{product.nome}</p>
+                        {product.subcategoria && <p className="text-xs text-gray-400">{product.subcategoria}</p>}
+                        <p className="text-xs text-gray-500 mt-0.5">Padrão: {formatCurrency(product.preco_padrao)}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="number" step="0.01"
+                        value={prices[product.id] || ''}
+                        onChange={e => setPrices(p => ({ ...p, [product.id]: e.target.value }))}
+                        placeholder={`R$ ${product.preco_padrao.toFixed(2)}`}
+                        className="input-base px-3 py-2 text-sm flex-1"
+                      />
+                      <button onClick={() => savePrice(product.id)} disabled={saving[product.id]}
+                        className="btn-primary text-xs py-2 px-3 shrink-0">
+                        {saving[product.id] ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                      </button>
+                      {prices[product.id] && (
+                        <button onClick={() => removePrice(product.id)} className="btn-danger text-xs py-2 px-3 shrink-0">
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    {prices[product.id] && Number(prices[product.id]) < product.preco_padrao && (
+                      <p className="text-xs text-[#2E7D32] font-medium">
+                        Economia: {formatCurrency(product.preco_padrao - Number(prices[product.id]))}
+                      </p>
+                    )}
+                    {prices[product.id] && Number(prices[product.id]) > product.preco_padrao && (
+                      <p className="text-xs text-orange-500 font-medium">
+                        Acréscimo: +{formatCurrency(Number(prices[product.id]) - product.preco_padrao)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: table */}
+              <table className="hidden md:table w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50/50">
                     <th className="text-left px-4 py-2.5 font-semibold text-gray-500 text-xs">Produto</th>
