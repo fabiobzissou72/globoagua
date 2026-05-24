@@ -83,7 +83,7 @@ function CompanyModal({ company, onClose, onSave }: {
             <div key={key}>
               <label className="text-xs font-semibold text-gray-600 block mb-1">{label}</label>
               <input
-                value={(form as Record<string, string>)[key]}
+                value={(form as unknown as Record<string, string>)[key]}
                 onChange={e => set(key, e.target.value)}
                 placeholder={placeholder}
                 className="input-base"
