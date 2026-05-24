@@ -89,6 +89,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Dispara webhook configurado nas settings (Speedit / n8n / qualquer URL)
+    const { data: settingsRows } = await supabase.from('settings').select('key, value')
+    const merged: Record<string, string> = {}
+    ;(settingsRows || []).forEach((row: { key: string; value: Record<string, string> }) =>
+      Object.assign(merged, row.value)
+    )
+    const webhookUrl = merged.speedit_webhook
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'order.delivered',
+            order_id: order.id,
+            numero_pedido: order.numero_pedido,
+            cliente_nome: order.cliente_nome,
+            cliente_whatsapp: order.cliente_whatsapp,
+            endereco: order.endereco_completo,
+            total: order.total,
+            metodo_pagamento: order.metodo_pagamento,
+            recebedor_nome: order.recebedor_nome,
+            entregue_em: order.entregue_em || new Date().toISOString(),
+            items: (items || []).map(i => ({
+              produto: i.produto_nome,
+              quantidade: i.quantidade,
+              preco_unitario: i.preco_unitario,
+              subtotal: i.subtotal,
+            })),
+          }),
+        })
+      } catch (webhookErr) {
+        console.error('[notifications/delivery] Webhook error:', webhookErr)
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[notifications/delivery]', err)

@@ -129,7 +129,7 @@ function CompanyModal({ company, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white rounded-2xl p-6 animate-slide-up">
+      <div className="relative w-full max-w-md bg-white rounded-2xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
           <h2 className="font-bold text-lg flex items-center gap-2">
             <Building2 size={20} className="text-[#1565C0]" />
