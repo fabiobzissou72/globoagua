@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, Eye, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -22,6 +22,8 @@ type Order = {
   endereco_completo?: string
   observations?: string
   cliente_whatsapp?: string
+  recebedor_nome?: string
+  entregue_em?: string
 }
 
 type Branch = { id: string; nome: string }
@@ -102,6 +104,21 @@ function OrderDetailModal({ order, branches, drivers, onClose, onStatusChange }:
             </div>
           )}
 
+          {order.entregue_em && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Entregue em</p>
+                <p className="font-semibold text-[#2E7D32]">{new Date(order.entregue_em).toLocaleString('pt-BR', { day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit' })}</p>
+              </div>
+              {order.recebedor_nome && (
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Recebido por</p>
+                  <p className="font-semibold text-gray-800">{order.recebedor_nome}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {items.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Itens</p>
@@ -163,13 +180,14 @@ export default function AdminOrdersPage() {
   const [filterDriver, setFilterDriver] = useState('')
   const [filterDate, setFilterDate] = useState('')
   const [search, setSearch] = useState('')
+  const loadOrdersRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     loadMeta()
     const supabase = createClient()
     const channel = supabase
-      .channel('admin-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadOrders())
+      .channel('admin-orders-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadOrdersRef.current())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])
@@ -203,6 +221,8 @@ export default function AdminOrdersPage() {
     if (count !== null) setTotal(count)
     setLoading(false)
   }, [page, filterStatus, filterBranch, filterDriver, filterDate, search])
+
+  useEffect(() => { loadOrdersRef.current = loadOrders }, [loadOrders])
 
   const updateOrderField = async (orderId: string, field: string, value: string) => {
     const supabase = createClient()

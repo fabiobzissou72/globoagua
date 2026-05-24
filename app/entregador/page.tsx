@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   MapPin, Navigation, CheckCircle, XCircle, Eye, ArrowUp, ArrowDown,
-  Save, Bell, BellOff, Lock, LogOut, X, User, Loader2, ChevronDown
+  Save, Bell, BellOff, Lock, LogOut, X, User, Loader2, History, List
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -23,6 +23,8 @@ type Order = {
   observacoes?: string
   cliente_whatsapp?: string
   fila_posicao?: number
+  entregue_em?: string
+  recebedor_nome?: string
 }
 
 type OrderItem = {
@@ -84,16 +86,14 @@ function PasswordModal({ onClose }: { onClose: () => void }) {
 function OrderDetailModal({ order, onClose, onStatusChange }: {
   order: Order
   onClose: () => void
-  onStatusChange: (id: string, status: string, extra?: { recebedor_nome?: string; observacoes?: string }) => void
+  onStatusChange: (id: string, status: string, extra?: { recebedor_nome?: string; observacoes?: string; entregue_em?: string }) => void
 }) {
   const [items, setItems] = useState<OrderItem[]>([])
-  const [receivedBy, setReceivedBy] = useState(order.cliente_nome)
+  const [receivedBy, setReceivedBy] = useState(order.recebedor_nome || order.cliente_nome)
   const [obs, setObs] = useState(order.observacoes || '')
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    loadItems()
-  }, [order.id])
+  useEffect(() => { loadItems() }, [order.id])
 
   async function loadItems() {
     const supabase = createClient()
@@ -110,9 +110,20 @@ function OrderDetailModal({ order, onClose, onStatusChange }: {
   }
 
   const handleStatusChange = async (status: string) => {
-    onStatusChange(order.id, status, { recebedor_nome: receivedBy, observacoes: obs })
+    const extra: { recebedor_nome?: string; observacoes?: string; entregue_em?: string } = {
+      recebedor_nome: receivedBy,
+      observacoes: obs,
+    }
+    if (status === 'ENTREGUE') {
+      extra.entregue_em = new Date().toISOString()
+    }
+    onStatusChange(order.id, status, extra)
     onClose()
   }
+
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -133,7 +144,8 @@ function OrderDetailModal({ order, onClose, onStatusChange }: {
             <p className="text-3xl font-black text-[#2E7D32]">{formatCurrency(order.total)}</p>
             <p className="text-sm text-gray-600 mt-1">
               {order.metodo_pagamento === 'pix' ? '⚡ PIX' :
-                order.metodo_pagamento === 'cartao' ? '💳 Cartão' : '💵 Dinheiro'}
+                order.metodo_pagamento === 'cartao' ? '💳 Cartão' :
+                order.metodo_pagamento === 'faturado' ? '📋 Faturado' : '💵 Dinheiro'}
             </p>
           </div>
 
@@ -170,10 +182,14 @@ function OrderDetailModal({ order, onClose, onStatusChange }: {
             </div>
           )}
 
-          {/* Recipient */}
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Recebido por</label>
-            <input value={receivedBy} onChange={e => setReceivedBy(e.target.value)} className="input-base" />
+          {/* Recipient + timestamp */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Confirmação de entrega</p>
+            <p className="text-xs text-gray-500">📅 {dateStr} às {timeStr}</p>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 block mb-1">Recebido por</label>
+              <input value={receivedBy} onChange={e => setReceivedBy(e.target.value)} className="input-base" />
+            </div>
           </div>
 
           {/* Observations */}
@@ -183,7 +199,7 @@ function OrderDetailModal({ order, onClose, onStatusChange }: {
           </div>
 
           <button onClick={handleSave} disabled={saving} className="btn-secondary w-full">
-            {saving ? 'Salvando...' : <><Save size={16} /> Salvar</>}
+            {saving ? 'Salvando...' : <><Save size={16} /> Salvar observações</>}
           </button>
         </div>
 
@@ -210,6 +226,8 @@ function OrderDetailModal({ order, onClose, onStatusChange }: {
 export default function EntregadorPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
+  const [delivered, setDelivered] = useState<Order[]>([])
+  const [tab, setTab] = useState<'fila' | 'historico'>('fila')
   const [loading, setLoading] = useState(true)
   const [driverName, setDriverName] = useState('')
   const [driverId, setDriverId] = useState('')
@@ -245,7 +263,6 @@ export default function EntregadorPage() {
   function playAlert() {
     const ctx = audioCtxRef.current
     if (!ctx) return
-    // Dois bipes ascendentes — som de campainha
     const notes = [880, 1100]
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator()
@@ -272,6 +289,7 @@ export default function EntregadorPage() {
     setDriverId(user.id)
 
     await loadOrders(user.id)
+    await loadDelivered(user.id)
     startGPS(user.id, profile?.nome_completo || '')
     subscribeToOrders(supabase, user.id)
     setLoading(false)
@@ -298,15 +316,25 @@ export default function EntregadorPage() {
     setOrders(newOrders)
   }
 
+  async function loadDelivered(uid: string) {
+    const supabase = createClient()
+    const today = new Date().toISOString().split('T')[0]
+    const { data } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('driver_id', uid)
+      .eq('status', 'ENTREGUE')
+      .gte('entregue_em', today)
+      .order('entregue_em', { ascending: false })
+    setDelivered(data || [])
+  }
+
   function subscribeToOrders(supabase: ReturnType<typeof createClient>, uid: string) {
     realtimeChannel.current = supabase
       .channel('driver-orders')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'orders',
-      }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
         loadOrders(uid, true)
+        loadDelivered(uid)
       })
       .subscribe()
   }
@@ -329,7 +357,7 @@ export default function EntregadorPage() {
     gpsInterval.current = setInterval(sendLocation, 15000)
   }
 
-  async function handleStatusChange(id: string, status: string, extra?: { recebedor_nome?: string; observacoes?: string }) {
+  async function handleStatusChange(id: string, status: string, extra?: { recebedor_nome?: string; observacoes?: string; entregue_em?: string }) {
     const supabase = createClient()
     await supabase.from('orders').update({ status, ...extra }).eq('id', id)
     if (status === 'ENTREGUE') {
@@ -340,6 +368,7 @@ export default function EntregadorPage() {
           body: JSON.stringify({ orderId: id }),
         })
       } catch {}
+      loadDelivered(driverId)
     }
     toast.success(`Status: ${status}`)
     setOrders(prev => prev.filter(o => !['ENTREGUE', 'CANCELADO'].includes(status) || o.id !== id)
@@ -416,95 +445,154 @@ export default function EntregadorPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Fila de Entrega</h1>
-            <p className="text-sm text-gray-500">{orders.length} pedido{orders.length !== 1 ? 's' : ''} pendente{orders.length !== 1 ? 's' : ''}</p>
-          </div>
-          {orders.length > 0 && (
-            <button onClick={saveQueue} disabled={savingQueue}
-              className="btn-secondary text-sm py-2">
-              {savingQueue ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              Salvar ordem
-            </button>
-          )}
+      {/* Tabs */}
+      <div className="bg-white border-b sticky top-[57px] z-30">
+        <div className="max-w-lg mx-auto flex">
+          <button onClick={() => setTab('fila')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold border-b-2 transition-all ${tab === 'fila' ? 'border-[#1565C0] text-[#1565C0]' : 'border-transparent text-gray-400'}`}>
+            <List size={15} /> Fila ({orders.length})
+          </button>
+          <button onClick={() => setTab('historico')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold border-b-2 transition-all ${tab === 'historico' ? 'border-[#2E7D32] text-[#2E7D32]' : 'border-transparent text-gray-400'}`}>
+            <History size={15} /> Hoje ({delivered.length})
+          </button>
         </div>
+      </div>
 
-        {orders.length === 0 ? (
-          <div className="card p-10 text-center text-gray-400">
-            <CheckCircle size={48} strokeWidth={1} className="mx-auto mb-3" />
-            <p className="font-semibold text-lg">Tudo entregue!</p>
-            <p className="text-sm">Nenhum pedido pendente</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((order, idx) => (
-              <div key={order.id} className="card p-4 animate-slide-up">
-                <div className="flex items-start gap-3">
-                  {/* Queue controls */}
-                  <div className="flex flex-col gap-1 mt-1">
-                    <button onClick={() => moveOrder(idx, 'up')} disabled={idx === 0}
-                      className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-30">
-                      <ArrowUp size={14} />
-                    </button>
-                    <div className="w-7 h-7 bg-[#1565C0] text-white rounded-lg flex items-center justify-center text-xs font-black">
-                      {idx + 1}
-                    </div>
-                    <button onClick={() => moveOrder(idx, 'down')} disabled={idx === orders.length - 1}
-                      className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-30">
-                      <ArrowDown size={14} />
-                    </button>
-                  </div>
+      <div className="max-w-lg mx-auto px-4 py-4">
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-bold text-gray-900">#{order.numero_pedido}</p>
-                        <p className="text-sm text-gray-700 font-medium">{order.cliente_nome}</p>
-                      </div>
-                      <PriorityBadge priority={order.prioridade} />
-                    </div>
-
-                    <div className="flex items-center gap-1.5 mt-1.5 text-gray-500">
-                      <MapPin size={13} />
-                      <p className="text-xs truncate">{order.endereco_completo}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`badge`}
-                          style={{ background: `${STATUS_COLORS[order.status]}15`, color: STATUS_COLORS[order.status] }}>
-                          {order.status.replace('_', ' ')}
-                        </span>
-                        <span className="text-sm font-bold text-[#2E7D32]">{formatCurrency(order.total)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action buttons */}
-                <div className="grid grid-cols-4 gap-1.5 mt-3">
-                  <button onClick={() => setSelectedOrder(order)}
-                    className="flex flex-col items-center gap-1 py-2 bg-blue-50 text-[#1565C0] rounded-xl text-xs font-semibold hover:bg-blue-100">
-                    <Eye size={16} /> Detalhes
-                  </button>
-                  <button onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(order.endereco_completo)}`, '_blank')}
-                    className="flex flex-col items-center gap-1 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-semibold hover:bg-indigo-100">
-                    <Navigation size={16} /> Rota
-                  </button>
-                  <button onClick={() => handleStatusChange(order.id, 'EM_ROTA')}
-                    className="flex flex-col items-center gap-1 py-2 bg-purple-50 text-purple-700 rounded-xl text-xs font-semibold hover:bg-purple-100">
-                    <Navigation size={16} /> Em Rota
-                  </button>
-                  <button onClick={() => handleStatusChange(order.id, 'ENTREGUE')}
-                    className="flex flex-col items-center gap-1 py-2 bg-green-50 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-100">
-                    <CheckCircle size={16} /> Entregue
-                  </button>
-                </div>
+        {/* Fila */}
+        {tab === 'fila' && (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Fila de Entrega</h1>
+                <p className="text-sm text-gray-500">{orders.length} pedido{orders.length !== 1 ? 's' : ''} pendente{orders.length !== 1 ? 's' : ''}</p>
               </div>
-            ))}
-          </div>
+              {orders.length > 0 && (
+                <button onClick={saveQueue} disabled={savingQueue} className="btn-secondary text-sm py-2">
+                  {savingQueue ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  Salvar ordem
+                </button>
+              )}
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="card p-10 text-center text-gray-400">
+                <CheckCircle size={48} strokeWidth={1} className="mx-auto mb-3" />
+                <p className="font-semibold text-lg">Tudo entregue!</p>
+                <p className="text-sm">Nenhum pedido pendente</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order, idx) => (
+                  <div key={order.id} className="card p-4 animate-slide-up">
+                    <div className="flex items-start gap-3">
+                      <div className="flex flex-col gap-1 mt-1">
+                        <button onClick={() => moveOrder(idx, 'up')} disabled={idx === 0}
+                          className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-30">
+                          <ArrowUp size={14} />
+                        </button>
+                        <div className="w-7 h-7 bg-[#1565C0] text-white rounded-lg flex items-center justify-center text-xs font-black">
+                          {idx + 1}
+                        </div>
+                        <button onClick={() => moveOrder(idx, 'down')} disabled={idx === orders.length - 1}
+                          className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-30">
+                          <ArrowDown size={14} />
+                        </button>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-bold text-gray-900">#{order.numero_pedido}</p>
+                            <p className="text-sm text-gray-700 font-medium">{order.cliente_nome}</p>
+                          </div>
+                          <PriorityBadge priority={order.prioridade} />
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-1.5 text-gray-500">
+                          <MapPin size={13} />
+                          <p className="text-xs truncate">{order.endereco_completo}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
+                            <span className="badge"
+                              style={{ background: `${STATUS_COLORS[order.status]}15`, color: STATUS_COLORS[order.status] }}>
+                              {order.status.replace('_', ' ')}
+                            </span>
+                            <span className="text-sm font-bold text-[#2E7D32]">{formatCurrency(order.total)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1.5 mt-3">
+                      <button onClick={() => setSelectedOrder(order)}
+                        className="flex flex-col items-center gap-1 py-2 bg-blue-50 text-[#1565C0] rounded-xl text-xs font-semibold hover:bg-blue-100">
+                        <Eye size={16} /> Detalhes
+                      </button>
+                      <button onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(order.endereco_completo)}`, '_blank')}
+                        className="flex flex-col items-center gap-1 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-semibold hover:bg-indigo-100">
+                        <Navigation size={16} /> Rota
+                      </button>
+                      <button onClick={() => handleStatusChange(order.id, 'EM_ROTA')}
+                        className="flex flex-col items-center gap-1 py-2 bg-purple-50 text-purple-700 rounded-xl text-xs font-semibold hover:bg-purple-100">
+                        <Navigation size={16} /> Em Rota
+                      </button>
+                      <button onClick={() => setSelectedOrder(order)}
+                        className="flex flex-col items-center gap-1 py-2 bg-green-50 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-100">
+                        <CheckCircle size={16} /> Entregue
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Histórico do dia */}
+        {tab === 'historico' && (
+          <>
+            <div className="mb-4">
+              <h1 className="text-lg font-bold text-gray-900">Entregas de Hoje</h1>
+              <p className="text-sm text-gray-500">{delivered.length} entregue{delivered.length !== 1 ? 's' : ''}</p>
+            </div>
+
+            {delivered.length === 0 ? (
+              <div className="card p-10 text-center text-gray-400">
+                <History size={48} strokeWidth={1} className="mx-auto mb-3" />
+                <p className="font-semibold">Nenhuma entrega hoje</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {delivered.map(order => (
+                  <div key={order.id} className="card p-4 space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-bold text-[#1565C0] font-mono">#{order.numero_pedido}</p>
+                        <p className="font-semibold text-gray-900">{order.cliente_nome}</p>
+                        <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin size={11} /> {order.endereco_completo}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-[#2E7D32]">{formatCurrency(order.total)}</p>
+                        <span className="badge bg-green-100 text-green-700 text-xs">ENTREGUE</span>
+                      </div>
+                    </div>
+                    {order.entregue_em && (
+                      <div className="bg-green-50 rounded-lg px-3 py-2 text-xs text-gray-600">
+                        <span className="font-semibold">Entregue:</span>{' '}
+                        {new Date(order.entregue_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {order.recebedor_nome && <> · <span className="font-semibold">Recebido por:</span> {order.recebedor_nome}</>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

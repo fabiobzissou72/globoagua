@@ -14,6 +14,8 @@ type Company = {
   contato?: string
   email?: string
   created_at?: string
+  faturado?: boolean
+  prazo_faturamento?: number
 }
 
 const defaultForm = () => ({
@@ -22,6 +24,8 @@ const defaultForm = () => ({
   cnpj: '',
   contato: '',
   email: '',
+  faturado: false,
+  prazo_faturamento: 30,
 })
 
 function CompanyModal({ company, onClose, onSave }: {
@@ -35,10 +39,12 @@ function CompanyModal({ company, onClose, onSave }: {
     cnpj: company.cnpj || '',
     contato: company.contato || '',
     email: company.email || '',
+    faturado: company.faturado ?? false,
+    prazo_faturamento: company.prazo_faturamento ?? 30,
   } : defaultForm())
   const [saving, setSaving] = useState(false)
 
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
+  const set = (k: string, v: string | boolean | number) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
     if (!form.razao_social) { toast.error('Razão social é obrigatória'); return }
@@ -84,6 +90,28 @@ function CompanyModal({ company, onClose, onSave }: {
               />
             </div>
           ))}
+
+          {/* Faturamento */}
+          <div className="border border-gray-100 rounded-xl p-3 space-y-2">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div onClick={() => set('faturado', !form.faturado)}
+                className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${form.faturado ? 'bg-[#1565C0]' : 'bg-gray-200'}`}>
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.faturado ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Cobrança Faturada</p>
+                <p className="text-xs text-gray-500">Empresa não paga no ato — prazo de fatura</p>
+              </div>
+            </label>
+            {form.faturado && (
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Prazo (dias)</label>
+                <input type="number" min="1" value={form.prazo_faturamento}
+                  onChange={e => set('prazo_faturamento', Number(e.target.value))}
+                  className="input-base" placeholder="30" />
+              </div>
+            )}
+          </div>
         </div>
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full mt-5 py-3">
           {saving ? <><Loader2 size={16} className="animate-spin" /> Salvando...</> : 'Salvar Empresa'}

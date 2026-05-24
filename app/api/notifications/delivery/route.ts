@@ -23,8 +23,12 @@ export async function POST(req: NextRequest) {
 
     const { data: items } = await supabase
       .from('order_items')
-      .select('product_name, qty, unit_price, total')
+      .select('produto_nome, quantidade, preco_unitario, subtotal')
       .eq('order_id', orderId)
+
+    const deliveredAt = order.entregue_em
+      ? new Date(order.entregue_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : formatDate(new Date().toISOString())
 
     // Send WhatsApp receipt
     if (order.cliente_whatsapp) {
@@ -33,13 +37,13 @@ export async function POST(req: NextRequest) {
         clientName: order.cliente_nome,
         orderNumber: order.numero_pedido,
         items: (items || []).map(i => ({
-          name: i.product_name,
-          qty: i.qty,
-          price: i.unit_price,
+          name: i.produto_nome,
+          qty: i.quantidade,
+          price: i.preco_unitario,
         })),
         total: order.total,
-        receivedBy: order.received_by || order.cliente_nome,
-        deliveredAt: formatDate(new Date().toISOString()),
+        receivedBy: order.recebedor_nome || order.cliente_nome,
+        deliveredAt,
         address: order.endereco_completo || '',
       })
     }
@@ -56,9 +60,12 @@ export async function POST(req: NextRequest) {
           <td style="padding:6px 12px;text-align:right;">R$ ${i.total.toFixed(2)}</td>
         </tr>`).join('')
 
+        const { data: profile } = await supabase.from('profiles').select('email').eq('id', order.user_id).maybeSingle()
+        const recipientEmail = profile?.email || order.cliente_email
+        if (!recipientEmail) return
         await resend.emails.send({
           from: 'Globo Água <noreply@globoagua.com.br>',
-          to: order.cliente_email,
+          to: recipientEmail,
           subject: `✅ Pedido #${order.numero_pedido} entregue!`,
           html: `
             <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">
@@ -81,9 +88,6 @@ export async function POST(req: NextRequest) {
         console.error('[notifications/delivery] Email error:', emailErr)
       }
     }
-
-    // Mark order as delivered
-    await supabase.from('orders').update({ status: 'entregue', delivered_at: new Date().toISOString() }).eq('id', orderId)
 
     return NextResponse.json({ success: true })
   } catch (err) {

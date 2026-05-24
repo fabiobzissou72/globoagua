@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, Check, MapPin, User, CreditCard, ClipboardList, Copy, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, MapPin, User, CreditCard, ClipboardList, Copy, Loader2, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, normalizePhone } from '@/lib/utils'
 import { cartStore } from '../layout'
@@ -12,11 +12,17 @@ import tenant from '@/tenant.config'
 type Branch = { id: string; nome: string }
 type SpecialPrice = { product_id: string; preco_especial: number }
 
-const STEPS = [
+const STEPS_NORMAL = [
   { id: 1, label: 'Entrega', icon: MapPin },
   { id: 2, label: 'Destinatário', icon: User },
   { id: 3, label: 'Pagamento', icon: CreditCard },
   { id: 4, label: 'Confirmar', icon: ClipboardList },
+]
+
+const STEPS_FATURADO = [
+  { id: 1, label: 'Entrega', icon: MapPin },
+  { id: 2, label: 'Destinatário', icon: User },
+  { id: 3, label: 'Confirmar', icon: ClipboardList },
 ]
 
 export default function CheckoutPage() {
@@ -25,6 +31,10 @@ export default function CheckoutPage() {
   const [branches, setBranches] = useState<Branch[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [specialPrices, setSpecialPrices] = useState<SpecialPrice[]>([])
+  const [isFaturado, setIsFaturado] = useState(false)
+  const [prazoFaturamento, setPrazoFaturamento] = useState(30)
+  const [savedAddress, setSavedAddress] = useState<Record<string, string> | null>(null)
+  const [showSavedAddress, setShowSavedAddress] = useState(false)
 
   // Step 1
   const [branchId, setBranchId] = useState('')
@@ -43,30 +53,25 @@ export default function CheckoutPage() {
   const [reference, setReference] = useState('')
   const [observations, setObservations] = useState('')
 
-  // Step 3
+  // Step 3 (só aparece se não faturado)
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cartao' | 'dinheiro'>('pix')
   const [changeAmount, setChangeAmount] = useState('')
 
+  const STEPS = isFaturado ? STEPS_FATURADO : STEPS_NORMAL
+  const TOTAL_STEPS = STEPS.length
   const items = cartStore.items
 
-  // Aplica preço especial se existir, caso contrário usa o preço do carrinho
   function getEffectivePrice(productId: string, originalPrice: number): number {
     const sp = specialPrices.find(p => p.product_id === productId)
     return sp ? sp.preco_especial : originalPrice
   }
 
-  const effectiveTotal = items.reduce((sum, item) => {
-    return sum + getEffectivePrice(item.id, item.price) * item.qty
-  }, 0)
-
+  const effectiveTotal = items.reduce((sum, item) => sum + getEffectivePrice(item.id, item.price) * item.qty, 0)
   const originalTotal = cartStore.total
   const discount = originalTotal - effectiveTotal
 
   useEffect(() => {
-    if (items.length === 0) {
-      router.replace('/')
-      return
-    }
+    if (items.length === 0) { router.replace('/'); return }
     loadBranches()
     loadUserProfile()
   }, [])
@@ -84,33 +89,64 @@ export default function CheckoutPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('nome_completo, company_id')
+      .select('nome_completo, company_id, whatsapp, endereco_padrao')
       .eq('id', user.id)
       .single()
 
     if (profile?.nome_completo) setRecipientName(profile.nome_completo)
+    if (profile?.whatsapp) setWhatsapp(profile.whatsapp)
 
-    // Busca preços especiais: primeiro por usuário, depois por empresa
-    const { data: userPrices } = await supabase
-      .from('company_prices')
-      .select('product_id, preco_especial')
-      .eq('user_id', user.id)
-
-    if (userPrices && userPrices.length > 0) {
-      setSpecialPrices(userPrices)
-      return
+    // Auto-fill endereço salvo
+    if (profile?.endereco_padrao) {
+      const addr = profile.endereco_padrao as Record<string, string>
+      setSavedAddress(addr)
+      // Preenche automaticamente
+      if (addr.cep) setCep(addr.cep)
+      if (addr.logradouro) setLogradouro(addr.logradouro)
+      if (addr.numero) setNumero(addr.numero)
+      if (addr.complemento) setComplemento(addr.complemento)
+      if (addr.bairro) setBairro(addr.bairro)
+      if (addr.cidade) setCidade(addr.cidade)
+      if (addr.uf) setUf(addr.uf)
+      setShowSavedAddress(true)
     }
+
+    // Preços especiais
+    const { data: userPrices } = await supabase
+      .from('company_prices').select('product_id, preco_especial').eq('user_id', user.id)
+    if (userPrices && userPrices.length > 0) { setSpecialPrices(userPrices); }
 
     if (profile?.company_id) {
       const { data: companyPrices } = await supabase
-        .from('company_prices')
-        .select('product_id, preco_especial')
-        .eq('company_id', profile.company_id)
-
-      if (companyPrices && companyPrices.length > 0) {
+        .from('company_prices').select('product_id, preco_especial').eq('company_id', profile.company_id)
+      if (companyPrices && companyPrices.length > 0 && (!userPrices || userPrices.length === 0)) {
         setSpecialPrices(companyPrices)
       }
+
+      // Verifica se é empresa faturada
+      const { data: company } = await supabase
+        .from('companies').select('faturado, prazo_faturamento').eq('id', profile.company_id).single()
+      if (company?.faturado) {
+        setIsFaturado(true)
+        setPrazoFaturamento(company.prazo_faturamento || 30)
+      }
     }
+  }
+
+  function applysaved() {
+    if (!savedAddress) return
+    setCep(savedAddress.cep || '')
+    setLogradouro(savedAddress.logradouro || '')
+    setNumero(savedAddress.numero || '')
+    setComplemento(savedAddress.complemento || '')
+    setBairro(savedAddress.bairro || '')
+    setCidade(savedAddress.cidade || '')
+    setUf(savedAddress.uf || '')
+  }
+
+  function clearAddress() {
+    setCep(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setUf('')
+    setShowSavedAddress(false)
   }
 
   async function fetchCEP(value: string) {
@@ -126,14 +162,9 @@ export default function CheckoutPage() {
           setBairro(data.bairro || '')
           setCidade(data.localidade || '')
           setUf(data.uf || '')
-        } else {
-          toast.error('CEP não encontrado')
-        }
-      } catch {
-        toast.error('Erro ao buscar CEP')
-      } finally {
-        setCepLoading(false)
-      }
+        } else toast.error('CEP não encontrado')
+      } catch { toast.error('Erro ao buscar CEP') }
+      finally { setCepLoading(false) }
     }
   }
 
@@ -145,50 +176,63 @@ export default function CheckoutPage() {
     return true
   }
 
+  // Mapeia passo real do form para step lógico (quando faturado pula pagamento)
+  function getStepLabel(s: number) {
+    return STEPS.find(x => x.id === s)?.label || ''
+  }
+  // Passo de confirmação é sempre o último
+  const isConfirmStep = step === TOTAL_STEPS
+  // Passo de pagamento é step 3 apenas quando não faturado
+  const isPaymentStep = !isFaturado && step === 3
+
   async function handleSubmit() {
     setSubmitting(true)
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-
       const numeroStr = `GA${Date.now().toString().slice(-6)}`
 
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          numero_pedido: numeroStr,
-          cliente_nome: recipientName,
-          cliente_whatsapp: normalizePhone(whatsapp),
-          endereco_completo: fullAddress,
-          recebedor_nome: recipientName,
-          recebedor_whatsapp: normalizePhone(whatsapp),
-          recebedor_referencia: reference,
-          endereco_cidade: cidade,
-          endereco_estado: uf,
-          observacoes: observations,
-          subtotal: effectiveTotal,
-          total: effectiveTotal,
-          metodo_pagamento: paymentMethod,
-          status: 'NOVO',
-          branch_id: branchId || null,
-          user_id: user?.id || null,
-          prioridade: 'NORMAL',
-        })
-        .select()
-        .single()
+      const { data: order, error: orderError } = await supabase.from('orders').insert({
+        numero_pedido: numeroStr,
+        cliente_nome: recipientName,
+        cliente_whatsapp: normalizePhone(whatsapp),
+        endereco_completo: fullAddress,
+        recebedor_nome: recipientName,
+        recebedor_whatsapp: normalizePhone(whatsapp),
+        recebedor_referencia: reference,
+        endereco_cidade: cidade,
+        endereco_estado: uf,
+        observacoes: observations,
+        subtotal: effectiveTotal,
+        total: effectiveTotal,
+        metodo_pagamento: isFaturado ? 'faturado' : paymentMethod,
+        status: 'NOVO',
+        branch_id: branchId || null,
+        user_id: user?.id || null,
+        prioridade: 'NORMAL',
+      }).select().single()
 
       if (orderError || !order) throw orderError || new Error('Erro ao criar pedido')
 
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        product_id: item.id,
-        produto_nome: item.name,
-        quantidade: item.qty,
-        preco_unitario: getEffectivePrice(item.id, item.price),
-        subtotal: getEffectivePrice(item.id, item.price) * item.qty,
-      }))
+      await supabase.from('order_items').insert(
+        items.map(item => ({
+          order_id: order.id,
+          product_id: item.id,
+          produto_nome: item.name,
+          quantidade: item.qty,
+          preco_unitario: getEffectivePrice(item.id, item.price),
+          subtotal: getEffectivePrice(item.id, item.price) * item.qty,
+        }))
+      )
 
-      await supabase.from('order_items').insert(orderItems)
+      // Salva endereço e whatsapp no perfil para próxima vez
+      if (user) {
+        await supabase.from('profiles').update({
+          whatsapp: normalizePhone(whatsapp),
+          endereco_padrao: { cep, logradouro, numero, complemento, bairro, cidade, uf },
+        }).eq('id', user.id)
+      }
+
       cartStore.clearCart()
       toast.success('Pedido realizado com sucesso! 🎉')
       router.push('/')
@@ -210,11 +254,11 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="sticky top-14 z-30 bg-white border-b px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => step > 1 ? setStep(s => s - 1) : router.back()}
-            className="p-2 hover:bg-gray-100 rounded-full">
+          <button onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} className="p-2 hover:bg-gray-100 rounded-full">
             <ChevronLeft size={20} />
           </button>
           <h1 className="font-bold text-gray-900 text-lg">Finalizar Pedido</h1>
+          {isFaturado && <span className="ml-auto text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">📋 Faturado {prazoFaturamento}d</span>}
         </div>
         <div className="flex items-center mt-3 gap-1">
           {STEPS.map((s, idx) => (
@@ -238,7 +282,7 @@ export default function CheckoutPage() {
 
       <div className="px-4 py-5 max-w-lg mx-auto">
 
-        {/* STEP 1 */}
+        {/* STEP 1 — Endereço */}
         {step === 1 && (
           <div className="space-y-4 animate-slide-up">
             <div className="card p-4">
@@ -247,25 +291,38 @@ export default function CheckoutPage() {
               </h2>
               <select value={branchId} onChange={e => setBranchId(e.target.value)} className="input-base">
                 <option value="">Selecione uma filial</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id}>{b.nome}</option>
-                ))}
+                {branches.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
               </select>
             </div>
 
             <div className="card p-4 space-y-3">
-              <h2 className="font-bold text-gray-900 flex items-center gap-2">
-                <MapPin size={18} className="text-[#1565C0]" /> Endereço de Entrega
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                  <MapPin size={18} className="text-[#1565C0]" /> Endereço de Entrega
+                </h2>
+                {savedAddress && (
+                  <div className="flex gap-2">
+                    <button onClick={applysaved} className="text-xs text-[#1565C0] font-semibold flex items-center gap-1 hover:underline">
+                      <RefreshCw size={12} /> Usar anterior
+                    </button>
+                    {showSavedAddress && (
+                      <button onClick={clearAddress} className="text-xs text-gray-400 hover:underline">Limpar</button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {showSavedAddress && savedAddress && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-gray-700">
+                  <p className="font-semibold text-blue-700 mb-1">Endereço anterior carregado</p>
+                  <p>{[savedAddress.logradouro, savedAddress.numero, savedAddress.bairro, savedAddress.cidade, savedAddress.uf].filter(Boolean).join(', ')}</p>
+                  <p className="text-gray-400 mt-0.5">Altere os campos abaixo se precisar de outro endereço</p>
+                </div>
+              )}
+
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="CEP (somente números)"
-                  value={cep}
-                  onChange={e => fetchCEP(e.target.value)}
-                  maxLength={9}
-                  className="input-base pr-10"
-                />
+                <input type="text" placeholder="CEP (somente números)" value={cep}
+                  onChange={e => fetchCEP(e.target.value)} maxLength={9} className="input-base pr-10" />
                 {cepLoading && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -292,7 +349,7 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* STEP 2 */}
+        {/* STEP 2 — Destinatário */}
         {step === 2 && (
           <div className="card p-4 space-y-3 animate-slide-up">
             <h2 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
@@ -305,13 +362,12 @@ export default function CheckoutPage() {
             <input type="text" placeholder="Ponto de referência (opcional)" value={reference}
               onChange={e => setReference(e.target.value)} className="input-base" />
             <textarea placeholder="Observações (opcional)" value={observations}
-              onChange={e => setObservations(e.target.value)}
-              rows={3} className="input-base resize-none" />
+              onChange={e => setObservations(e.target.value)} rows={3} className="input-base resize-none" />
           </div>
         )}
 
-        {/* STEP 3 */}
-        {step === 3 && (
+        {/* STEP 3 — Pagamento (apenas quando não faturado) */}
+        {isPaymentStep && (
           <div className="space-y-3 animate-slide-up">
             <div className="card p-4">
               <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -323,9 +379,7 @@ export default function CheckoutPage() {
                   { value: 'cartao', label: 'Cartão', emoji: '💳', desc: 'Débito ou crédito' },
                   { value: 'dinheiro', label: 'Dinheiro', emoji: '💵', desc: 'Pague na entrega' },
                 ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setPaymentMethod(opt.value as typeof paymentMethod)}
+                  <button key={opt.value} onClick={() => setPaymentMethod(opt.value as typeof paymentMethod)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
                       ${paymentMethod === opt.value ? 'border-[#1565C0] bg-blue-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
                     <span className="text-2xl">{opt.emoji}</span>
@@ -351,7 +405,7 @@ export default function CheckoutPage() {
                     <Copy size={16} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Realize o pagamento após confirmar o pedido e envie o comprovante pelo WhatsApp</p>
+                <p className="text-xs text-gray-500 mt-2">Realize o pagamento após confirmar e envie o comprovante pelo WhatsApp</p>
               </div>
             )}
 
@@ -359,16 +413,21 @@ export default function CheckoutPage() {
               <div className="card p-4 animate-fade-in">
                 <label className="text-sm font-semibold text-gray-700 block mb-2">Precisa de troco para quanto?</label>
                 <input type="number" placeholder="Ex: 50,00 (deixe em branco se não precisar)"
-                  value={changeAmount} onChange={e => setChangeAmount(e.target.value)}
-                  className="input-base" />
+                  value={changeAmount} onChange={e => setChangeAmount(e.target.value)} className="input-base" />
               </div>
             )}
           </div>
         )}
 
-        {/* STEP 4 */}
-        {step === 4 && (
+        {/* STEP final — Confirmar */}
+        {isConfirmStep && (
           <div className="space-y-4 animate-slide-up">
+            {isFaturado && (
+              <div className="card p-4 bg-blue-50 border border-blue-200">
+                <p className="font-bold text-[#1565C0] flex items-center gap-2">📋 Faturamento em {prazoFaturamento} dias</p>
+                <p className="text-xs text-gray-600 mt-1">Este pedido será faturado para sua empresa. Não é necessário pagamento no ato.</p>
+              </div>
+            )}
             <div className="card p-4">
               <h2 className="font-bold text-gray-900 mb-3">Itens do Pedido</h2>
               <div className="space-y-2">
@@ -381,16 +440,12 @@ export default function CheckoutPage() {
                         <span className="text-xs bg-blue-100 text-[#1565C0] font-bold px-2 py-0.5 rounded-full">{item.qty}x</span>
                         <div>
                           <span className="text-sm text-gray-700">{item.name}</span>
-                          {hasDiscount && (
-                            <p className="text-xs text-gray-400 line-through">{formatCurrency(item.price)}/un</p>
-                          )}
+                          {hasDiscount && <p className="text-xs text-gray-400 line-through">{formatCurrency(item.price)}/un</p>}
                         </div>
                       </div>
                       <div className="text-right">
                         <span className="text-sm font-semibold">{formatCurrency(effective * item.qty)}</span>
-                        {hasDiscount && (
-                          <p className="text-xs text-[#2E7D32] font-medium">preço especial</p>
-                        )}
+                        {hasDiscount && <p className="text-xs text-[#2E7D32] font-medium">preço especial</p>}
                       </div>
                     </div>
                   )
@@ -415,33 +470,28 @@ export default function CheckoutPage() {
                 <p><span className="font-medium">WhatsApp:</span> {whatsapp}</p>
                 <p><span className="font-medium">Endereço:</span> {fullAddress}</p>
                 {reference && <p><span className="font-medium">Referência:</span> {reference}</p>}
-                <p><span className="font-medium">Pagamento:</span> {paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'cartao' ? 'Cartão' : 'Dinheiro'}</p>
+                <p><span className="font-medium">Pagamento:</span> {isFaturado ? `Faturado ${prazoFaturamento} dias` : paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'cartao' ? 'Cartão' : 'Dinheiro'}</p>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Botões fixos no rodapé — sempre visíveis acima da nav bar */}
+      {/* Botões fixos */}
       <div className="fixed bottom-[57px] left-0 right-0 z-30 bg-white border-t shadow-lg px-4 py-3">
         <div className="max-w-lg mx-auto flex gap-3">
           {step > 1 && (
-            <button onClick={() => setStep(s => s - 1)}
-              className="btn-secondary flex-1 py-3">
+            <button onClick={() => setStep(s => s - 1)} className="btn-secondary flex-1 py-3">
               <ChevronLeft size={18} /> Voltar
             </button>
           )}
-          {step < 4 ? (
-            <button
-              onClick={() => canProceed() ? setStep(s => s + 1) : toast.error('Preencha os campos obrigatórios')}
+          {!isConfirmStep ? (
+            <button onClick={() => canProceed() ? setStep(s => s + 1) : toast.error('Preencha os campos obrigatórios')}
               className="btn-primary flex-1 py-3">
               Continuar <ChevronRight size={18} />
             </button>
           ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="btn-primary flex-1 py-3 text-base">
+            <button onClick={handleSubmit} disabled={submitting} className="btn-primary flex-1 py-3 text-base">
               {submitting ? <><Loader2 size={18} className="animate-spin" /> Confirmando...</> : <>Confirmar Pedido ✓</>}
             </button>
           )}

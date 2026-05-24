@@ -113,7 +113,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
 
       {/* Mobile Overlay Sidebar */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div className="fixed inset-0 z-[9999] md:hidden flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           <div className="relative w-72 bg-[#1a2332] h-full overflow-y-auto shadow-2xl">
             <SidebarContent />
