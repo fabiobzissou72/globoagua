@@ -248,6 +248,13 @@ export default function CheckoutPage() {
         }).eq('id', user.id)
       }
 
+      // Dispara notificações (webhook + WhatsApp admin) em background
+      fetch('/api/notifications/new-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      }).catch(() => {})
+
       cartStore.clearCart()
       toast.success('Pedido realizado com sucesso! 🎉')
       router.push('/')

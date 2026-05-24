@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Edit2, Trash2, X, Building2, Loader2, Mail, MessageCircle, ChevronDown, MapPin } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Building2, Loader2, Mail, MessageCircle, ChevronDown, MapPin, Upload, Download, CheckCircle, AlertCircle, FileSpreadsheet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import * as XLSX from 'xlsx'
 
 type Company = {
   id: string
@@ -218,6 +219,207 @@ function CompanyModal({ company, onClose, onSave }: {
   )
 }
 
+type ImportResult = { linha: number; status: 'ok' | 'erro'; razao_social: string; motivo?: string }
+
+function downloadTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['razao_social', 'nome_fantasia', 'cnpj', 'contato', 'email', 'faturado', 'prazo_faturamento', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf'],
+    ['Empresa Exemplo Ltda', 'Exemplo', '12345678000190', '11999999999', 'contato@exemplo.com', 'true', '30', '01310100', 'Av. Paulista', '1000', 'Sala 1', 'Bela Vista', 'São Paulo', 'SP'],
+  ])
+  ws['!cols'] = Array(14).fill({ wch: 20 })
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Empresas')
+  XLSX.writeFile(wb, 'modelo_importacao_empresas.xlsx')
+}
+
+function ImportModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [step, setStep] = useState<'upload' | 'preview' | 'results'>('upload')
+  const [rows, setRows] = useState<Record<string, string>[]>([])
+  const [importing, setImporting] = useState(false)
+  const [results, setResults] = useState<ImportResult[]>([])
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const data = ev.target?.result
+      const wb = XLSX.read(data, { type: 'binary' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: '' })
+      if (json.length === 0) { toast.error('Planilha vazia ou sem cabeçalhos válidos'); return }
+      setRows(json)
+      setStep('preview')
+    }
+    reader.readAsBinaryString(file)
+    e.target.value = ''
+  }
+
+  async function handleImport() {
+    setImporting(true)
+    try {
+      const res = await fetch('/api/admin/import-companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setResults(data.results)
+      setStep('results')
+      if (data.ok > 0) onDone()
+      toast.success(`${data.ok} empresa(s) importada(s)${data.erros > 0 ? `, ${data.erros} com erro` : ''}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro na importação')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  function exportErrors() {
+    const erros = results.filter(r => r.status === 'erro')
+    const original = rows.filter((_, i) => erros.some(e => e.linha === i + 2))
+    const withError = original.map((r, i) => ({ ...r, _erro: erros[i]?.motivo || '' }))
+    const ws = XLSX.utils.json_to_sheet(withError)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Erros')
+    XLSX.writeFile(wb, 'erros_importacao.xlsx')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl animate-slide-up max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b shrink-0">
+          <h2 className="font-bold text-lg flex items-center gap-2">
+            <FileSpreadsheet size={20} className="text-[#1565C0]" />
+            Importar Empresas por Excel
+          </h2>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-5">
+
+          {/* STEP: upload */}
+          {step === 'upload' && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-gray-700 space-y-1">
+                <p className="font-semibold text-[#1565C0]">Colunas aceitas na planilha:</p>
+                <p className="font-mono text-xs text-gray-500 leading-relaxed">
+                  razao_social · nome_fantasia · cnpj · contato · email · faturado (true/false) · prazo_faturamento · cep · logradouro · numero · complemento · bairro · cidade · uf
+                </p>
+                <p className="text-xs text-gray-500 mt-1">• Upsert automático por CNPJ (evita duplicados)<br />• CNPJ/telefone normalizados automaticamente (remove máscara)</p>
+              </div>
+              <button onClick={downloadTemplate}
+                className="btn-secondary w-full">
+                <Download size={16} /> Baixar Modelo de Planilha
+              </button>
+              <label className="flex flex-col items-center gap-3 border-2 border-dashed border-[#1565C0] rounded-2xl p-8 cursor-pointer hover:bg-blue-50 transition-colors">
+                <Upload size={32} className="text-[#1565C0]" />
+                <div className="text-center">
+                  <p className="font-semibold text-gray-800">Clique para selecionar o arquivo</p>
+                  <p className="text-sm text-gray-500">.xlsx ou .xls</p>
+                </div>
+                <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFile} className="hidden" />
+              </label>
+            </div>
+          )}
+
+          {/* STEP: preview */}
+          {step === 'preview' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-800">{rows.length} empresa(s) encontrada(s)</p>
+                <button onClick={() => { setRows([]); setStep('upload') }} className="text-xs text-gray-400 hover:underline">Trocar arquivo</button>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-gray-100">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {['razao_social', 'nome_fantasia', 'cnpj', 'email', 'faturado', 'cidade'].map(h => (
+                        <th key={h} className="px-3 py-2 text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {rows.slice(0, 20).map((row, i) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-medium text-gray-900">{row.razao_social || <span className="text-red-400">— vazio</span>}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.nome_fantasia || '—'}</td>
+                        <td className="px-3 py-2 font-mono text-gray-500">{row.cnpj || '—'}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.email || '—'}</td>
+                        <td className="px-3 py-2">{String(row.faturado).toLowerCase() === 'true' ? <span className="text-[#1565C0] font-semibold">Sim</span> : '—'}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.cidade || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {rows.length > 20 && <p className="text-xs text-center text-gray-400 py-2">+ {rows.length - 20} linhas não exibidas</p>}
+              </div>
+            </div>
+          )}
+
+          {/* STEP: results */}
+          {step === 'results' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-black text-[#2E7D32]">{results.filter(r => r.status === 'ok').length}</p>
+                  <p className="text-sm text-gray-600 font-medium">Importadas com sucesso</p>
+                </div>
+                <div className={`border rounded-xl p-4 text-center ${results.some(r => r.status === 'erro') ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'}`}>
+                  <p className={`text-2xl font-black ${results.some(r => r.status === 'erro') ? 'text-red-600' : 'text-gray-400'}`}>{results.filter(r => r.status === 'erro').length}</p>
+                  <p className="text-sm text-gray-600 font-medium">Com erro</p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                {results.map((r, i) => (
+                  <div key={i} className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${r.status === 'ok' ? 'bg-green-50' : 'bg-red-50'}`}>
+                    {r.status === 'ok'
+                      ? <CheckCircle size={14} className="text-[#2E7D32] shrink-0 mt-0.5" />
+                      : <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />}
+                    <div>
+                      <span className="font-semibold text-gray-800">Linha {r.linha}: </span>
+                      <span className="text-gray-600">{r.razao_social}</span>
+                      {r.motivo && <p className="text-red-500">{r.motivo}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {results.some(r => r.status === 'erro') && (
+                <button onClick={exportErrors} className="btn-secondary w-full">
+                  <Download size={16} /> Exportar linhas com erro
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t shrink-0">
+          {step === 'preview' && (
+            <button onClick={handleImport} disabled={importing} className="btn-primary w-full py-3">
+              {importing
+                ? <><Loader2 size={16} className="animate-spin" /> Importando {rows.length} empresas...</>
+                : <><Upload size={16} /> Confirmar Importação ({rows.length} empresas)</>}
+            </button>
+          )}
+          {step === 'results' && (
+            <button onClick={onClose} className="btn-primary w-full py-3">Fechar</button>
+          )}
+          {step === 'upload' && (
+            <button onClick={onClose} className="btn-secondary w-full py-3">Cancelar</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type DropdownPos = { top: number; left: number; openUp: boolean }
 
 export default function EmpresasPage() {
@@ -227,6 +429,7 @@ export default function EmpresasPage() {
   const [inviting, setInviting] = useState<string | null>(null)
   const [inviteMenu, setInviteMenu] = useState<string | null>(null)
   const [dropdownPos, setDropdownPos] = useState<DropdownPos | null>(null)
+  const [showImport, setShowImport] = useState(false)
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   const closeMenu = useCallback(() => {
@@ -325,9 +528,14 @@ export default function EmpresasPage() {
           <h1 className="text-xl font-bold text-gray-900">Empresas B2B</h1>
           <p className="text-sm text-gray-500">{companies.length} cadastradas</p>
         </div>
-        <button onClick={() => setModal({ open: true })} className="btn-primary">
-          <Plus size={18} /> Nova Empresa
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowImport(true)} className="btn-secondary">
+            <FileSpreadsheet size={16} /> Importar Excel
+          </button>
+          <button onClick={() => setModal({ open: true })} className="btn-primary">
+            <Plus size={18} /> Nova Empresa
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -441,6 +649,9 @@ export default function EmpresasPage() {
 
       {modal.open && (
         <CompanyModal company={modal.company} onClose={() => setModal({ open: false })} onSave={loadCompanies} />
+      )}
+      {showImport && (
+        <ImportModal onClose={() => setShowImport(false)} onDone={loadCompanies} />
       )}
     </div>
   )
