@@ -220,8 +220,20 @@ export default function EntregadorPage() {
   const gpsInterval = useRef<ReturnType<typeof setInterval> | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const realtimeChannel = useRef<any>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const ordersRef = useRef<Order[]>([])
 
   useEffect(() => {
+    const unlock = () => {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext()
+      } else if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume()
+      }
+    }
+    document.addEventListener('touchstart', unlock, { once: true })
+    document.addEventListener('click', unlock, { once: true })
+
     const supabase = createClient()
     init(supabase)
     return () => {
@@ -229,6 +241,27 @@ export default function EntregadorPage() {
       if (realtimeChannel.current) supabase.removeChannel(realtimeChannel.current)
     }
   }, [])
+
+  function playAlert() {
+    const ctx = audioCtxRef.current
+    if (!ctx) return
+    // Dois bipes ascendentes — som de campainha
+    const notes = [880, 1100]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const start = ctx.currentTime + i * 0.18
+      gain.gain.setValueAtTime(0.4, start)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25)
+      osc.start(start)
+      osc.stop(start + 0.25)
+    })
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
+  }
 
   async function init(supabase: ReturnType<typeof createClient>) {
     const { data: { user } } = await supabase.auth.getUser()
@@ -252,6 +285,7 @@ export default function EntregadorPage() {
       .eq('driver_id', uid)
       .in('status', ['CONFIRMADO', 'EM_ROTA'])
       .order('fila_posicao', { ascending: true, nullsFirst: false })
+    ordersRef.current = data || []
     setOrders(data || [])
   }
 
@@ -259,13 +293,24 @@ export default function EntregadorPage() {
     realtimeChannel.current = supabase
       .channel('driver-orders')
       .on('postgres_changes', {
-        event: '*',
+        event: 'INSERT',
         schema: 'public',
         table: 'orders',
         filter: `driver_id=eq.${uid}`,
       }, () => {
         loadOrders(uid)
-        if (alertOn) toast('Novo pedido atualizado!', { icon: '🔔' })
+        if (alertOn) {
+          playAlert()
+          toast('🔔 Novo pedido chegou!', { duration: 5000 })
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `driver_id=eq.${uid}`,
+      }, () => {
+        loadOrders(uid)
       })
       .subscribe()
   }
