@@ -281,16 +281,18 @@ export default function StorePage() {
   return (
     <div className="pb-28">
       {/* Promo Banner */}
-      {settings.banner_active && settings.banner_text && (
+      {settings.banner_active && (settings.banner_media_url || settings.banner_text) && (
         <div
           className="mx-4 mt-3 rounded-2xl overflow-hidden cursor-pointer"
           onClick={() => settings.banner_link && window.open(settings.banner_link, '_blank')}>
-          {settings.banner_media_url && settings.banner_media_type === 'image' ? (
+          {settings.banner_media_url ? (
             <div className="relative">
               <img src={settings.banner_media_url} alt="Promoção" className="w-full h-40 object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                <p className="text-white font-bold text-lg leading-tight">{settings.banner_text}</p>
-              </div>
+              {settings.banner_text && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                  <p className="text-white font-bold text-lg leading-tight">{settings.banner_text}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-gradient-to-r from-[#1565C0] to-[#1976D2] p-5">
