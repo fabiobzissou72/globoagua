@@ -10,7 +10,7 @@ const tenant = {
   seoKeywords: 'delivery, água, disk água, água rápida',
   whatsapp: '5511970307000',
   email: 'contato@globoagua.com.br',
-  logo: '/logo.png',
+  logo: '/logo.svg',
   colors: {
     primary: '#1565C0',      // azul Globo Água
     primaryDark: '#0D47A1',
